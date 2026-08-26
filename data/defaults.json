@@ -1,0 +1,100 @@
+{
+  "appVersion": "v28",
+  "dataFormatVersion": 3,
+  "storageKey": "lyrictube.library.v3",
+  "legacyStorageKey": "lyrictube.songs.v1",
+  "ports": {
+    "start": 4173,
+    "end": 4190
+  },
+  "external": {
+    "lrclibSearch": "https://lrclib.net/api/search",
+    "youtubeOembed": "https://www.youtube.com/oembed"
+  },
+  "notes": [
+    "ライブラリ保存形式はv03以降変更なし（lyrictube.library.v3）。",
+    "v01/v02のlyricsOffsetは符号を反転して移行する。",
+    "HTML/JS/CSSはno-storeで配信し、クエリ ?v=14 でキャッシュを分離する。"
+  ],
+  "design": {
+    "direction": "dark-music",
+    "ambientThumbnail": true,
+    "dynamicAccent": true,
+    "fixedBottomPlayer": true
+  },
+  "smartViews": [
+    "needsLyrics",
+    "needsSync",
+    "covers"
+  ],
+  "manualLyricsScrollPauseSeconds": 8,
+  "playlistQuickAdd": {
+    "enabled": true,
+    "changesPlayback": false,
+    "buttonLocation": "library-row-right"
+  },
+  "largeBrowsePage": {
+    "enabled": true,
+    "cardGrid": true,
+    "keepBrowseOpenWhenPlaying": true,
+    "quickPlaylistAddChangesPlayback": false
+  },
+  "lyricsTopLineFix": {
+    "resetScrollOnRender": true,
+    "topMaskRemoved": true,
+    "internalScrollOnly": true
+  },
+  "playlistDialogFix": {
+    "undefinedEscapeHtmlRemoved": true,
+    "safeDomTextRendering": true,
+    "quickAddKeepsPlayback": true
+  },
+  "lyricsFirstLineFix": {
+    "resetAfterRenderFrames": true,
+    "blockOldVideoTimeDuringSwitch": true,
+    "resetWhenBeforeFirstTimestamp": true,
+    "recoverFirstActiveLine": true,
+    "topMaskFade": false
+  },
+  "lyricsNormalModeLayoutFix": {
+    "headerSticky": false,
+    "headerTopOffset": 0,
+    "scrollChildMinHeightZero": true,
+    "firstLineCoveredByHeader": false
+  },
+  "syncInterludeMarker": {
+    "enabled": true,
+    "markerText": "♪",
+    "usesCurrentVideoTime": true,
+    "versionSpecific": true,
+    "undoable": true,
+    "deletable": true,
+    "preserveAfterLyricsEdit": true
+  },
+  "lyricsSearchV26": {
+    "identifiedLrclibClient": true,
+    "timeoutSeconds": 30,
+    "retryServerErrors": 1,
+    "honorRateLimit": true,
+    "sequentialThrottleMs": 350,
+    "resultCacheMinutes": 10,
+    "savedLrclibIdFirst": true,
+    "coverSingerArtistSeparation": true
+  },
+  "v27RegressionFix": {
+    "restoredGoogleLyricsHelpers": true,
+    "restoredYoutubePlayerMetadataFallback": true,
+    "criticalDialogCloseFallback": true,
+    "coreBootstrapBeforeOptionalEvents": true,
+    "readyMarker": "data-lyric-tube-ready=v27"
+  },
+  "deployment": {
+    "mode": "github-pages-static",
+    "serverRequired": false,
+    "githubPagesCompatible": true,
+    "lrclibDirectBrowser": true,
+    "youtubeDataApiSearch": false,
+    "youtubeMetadataViaIframePlayer": true,
+    "storage": "localStorage"
+  }
+}
