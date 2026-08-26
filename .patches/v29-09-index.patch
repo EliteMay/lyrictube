@@ -1,0 +1,31 @@
+diff --git a/index.html b/index.html
+--- a/index.html
++++ b/index.html
+@@ -425,10 +483,19 @@
+       <div class="shortcut-row"><kbd>Ctrl</kbd><span>＋</span><kbd>←</kbd><span>前の曲</span></div>
+       <div class="shortcut-row"><kbd>Ctrl</kbd><span>＋</span><kbd>→</kbd><span>次の曲</span></div>
+       <div class="shortcut-row"><kbd>F</kbd><span>お気に入り切替</span></div>
++      <div class="shortcut-row"><kbd>Shift</kbd><span>＋</span><kbd>T</kbd><span>同期画面で選択中の行に現在時間を打刻</span></div>
+       <div class="shortcut-row"><kbd>?</kbd><span>この一覧を表示</span></div>
+     </div>
+   </dialog>
+ 
++  <dialog id="helpDialog" class="dialog help-dialog">
++    <div class="dialog-head">
++      <div><p class="eyebrow">HELP</p><h3 id="helpDialogTitle">使い方</h3></div>
++      <button id="closeHelpDialog" class="icon-btn subtle" type="button">×</button>
++    </div>
++    <div id="helpDialogBody" class="help-dialog-body"></div>
++  </dialog>
++
+   <footer id="bottomPlayer" class="bottom-player">
+     <div class="bottom-now">
+       <div class="bottom-thumb"><img id="bottomThumb" alt=""></div>
+@@ -459,6 +526,6 @@
+   </footer>
+ 
+   <div id="toast" class="toast" aria-live="polite"></div>
+-  <script src="app.js?v=28"></script>
++  <script src="app.js?v=29"></script>
+ </body>
+ </html>
