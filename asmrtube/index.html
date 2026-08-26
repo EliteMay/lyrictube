@@ -6,6 +6,11 @@
   <meta name="theme-color" content="#111318">
   <title>ASMRTube</title>
   <link rel="stylesheet" href="styles.css">
+  <style>
+    .video-stage{max-width:960px;margin:0 auto 20px;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#05070a;box-shadow:0 18px 45px rgba(0,0,0,.2)}
+    #ytPlayerHost{width:100%;aspect-ratio:16/9;background:#05070a}
+    #ytPlayerHost iframe{display:block;width:100%!important;height:auto!important;aspect-ratio:16/9}
+  </style>
 </head>
 <body>
   <div class="app-shell">
@@ -44,6 +49,8 @@
         <button class="ghost" id="clearFiltersBtn">条件クリア</button>
       </section>
 
+      <section class="video-stage" aria-label="YouTubeプレイヤー"><div id="ytPlayerHost"></div></section>
+
       <section class="content-grid">
         <div class="library-panel">
           <div class="section-head"><strong id="resultCount">0件</strong><select id="sortSelect"><option value="new">新しく追加</option><option value="title">タイトル順</option><option value="rating">評価順</option></select></div>
@@ -63,8 +70,6 @@
     <div class="player-center"><button id="prevBtn">◀◀</button><button id="playBtn" class="play">▶</button><button id="nextBtn">▶▶</button><div class="progress-wrap"><span id="timeNow">0:00</span><input id="seek" type="range" min="0" max="1000" value="0"><span id="timeTotal">0:00</span></div></div>
     <div class="player-right"><button id="loopBtn">A-B</button><input id="volume" type="range" min="0" max="100" value="35"><button id="sleepBtn">🌙</button></div>
   </footer>
-
-  <div id="ytPlayerHost" class="yt-host"></div>
 
   <dialog id="videoDialog" class="dialog">
     <form method="dialog" id="videoForm">
