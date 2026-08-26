@@ -1,4 +1,4 @@
-const APP_VERSION = "v28";
+const APP_VERSION = "v29";
 const STORAGE_KEY = "lyrictube.library.v3";
 const LEGACY_KEY = "lyrictube.songs.v1";
 const LIB_VERSION = 3;
@@ -28,6 +28,7 @@ let lyricVideoSwitchPending = false;
 let lyricVideoSwitchStartedAt = 0;
 let lyricViewportResetToken = 0;
 let mainPage = "player";
+let syncSelectedIndex = 0;
 
 const $ = id => document.getElementById(id);
 const els = Object.fromEntries([
@@ -40,9 +41,10 @@ const els = Object.fromEntries([
   "songDialog","songForm","songDialogTitle","closeSongDialog","cancelSongBtn","editingSongId","initialVideoSection","youtubeUrl","fetchYoutubeInfoBtn","initialVersionType","initialPerformer","trackTitle","artistName","searchLyricsBtn","googleLyricsBtn","pasteLyricsBtn","lyricsInput","lyricsInputHint",
   "versionDialog","versionForm","versionDialogTitle","closeVersionDialog","cancelVersionBtn","deleteVersionBtn","editingVersionId","versionYoutubeUrl","fetchVersionInfoBtn","versionType","versionLabel","versionPerformer",
   "settingsDialog","closeSettingsDialog","lyricsSearchDialog","closeLyricsSearchDialog","lyricsSearchProgress","lyricsSearchResults","syncDialog","closeSyncDialog","syncEditorList","syncVideoTime","syncVideoDuration","syncRelativeTime","syncSeekBar","syncGoStartBtn","syncBack5Btn","syncBack1Btn","syncPlayPauseBtn","syncForward1Btn","syncForward5Btn","syncAddInterludeBtn","syncUndoBtn","resetSyncBtn","saveSyncBtn","useSharedSyncBtn",
+  "helpBtn","lyricsHelpBtn","syncHelpBtn","helpDialog","closeHelpDialog","helpDialogTitle","helpDialogBody","topHelpBtn","openHelpFromSettingsBtn",
   "playlistDialog","closePlaylistDialog","newPlaylistName","createPlaylistBtn","playlistDialogHint","playlistManageList",
   "miniPlayerBtn","shortcutDialog","closeShortcutDialog",
-  "lyricsFontSizeSlider","lyricsFontSizeValue","settingsAutoScroll","settingsBottomPlayer","settingsSpotlight","openShortcutFromSettingsBtn","settingsAppVersion",
+  "lyricsFontSizeSlider","lyricsFontSizeValue","settingsAutoScroll","settingsBottomPlayer","settingsSpotlight","openShortcutFromSettingsBtn","settingsAppVersion","settingsStartupPage","settingsCompactMode","settingsShowArtwork","settingsGlass","settingsReduceMotion","settingsHelpTips",
   "syncNudgeMinus1","syncNudgePlus1","syncNudgeMinus5","syncNudgePlus5",
   "fontSizeUpBtn","fontSizeDownBtn"
 ].map(id => [id, $(id)]));
@@ -56,7 +58,7 @@ function handleCriticalDialogClose(event){
   const criticalIds=new Set([
     "closeSongDialog","closeVersionDialog","closeSettingsDialog",
     "closeLyricsSearchDialog","closeSyncDialog",
-    "closePlaylistDialog","closeQueueDialog","closeShortcutDialog"
+    "closePlaylistDialog","closeQueueDialog","closeShortcutDialog","closeHelpDialog"
   ]);
   if(!criticalIds.has(id))return;
 
@@ -82,14 +84,15 @@ function handleCriticalDialogClose(event){
     closeVersionDialog:"versionDialog",
     closeSyncDialog:"syncDialog",
     closeQueueDialog:"queueDialog",
-    closeShortcutDialog:"shortcutDialog"
+    closeShortcutDialog:"shortcutDialog",
+    closeHelpDialog:"helpDialog"
   };
   const dialog=els[dialogByButton[id]];
   if(dialog?.open)dialog.close();
 }
 document.addEventListener("click",handleCriticalDialogClose,true);
 
-function defaultLibrary(){return{version:LIB_VERSION,songs:[],playlists:[],settings:{theme:"dark",lyricsFontSize:18,showBottomPlayer:true,spotlight:true,shuffle:false,repeat:"off",autoScroll:true,volume:80,mainPage:"player"}}}
+function defaultLibrary(){return{version:LIB_VERSION,songs:[],playlists:[],settings:{theme:"dark",lyricsFontSize:18,showBottomPlayer:true,spotlight:true,shuffle:false,repeat:"off",autoScroll:true,volume:80,mainPage:"player",startupPage:"player",compactMode:false,showArtwork:true,glassEffect:true,reduceMotion:false,helpTips:true}}}
 function uid(){return crypto.randomUUID?crypto.randomUUID():`${Date.now()}-${Math.random().toString(16).slice(2)}`}
 function nowIso(){return new Date().toISOString()}
 function normalizeText(v=""){return v.toLowerCase().normalize("NFKC").replace(/\s+/g," ").trim()}
@@ -282,7 +285,7 @@ function hasLrc(text=""){return /\[\d{1,3}:\d{2}(?:[.:]\d{1,3})?\]/.test(text)}
 
 function makeVersion({youtubeUrl="",videoId="",type="original",performer="",label="",rawYoutubeTitle="",rawYoutubeAuthor=""}={}){return{id:uid(),youtubeUrl,videoId,type,performer,label,rawYoutubeTitle,rawYoutubeAuthor,startTime:0,endTime:null,lyricsOffset:0,skipSegments:[],autoSkip:true,customSyncedLyrics:"",createdAt:nowIso(),updatedAt:nowIso()}}
 function migrateLegacy(raw){const out=defaultLibrary();if(!Array.isArray(raw))return out;out.songs=raw.map(s=>{const v=makeVersion({youtubeUrl:s.youtubeUrl||"",videoId:s.videoId||"",type:"original",performer:s.artist||""});v.lyricsOffset=-(Number(s.lyricsOffset)||0);return{id:s.id||uid(),title:s.title||"無題",artist:s.artist||"",plainLyrics:s.plainLyrics||"",syncedLyrics:s.syncedLyrics||"",lyricsSource:s.lyricsSource||"",lrclibId:s.lrclibId||"",favorite:false,playCount:0,lastPlayedAt:null,versions:[v],createdAt:s.createdAt||nowIso(),updatedAt:s.updatedAt||nowIso()}});return out}
-function normalizeLibrary(data){const base=defaultLibrary();if(!data||typeof data!=="object")return base;base.settings={...base.settings,...(data.settings||{})};if(!base.settings.theme)base.settings.theme="dark";if(!base.settings.lyricsFontSize)base.settings.lyricsFontSize=18;if(base.settings.showBottomPlayer===undefined)base.settings.showBottomPlayer=true;if(base.settings.spotlight===undefined)base.settings.spotlight=true;base.playlists=Array.isArray(data.playlists)?data.playlists.filter(p=>p&&p.id&&p.name).map(p=>({...p,songIds:Array.isArray(p.songIds)?p.songIds:[]})):[];base.songs=Array.isArray(data.songs)?data.songs.filter(Boolean).map(s=>({...s,id:s.id||uid(),title:s.title||"無題",artist:s.artist||"",plainLyrics:s.plainLyrics||"",syncedLyrics:s.syncedLyrics||"",favorite:Boolean(s.favorite),playCount:Number(s.playCount)||0,lastPlayedAt:s.lastPlayedAt||null,versions:(Array.isArray(s.versions)?s.versions:[]).map(v=>({...makeVersion(),...v,id:v.id||uid(),startTime:Number(v.startTime)||0,endTime:v.endTime===null||v.endTime===undefined?null:Number(v.endTime),lyricsOffset:Number(v.lyricsOffset)||0,skipSegments:Array.isArray(v.skipSegments)?v.skipSegments:[],autoSkip:v.autoSkip!==false,customSyncedLyrics:v.customSyncedLyrics||""}))})):[];base.version=LIB_VERSION;return base}
+function normalizeLibrary(data){const base=defaultLibrary();if(!data||typeof data!=="object")return base;base.settings={...base.settings,...(data.settings||{})};if(!base.settings.theme)base.settings.theme="dark";if(!base.settings.lyricsFontSize)base.settings.lyricsFontSize=18;if(base.settings.showBottomPlayer===undefined)base.settings.showBottomPlayer=true;if(base.settings.spotlight===undefined)base.settings.spotlight=true;if(base.settings.compactMode===undefined)base.settings.compactMode=false;if(base.settings.showArtwork===undefined)base.settings.showArtwork=true;if(base.settings.glassEffect===undefined)base.settings.glassEffect=true;if(base.settings.reduceMotion===undefined)base.settings.reduceMotion=false;if(base.settings.helpTips===undefined)base.settings.helpTips=true;if(!["player","browse"].includes(base.settings.mainPage))base.settings.mainPage="player";if(!["player","browse"].includes(base.settings.startupPage))base.settings.startupPage=base.settings.mainPage||"player";base.playlists=Array.isArray(data.playlists)?data.playlists.filter(p=>p&&p.id&&p.name).map(p=>({...p,songIds:Array.isArray(p.songIds)?p.songIds:[]})):[];base.songs=Array.isArray(data.songs)?data.songs.filter(Boolean).map(s=>({...s,id:s.id||uid(),title:s.title||"無題",artist:s.artist||"",plainLyrics:s.plainLyrics||"",syncedLyrics:s.syncedLyrics||"",favorite:Boolean(s.favorite),playCount:Number(s.playCount)||0,lastPlayedAt:s.lastPlayedAt||null,versions:(Array.isArray(s.versions)?s.versions:[]).map(v=>({...makeVersion(),...v,id:v.id||uid(),startTime:Number(v.startTime)||0,endTime:v.endTime===null||v.endTime===undefined?null:Number(v.endTime),lyricsOffset:Number(v.lyricsOffset)||0,skipSegments:Array.isArray(v.skipSegments)?v.skipSegments:[],autoSkip:v.autoSkip!==false,customSyncedLyrics:v.customSyncedLyrics||""}))})):[];base.version=LIB_VERSION;return base}
 function loadLibrary(){try{const v3=localStorage.getItem(STORAGE_KEY);if(v3){library=normalizeLibrary(JSON.parse(v3));return}const legacy=localStorage.getItem(LEGACY_KEY);if(legacy){library=migrateLegacy(JSON.parse(legacy));persistLibrary();showToast("以前の曲データを新しい形式へ移行しました。");return}}catch(e){console.warn(e)}library=defaultLibrary()}
 function persistLibrary(){localStorage.setItem(STORAGE_KEY,JSON.stringify(library))}
 
@@ -473,7 +476,7 @@ function renderBrowse(){
     els.browseGrid.appendChild(card);
   }
 }
-function renderAll(){ensureSelection();renderViewNav();renderPlaylists();renderLibrary();renderBrowse();renderSelectedSong();renderBottomPlayer();updateVisualTheme();renderMainPage()}
+function renderAll(){ensureSelection();applyUiSettings();renderViewNav();renderPlaylists();renderLibrary();renderBrowse();renderSelectedSong();renderBottomPlayer();updateVisualTheme();renderMainPage()}
 function renderViewNav(){
   document.querySelectorAll(".view-btn").forEach(btn=>btn.classList.toggle("active",btn.dataset.view===currentView.type));
   els.allCount.textContent=library.songs.length;
@@ -893,6 +896,47 @@ function toggleSpotlight(){
   const sp=document.getElementById("spotlight");
   if(sp)sp.style.display=on?"block":"none";
 }
+const HELP_TOPICS={
+  overview:{title:"LyricTubeの使い方",html:[
+    "<section class=\"help-block\"><h4>まずやること</h4><ol><li>「＋ 曲を追加」からYouTube URLを登録</li><li>歌詞を貼るか、自動歌詞検索を使う</li><li>必要なら「この動画専用に歌詞時間を合わせる」で同期</li></ol></section>",
+    "<section class=\"help-block\"><h4>保存について</h4><p>曲・歌詞・プレイリスト・設定は、このブラウザの localStorage に保存されます。別のPCや別ブラウザでは自動共有されないので、必要なら書き出しを使ってください。</p></section>",
+    "<section class=\"help-block\"><h4>おすすめの使い方</h4><p>原曲を1つ作って、Cover・Live・FIRST TAKE を別バージョンで追加すると管理しやすいです。</p></section>"
+  ].join("")},
+  player:{title:"再生画面ヘルプ",html:[
+    "<section class=\"help-block\"><h4>再生画面</h4><p>左に動画、右に歌詞を並べて見られます。自動スクロールは手動で歌詞を触ると一時停止し、またONに戻せます。</p></section>",
+    "<section class=\"help-block\"><h4>プレイリスト追加</h4><p>一覧の「＋」は、今流れている曲を変えずにプレイリストへ追加するためのボタンです。</p></section>"
+  ].join("")},
+  lyrics:{title:"歌詞ヘルプ",html:[
+    "<section class=\"help-block\"><h4>歌詞の入れ方</h4><p>手動で貼り付けるほか、LRC形式なら時間付きのまま保存できます。通常歌詞だけでもあとから同期できます。</p></section>",
+    "<section class=\"help-block\"><h4>画面からOCRする</h4><p>WindowsでPowerToys Text Extractorを使っている場合、通常は <strong>Win + Shift + T</strong> → 歌詞部分を範囲選択 → LyricTubeへ <strong>Ctrl + V</strong> で貼り付けできます。ショートカットを変更している場合はPowerToys側の設定を使ってください。</p></section>",
+    "<section class=\"help-block\"><h4>見やすくする</h4><p>大きく表示・A＋/A−・自動スクロールON/OFFを使うと見やすさを調整できます。</p></section>"
+  ].join("")},
+  sync:{title:"歌詞時間合わせヘルプ",html:[
+    "<section class=\"help-block\"><h4>基本</h4><p>各行の「今の時間」でその行に現在の再生位置を入れられます。シークバーで何度でも戻れるので、ミスしてもやり直せます。</p></section>",
+    "<section class=\"help-block\"><h4>便利操作</h4><ul><li>行をクリックして選択</li><li><strong>Shift + T</strong> で選択中の行に現在時間を打刻</li><li>各行の <strong>-0.5 / -0.1 / +0.1 / +0.5</strong> は、その1行の保存時間だけを微調整（動画は動かない）</li><li>上部の±0.1 / ±0.5秒は全行を一括補正</li><li>「♪ 間奏を追加」で音符行を追加</li></ul></section>"
+  ].join("")},
+  settings:{title:"設定ヘルプ",html:[
+    "<section class=\"help-block\"><h4>起動</h4><p>再生画面と曲を探す画面のどちらを最初に開くか選べます。</p></section>",
+    "<section class=\"help-block\"><h4>表示</h4><p>コンパクト表示、サムネイル表示、ガラス風質感、動きの抑制などを切り替えられます。</p></section>",
+    "<section class=\"help-block\"><h4>ショートカット</h4><p>ブラウザ版なので Win + Shift + T のようなPC全体のショートカットは取得できません。代わりにページを開いている間だけ使えるショートカットを用意しています。</p></section>"
+  ].join("")}
+};
+function applyUiSettings(){
+  document.body.classList.toggle("density-compact",!!library.settings.compactMode);
+  document.body.classList.toggle("hide-library-thumbs",library.settings.showArtwork===false);
+  document.body.classList.toggle("glass-off",library.settings.glassEffect===false);
+  document.body.classList.toggle("reduce-motion",!!library.settings.reduceMotion);
+  document.body.classList.toggle("hide-help-tips",library.settings.helpTips===false);
+}
+function openHelpDialog(topic="overview"){
+  leaveLyricsFullscreenForDialog();
+  const data=HELP_TOPICS[topic]||HELP_TOPICS.overview;
+  if(els.helpDialogTitle)els.helpDialogTitle.textContent=data.title;
+  if(els.helpDialogBody)els.helpDialogBody.innerHTML=data.html;
+  if(!els.helpDialog.open)els.helpDialog.showModal();
+}
+function closeHelpDialog(){if(els.helpDialog?.open)els.helpDialog.close()}
+
 function playerDurationSafe(){try{return Math.max(0,Number(ytPlayer?.getDuration?.())||0)}catch{return 0}}
 function playerStateSafe(){try{return Number(ytPlayer?.getPlayerState?.())}catch{return -1}}
 function renderBottomPlayer(){
@@ -1547,6 +1591,12 @@ function openSettingsDialog(){
   els.settingsAutoScroll.checked=library.settings.autoScroll!==false;
   els.settingsBottomPlayer.checked=library.settings.showBottomPlayer!==false;
   els.settingsSpotlight.checked=library.settings.spotlight!==false;
+  if(els.settingsStartupPage)els.settingsStartupPage.value=library.settings.startupPage||"player";
+  if(els.settingsCompactMode)els.settingsCompactMode.checked=!!library.settings.compactMode;
+  if(els.settingsShowArtwork)els.settingsShowArtwork.checked=library.settings.showArtwork!==false;
+  if(els.settingsGlass)els.settingsGlass.checked=library.settings.glassEffect!==false;
+  if(els.settingsReduceMotion)els.settingsReduceMotion.checked=!!library.settings.reduceMotion;
+  if(els.settingsHelpTips)els.settingsHelpTips.checked=library.settings.helpTips!==false;
   els.settingsAppVersion.textContent=`GH ${APP_VERSION}`;
   if(!els.settingsDialog.open)els.settingsDialog.showModal();
 }
@@ -2243,6 +2293,11 @@ async function importLibrary(file){
     currentView={type:"all",playlistId:null};
 
     persistLibrary();
+    applyTheme();
+    applyLyricsFontSize();
+    applyUiSettings();
+    toggleBottomPlayer();
+    toggleSpotlight();
     renderAll();
 
     if(selectedSongId&&selectedVersionId){
@@ -2545,6 +2600,52 @@ function findInterludeInsertIndex(atTime){
   // Append rather than guessing between Google-imported lines.
   return syncDraft.length;
 }
+function setSelectedSyncLine(index,{scroll=false}={}){
+  syncSelectedIndex=clamp(Number(index)||0,0,Math.max(0,syncDraft.length-1));
+  document.querySelectorAll(".sync-editor-row").forEach((row,i)=>{row.classList.toggle("selected",i===syncSelectedIndex)});
+  if(scroll){
+    const target=document.querySelector(`.sync-editor-row[data-index="${syncSelectedIndex}"]`);
+    target?.scrollIntoView({block:"nearest",behavior:"smooth"});
+  }
+}
+function stampSyncLine(index){
+  const line=syncDraft[index];
+  if(!line)return;
+  pushSyncUndo({type:"line",index,prevTime:line.time});
+  line.time=syncRelativeSeconds(currentPlayerTime());
+  renderSyncEditor();
+  setSelectedSyncLine(index,{scroll:true});
+  showToast(`${index+1}行目を ${formatTime(line.time)} に設定しました。`);
+}
+function nudgeSyncLine(index,deltaSec){
+  const line=syncDraft[index];
+  if(!line)return;
+  const scrollTop=els.syncEditorList.scrollTop;
+  pushSyncUndo({type:"line",index,prevTime:Number(line.time)||0});
+  line.time=Math.max(0,(Number(line.time)||0)+deltaSec);
+  syncSelectedIndex=index;
+  renderSyncEditor();
+  requestAnimationFrame(()=>{
+    els.syncEditorList.scrollTop=scrollTop;
+    const row=els.syncEditorList.querySelector(`.sync-editor-row[data-index="${index}"]`);
+    row?.classList.add("changed","line-adjusted");
+  });
+  updateSyncUndoButton();
+  showToast(`この行だけ ${deltaSec>0?"+":""}${deltaSec.toFixed(1)}秒。動画位置は動きません。`);
+}
+function makeSyncLineNudgeButton(index,delta){
+  const btn=document.createElement("button");
+  btn.type="button";
+  btn.className="sync-line-nudge-btn";
+  btn.textContent=`${delta>0?"+":""}${delta.toFixed(1)}`;
+  btn.title=`この歌詞行の保存時間だけ ${delta>0?"+":""}${delta.toFixed(1)}秒変更（動画は動きません）`;
+  btn.addEventListener("click",e=>{
+    e.stopPropagation();
+    setSelectedSyncLine(index);
+    nudgeSyncLine(index,delta);
+  });
+  return btn;
+}
 function addInterludeMarker(){
   if(!els.syncDialog.open||!syncDraft.length)return;
   const at=syncRelativeSeconds(currentPlayerTime());
@@ -2584,19 +2685,22 @@ function renderSyncEditor(){
   syncDraft.forEach((line,index)=>{
     const marker=isSyncMarkerText(line.text);
     const row=document.createElement("div");
-    row.className=`sync-editor-row${marker?" interlude":""}`;
+    row.className=`sync-editor-row${marker?" interlude":""}${index===syncSelectedIndex?" selected":""}`;
     row.dataset.index=index;
+    row.addEventListener("click",()=>setSelectedSyncLine(index));
 
     const timeInput=document.createElement("input");
     timeInput.type="text";
     timeInput.value=formatTime(line.time);
     timeInput.setAttribute("aria-label",`${index+1}行目の時間`);
+    timeInput.addEventListener("focus",()=>setSelectedSyncLine(index));
     timeInput.addEventListener("change",()=>{
       const next=parseTimecode(timeInput.value);
       pushSyncUndo({type:"line",index,prevTime:line.time});
       line.time=next;
       timeInput.value=formatTime(next);
       row.classList.add("changed");
+      setSelectedSyncLine(index);
     });
 
     const text=document.createElement("div");
@@ -2609,15 +2713,14 @@ function renderSyncEditor(){
     const stamp=document.createElement("button");
     stamp.type="button";
     stamp.className="stamp-btn";
-    stamp.textContent="今の時間";
+    stamp.textContent=index===syncSelectedIndex?"今の時間を入れる（選択中）":"今の時間";
     stamp.title=marker
       ?"動画の現在位置をこの ♪ の時間に設定"
       :"動画の現在位置をこの行の時間に設定（押し直せば上書き）";
-    stamp.addEventListener("click",()=>{
-      pushSyncUndo({type:"line",index,prevTime:line.time});
-      line.time=syncRelativeSeconds(currentPlayerTime());
-      timeInput.value=formatTime(line.time);
-      row.classList.add("changed");
+    stamp.addEventListener("click",e=>{
+      e.stopPropagation();
+      setSelectedSyncLine(index);
+      stampSyncLine(index);
     });
 
     const go=document.createElement("button");
@@ -2625,12 +2728,28 @@ function renderSyncEditor(){
     go.className="sync-seek-line-btn";
     go.textContent="この時間へ";
     go.title="この行の時間へ動画を移動";
-    go.addEventListener("click",()=>{
+    go.addEventListener("click",e=>{
+      e.stopPropagation();
+      setSelectedSyncLine(index);
       const v=getVersion();
       seekSyncPlayer(Number(v?.startTime||0)+line.time+Number(v?.lyricsOffset||0));
     });
 
     actions.append(stamp,go);
+
+    const lineNudge=document.createElement("div");
+    lineNudge.className="sync-line-nudge";
+    const lineLabel=document.createElement("span");
+    lineLabel.className="sync-line-nudge-label";
+    lineLabel.textContent="この行だけ";
+    lineNudge.append(
+      lineLabel,
+      makeSyncLineNudgeButton(index,-0.5),
+      makeSyncLineNudgeButton(index,-0.1),
+      makeSyncLineNudgeButton(index,0.1),
+      makeSyncLineNudgeButton(index,0.5)
+    );
+    actions.appendChild(lineNudge);
 
     if(marker){
       const del=document.createElement("button");
@@ -2638,7 +2757,7 @@ function renderSyncEditor(){
       del.className="sync-delete-marker-btn";
       del.textContent="♪を削除";
       del.title="この間奏マーカーだけ削除";
-      del.addEventListener("click",()=>removeInterludeMarker(index));
+      del.addEventListener("click",e=>{e.stopPropagation();removeInterludeMarker(index)});
       actions.appendChild(del);
     }
 
@@ -2648,12 +2767,16 @@ function renderSyncEditor(){
 }
 function nudgeAllSyncTimes(deltaSec){
   if(!syncDraft.length)return;
-  syncDraft.forEach(line=>{if(line.time!==null&&line.time!==undefined)line.time=Math.max(0,line.time+deltaSec)});
-  pushSyncUndo();
+  pushSyncUndo({type:"all",prevTimes:syncDraft.map(line=>Number(line.time)||0)});
+  syncDraft.forEach(line=>{
+    if(line.time!==null&&line.time!==undefined){
+      line.time=Math.max(0,(Number(line.time)||0)+deltaSec);
+    }
+  });
   renderSyncEditor();
   updateSyncTransport();
   updateSyncUndoButton();
-  showToast(`歌詞時間を全行 ${deltaSec>0?"+":""}${deltaSec}秒 ずらしました`);
+  showToast(`全行を ${deltaSec>0?"+":""}${deltaSec.toFixed(1)}秒補正しました。動画位置は動きません。`);
 }
 function openSyncEditor(){
   const song=getSong(),v=getVersion(song);
@@ -2669,7 +2792,9 @@ function openSyncEditor(){
   }
   syncDraft=source.map(line=>({time:Number(line.time)||0,text:line.text}));
   syncUndoStack=[];
+  syncSelectedIndex=0;
   renderSyncEditor();
+  setSelectedSyncLine(0);
   updateSyncUndoButton();
   els.syncDialog.showModal();
   updateSyncTransport();
@@ -2740,6 +2865,36 @@ els.settingsSpotlight.addEventListener('change',()=>{
   toggleSpotlight();
   persistLibrary();
 });
+els.settingsStartupPage?.addEventListener('change',()=>{
+  library.settings.startupPage=els.settingsStartupPage.value;
+  persistLibrary();
+  showToast(`次回は「${els.settingsStartupPage.value==="browse"?"曲を探す":"再生画面"}」から開きます。`);
+});
+els.settingsCompactMode?.addEventListener('change',()=>{
+  library.settings.compactMode=els.settingsCompactMode.checked;
+  applyUiSettings();
+  persistLibrary();
+});
+els.settingsShowArtwork?.addEventListener('change',()=>{
+  library.settings.showArtwork=els.settingsShowArtwork.checked;
+  applyUiSettings();
+  persistLibrary();
+});
+els.settingsGlass?.addEventListener('change',()=>{
+  library.settings.glassEffect=els.settingsGlass.checked;
+  applyUiSettings();
+  persistLibrary();
+});
+els.settingsReduceMotion?.addEventListener('change',()=>{
+  library.settings.reduceMotion=els.settingsReduceMotion.checked;
+  applyUiSettings();
+  persistLibrary();
+});
+els.settingsHelpTips?.addEventListener('change',()=>{
+  library.settings.helpTips=els.settingsHelpTips.checked;
+  applyUiSettings();
+  persistLibrary();
+});
 els.openShortcutFromSettingsBtn.addEventListener('click',()=>{
   els.shortcutDialog.showModal();
 });
@@ -2765,8 +2920,8 @@ els.favoriteBtn.addEventListener("click",toggleFavorite);
 els.playlistBtn.addEventListener("click",()=>openPlaylistDialog(selectedSongId));
 els.managePlaylistsBtn.addEventListener("click",()=>openPlaylistDialog(null));
 
-els.playerPageBtn.addEventListener("click",()=>setMainPage("player"));
-els.browsePageBtn.addEventListener("click",()=>setMainPage("browse"));
+els.playerPageBtn.addEventListener("click",()=>setMainPage("player",{persist:false}));
+els.browsePageBtn.addEventListener("click",()=>setMainPage("browse",{persist:false}));
 
 els.librarySearch.addEventListener("input",()=>{
   els.browseSearch.value=els.librarySearch.value;
@@ -2854,7 +3009,7 @@ els.bottomVolume.addEventListener("change",persistLibrary);
 
 window.addEventListener("focus",focusLyricsAfterGoogle);
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")focusLyricsAfterGoogle()});
-window.addEventListener("keydown",e=>{if(["INPUT","TEXTAREA","SELECT"].includes(document.activeElement?.tagName))return;if(e.code==="Space"){e.preventDefault();try{ytPlayer?.getPlayerState?.()===1?ytPlayer.pauseVideo():ytPlayer.playVideo()}catch{}}else if(e.key==="ArrowRight"&&!e.ctrlKey){try{ytPlayer.seekTo(currentPlayerTime()+5,true)}catch{}}else if(e.key==="ArrowLeft"&&!e.ctrlKey){try{ytPlayer.seekTo(Math.max(0,currentPlayerTime()-5),true)}catch{}}else if(e.ctrlKey&&e.key==="ArrowRight"){e.preventDefault();playAdjacent(1,true,false)}else if(e.ctrlKey&&e.key==="ArrowLeft"){e.preventDefault();playAdjacent(-1,true,false)}else if(e.key.toLowerCase()==="f"){toggleFavorite()}else if(e.key==="?"||e.key==="/"){e.preventDefault();els.shortcutDialog.showModal()}});
+window.addEventListener("keydown",e=>{if(els.syncDialog?.open&&e.shiftKey&&e.key.toLowerCase()==="t"){e.preventDefault();stampSyncLine(syncSelectedIndex);return}if(["INPUT","TEXTAREA","SELECT"].includes(document.activeElement?.tagName))return;if(e.code==="Space"){e.preventDefault();try{ytPlayer?.getPlayerState?.()===1?ytPlayer.pauseVideo():ytPlayer.playVideo()}catch{}}else if(e.key==="ArrowRight"&&!e.ctrlKey){try{ytPlayer.seekTo(currentPlayerTime()+5,true)}catch{}}else if(e.key==="ArrowLeft"&&!e.ctrlKey){try{ytPlayer.seekTo(Math.max(0,currentPlayerTime()-5),true)}catch{}}else if(e.ctrlKey&&e.key==="ArrowRight"){e.preventDefault();playAdjacent(1,true,false)}else if(e.ctrlKey&&e.key==="ArrowLeft"){e.preventDefault();playAdjacent(-1,true,false)}else if(e.key.toLowerCase()==="f"){toggleFavorite()}else if(e.key==="?"||e.key==="/"){e.preventDefault();els.shortcutDialog.showModal()}});
 
 let miniPlayerActive=false;
 function toggleMiniPlayer(){
@@ -2867,6 +3022,8 @@ function toggleMiniPlayer(){
 }
 els.miniPlayerBtn.addEventListener('click',toggleMiniPlayer);
 els.closeShortcutDialog.addEventListener('click',()=>els.shortcutDialog.close());
+els.closeHelpDialog?.addEventListener('click',closeHelpDialog);
+document.querySelectorAll('[data-help-topic]').forEach(btn=>{btn.addEventListener('click',()=>openHelpDialog(btn.dataset.helpTopic||'overview'))});
 
 // Font size controls
 let lyricsScale=Number(library.settings?.lyricsScale)||1;
@@ -2910,9 +3067,10 @@ function bootstrapCore(){
   loadLibrary();
   applyTheme();
   applyLyricsFontSize();
+  applyUiSettings();
   toggleBottomPlayer();
   toggleSpotlight();
-  mainPage=library.settings.mainPage==="browse"?"browse":"player";
+  mainPage=library.settings.startupPage==="browse"?"browse":"player";
   ensureSelection();
   renderAll();
   updateModeButtons();
@@ -2922,5 +3080,5 @@ function bootstrapCore(){
   syncTimer=setInterval(playbackTick,180);
   loadYoutubeApi();
 
-  document.documentElement.dataset.lyricTubeReady="v28";
+  document.documentElement.dataset.lyricTubeReady="v29";
 }
