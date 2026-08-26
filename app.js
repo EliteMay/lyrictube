@@ -1,4 +1,4 @@
-const APP_VERSION = "v29";
+const APP_VERSION = "v30";
 const STORAGE_KEY = "lyrictube.library.v3";
 const LEGACY_KEY = "lyrictube.songs.v1";
 const LIB_VERSION = 3;
@@ -883,8 +883,12 @@ function setTheme(name){
   renderThemeButtons();
 }
 function applyLyricsFontSize(){
-  const size=library.settings.lyricsFontSize||18;
+  const size=clamp(Number(library.settings.lyricsFontSize)||18,12,32);
+  library.settings.lyricsFontSize=size;
   document.documentElement.style.setProperty("--lyric-font-size",size+"px");
+  document.documentElement.style.setProperty("--lyric-font-size-full",Math.round(size*1.65)+"px");
+  if(els.lyricsFontSizeSlider)els.lyricsFontSizeSlider.value=String(size);
+  if(els.lyricsFontSizeValue)els.lyricsFontSizeValue.textContent=size+"px";
 }
 function toggleBottomPlayer(){
   const show=library.settings.showBottomPlayer!==false;
@@ -933,9 +937,18 @@ function openHelpDialog(topic="overview"){
   const data=HELP_TOPICS[topic]||HELP_TOPICS.overview;
   if(els.helpDialogTitle)els.helpDialogTitle.textContent=data.title;
   if(els.helpDialogBody)els.helpDialogBody.innerHTML=data.html;
-  if(!els.helpDialog.open)els.helpDialog.showModal();
+  if(!els.helpDialog)return;
+  if(typeof els.helpDialog.showModal==="function"){
+    if(!els.helpDialog.open)els.helpDialog.showModal();
+  }else{
+    els.helpDialog.setAttribute("open","open");
+  }
 }
-function closeHelpDialog(){if(els.helpDialog?.open)els.helpDialog.close()}
+function closeHelpDialog(){
+  if(!els.helpDialog)return;
+  if(typeof els.helpDialog.close==="function"&&els.helpDialog.open)els.helpDialog.close();
+  else els.helpDialog.removeAttribute("open");
+}
 
 function playerDurationSafe(){try{return Math.max(0,Number(ytPlayer?.getDuration?.())||0)}catch{return 0}}
 function playerStateSafe(){try{return Number(ytPlayer?.getPlayerState?.())}catch{return -1}}
@@ -3023,19 +3036,18 @@ function toggleMiniPlayer(){
 els.miniPlayerBtn.addEventListener('click',toggleMiniPlayer);
 els.closeShortcutDialog.addEventListener('click',()=>els.shortcutDialog.close());
 els.closeHelpDialog?.addEventListener('click',closeHelpDialog);
-document.querySelectorAll('[data-help-topic]').forEach(btn=>{btn.addEventListener('click',()=>openHelpDialog(btn.dataset.helpTopic||'overview'))});
+document.addEventListener('click',e=>{const btn=e.target.closest('[data-help-topic]');if(!btn)return;e.preventDefault();e.stopPropagation();openHelpDialog(btn.dataset.helpTopic||'overview')});
 
-// Font size controls
-let lyricsScale=Number(library.settings?.lyricsScale)||1;
-document.documentElement.style.setProperty('--lyrics-scale',String(lyricsScale));
-function changeLyricsScale(delta){
-  lyricsScale=Math.max(0.7,Math.min(1.6,lyricsScale+delta));
-  document.documentElement.style.setProperty('--lyrics-scale',String(lyricsScale));
-  library.settings.lyricsScale=lyricsScale;
+// Font size controls: use the same setting as the settings slider.
+function changeLyricsFontSize(deltaPx){
+  const current=Number(library.settings.lyricsFontSize)||18;
+  library.settings.lyricsFontSize=clamp(current+deltaPx,12,32);
+  applyLyricsFontSize();
   persistLibrary();
+  showToast(`歌詞サイズ ${library.settings.lyricsFontSize}px`);
 }
-els.fontSizeUpBtn?.addEventListener('click',()=>changeLyricsScale(0.1));
-els.fontSizeDownBtn?.addEventListener('click',()=>changeLyricsScale(-0.1));
+els.fontSizeUpBtn?.addEventListener('click',()=>changeLyricsFontSize(2));
+els.fontSizeDownBtn?.addEventListener('click',()=>changeLyricsFontSize(-2));
 
 // Visualizer: is-playing state
 function updatePlayingState(){

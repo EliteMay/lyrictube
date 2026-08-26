@@ -2250,3 +2250,208 @@ body.reduce-motion *::after{
   .sync-line-nudge{width:100%;margin-left:0}
   .sync-line-nudge-btn{flex:1}
 }
+
+
+/* Help icon buttons */
+.help-icon-btn{
+  width:34px;
+  min-width:34px;
+  height:34px;
+  padding:0;
+  border-radius:999px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:800;
+  font-size:15px;
+  line-height:1;
+}
+.chip.help-icon-btn{
+  width:32px;
+  min-width:32px;
+  height:32px;
+  padding:0;
+}
+.top-actions .help-icon-btn,
+.settings-actions .help-icon-btn,
+.inline-actions .help-icon-btn,
+.sidebar-tools .help-icon-btn{
+  flex:0 0 auto;
+}
+
+
+/* ==========================================================
+   v30: scroll / lyrics size / help icon / theme consistency
+   ========================================================== */
+:root{
+  --accentText:hsl(var(--accent-h) 82% 88%);
+  --controlSurface:var(--panel2);
+  --inputSurface:#0c0e12;
+  --subtleText:var(--muted);
+  --lyric-font-size-full:30px;
+}
+
+/* Sidebar: the library list is the scroll area on desktop and touch screens. */
+.sidebar{
+  min-height:0;
+  overflow:hidden;
+}
+.song-list{
+  min-height:80px;
+  flex:1 1 auto;
+  overflow-y:auto!important;
+  overflow-x:hidden;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+  touch-action:pan-y;
+  scrollbar-gutter:stable;
+}
+.sidebar-tools{flex:0 0 auto}
+
+/* Help buttons stay a true circle even inside grid/flex layouts. */
+.help-icon-btn,
+.ghost-btn.help-icon-btn,
+.chip.help-icon-btn{
+  inline-size:32px!important;
+  block-size:32px!important;
+  min-inline-size:32px!important;
+  max-inline-size:32px!important;
+  min-block-size:32px!important;
+  max-block-size:32px!important;
+  padding:0!important;
+  border-radius:50%!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  justify-self:start;
+  align-self:center;
+  line-height:1!important;
+  font-size:15px!important;
+  font-weight:850!important;
+  white-space:nowrap;
+}
+
+/* A-/A+ and the settings slider now share one actual font-size variable. */
+.lyric-line{
+  font-size:var(--lyric-font-size,18px)!important;
+}
+.lyrics-panel.fullscreen .lyric-line{
+  font-size:var(--lyric-font-size-full,30px)!important;
+}
+.plain-lyrics{
+  font-size:var(--lyric-font-size,18px)!important;
+}
+
+/* Accent-dependent controls: no fixed purple remains in visible active states. */
+.primary-soft,
+.view-btn.active,
+.version-tab.active,
+.mode-btn.active,
+.status-pill.synced,
+.chip.active,
+.stamp-btn,
+.mini-badge.good,
+.ghost-btn.help-launch,
+.chip.help-chip{
+  border-color:hsl(var(--accent-h) 72% 64% / .26)!important;
+  background:hsl(var(--accent-h) 72% 60% / .13)!important;
+  color:var(--accentText)!important;
+}
+.song-item.active,
+.lyrics-source-box{
+  border-color:hsl(var(--accent-h) 72% 64% / .24)!important;
+}
+.player-placeholder{
+  background:radial-gradient(circle at 50% 20%,hsl(var(--accent-h) 72% 56% / .16),transparent 35%),var(--panel)!important;
+}
+.placeholder-mark,.favorite-mark{color:var(--accentText)!important}
+
+/* All ordinary controls inherit the theme's readable foreground. */
+.ghost-btn,.icon-btn,.chip,.mode-btn,.transport-btn,.range-box button,.mini-icon,
+.offset-controls button,.theme-btn,.version-tab,.result-item,.playlist-item,.view-btn{
+  color:var(--text);
+}
+.dialog input,.dialog textarea,.dialog select,.offset-controls input,.sync-editor-row input{
+  color:var(--text)!important;
+  background:var(--inputSurface)!important;
+}
+.switch-row,.skip-row .time,.plain-lyrics,.help-block p,.help-block li{
+  color:var(--text);
+}
+.muted,.small,.slider-label,.song-meta span,.nav-count,.library-head,.playlist-head{
+  color:var(--muted)!important;
+}
+
+/* Light themes need light surfaces too; dark hard-coded cards caused unreadable text. */
+body.theme-light,
+body.theme-sepia{
+  --accentText:hsl(var(--accent-h) 70% 32%);
+  --inputSurface:var(--panel2);
+}
+body.theme-light .range-box,
+body.theme-light .skip-row,
+body.theme-light .version-tab,
+body.theme-light .result-item,
+body.theme-light .sync-editor-row,
+body.theme-light .playlist-manage-row,
+body.theme-light .help-block,
+body.theme-light .settings-section,
+body.theme-light .queue-item,
+body.theme-sepia .range-box,
+body.theme-sepia .skip-row,
+body.theme-sepia .version-tab,
+body.theme-sepia .result-item,
+body.theme-sepia .sync-editor-row,
+body.theme-sepia .playlist-manage-row,
+body.theme-sepia .help-block,
+body.theme-sepia .settings-section,
+body.theme-sepia .queue-item{
+  background:var(--panel2)!important;
+  border-color:var(--border)!important;
+  color:var(--text)!important;
+}
+body.theme-light .status-pill,
+body.theme-sepia .status-pill{
+  background:rgba(0,0,0,.045);
+}
+body.theme-light .sticky-actions,
+body.theme-sepia .sticky-actions{
+  background:color-mix(in srgb,var(--panel) 94%,transparent)!important;
+}
+body.theme-light .lyrics-panel.fullscreen,
+body.theme-sepia .lyrics-panel.fullscreen{
+  background:var(--panel)!important;
+}
+
+/* Dark theme families also follow each theme's panel variables instead of fixed black. */
+body.theme-synthwave .range-box,
+body.theme-synthwave .skip-row,
+body.theme-synthwave .version-tab,
+body.theme-synthwave .result-item,
+body.theme-synthwave .sync-editor-row,
+body.theme-synthwave .playlist-manage-row,
+body.theme-synthwave .help-block,
+body.theme-midnight .range-box,
+body.theme-midnight .skip-row,
+body.theme-midnight .version-tab,
+body.theme-midnight .result-item,
+body.theme-midnight .sync-editor-row,
+body.theme-midnight .playlist-manage-row,
+body.theme-midnight .help-block{
+  background:var(--panel2)!important;
+  color:var(--text)!important;
+}
+
+@media(max-width:780px){
+  .sidebar{overflow:visible;min-height:0}
+  .song-list{
+    min-height:150px;
+    max-height:min(42vh,360px)!important;
+    overflow-y:auto!important;
+    touch-action:pan-y;
+  }
+  .sidebar-tools{
+    position:relative;
+    z-index:2;
+  }
+}
