@@ -2455,3 +2455,54 @@ body.theme-midnight .help-block{
     z-index:2;
   }
 }
+
+
+/* ==========================================================
+   v30.1: theme-aware dark stage
+   Keep the media workspace dark for focus, but tint it to match
+   the selected theme instead of leaving one fixed black background.
+   ========================================================== */
+body.theme-dark{
+  background:
+    radial-gradient(circle at 18% -8%,hsl(var(--accent-h) 72% 58% / .12),transparent 25%),
+    radial-gradient(circle at 82% -2%,hsl(var(--accent-h) 68% 52% / .08),transparent 22%),
+    linear-gradient(180deg,#070a10 0%,#0a0e14 30%,#0b1017 100%)!important;
+}
+body.theme-light{
+  background:
+    radial-gradient(circle at 18% -8%,hsl(var(--accent-h) 65% 58% / .10),transparent 25%),
+    radial-gradient(circle at 82% -2%,hsl(var(--accent-h) 58% 50% / .06),transparent 22%),
+    linear-gradient(180deg,#111720 0%,#121a24 34%,#0f161f 100%)!important;
+}
+body.theme-sepia{
+  background:
+    radial-gradient(circle at 18% -8%,rgba(183,128,70,.12),transparent 25%),
+    radial-gradient(circle at 82% -2%,rgba(136,93,50,.08),transparent 22%),
+    linear-gradient(180deg,#1b1712 0%,#191610 34%,#15130f 100%)!important;
+}
+body.theme-midnight{
+  background:
+    radial-gradient(circle at 18% -8%,rgba(49,108,196,.15),transparent 26%),
+    radial-gradient(circle at 82% -2%,rgba(30,64,175,.10),transparent 22%),
+    linear-gradient(180deg,#020617 0%,#061022 34%,#040a18 100%)!important;
+}
+body.theme-synthwave{
+  background:
+    radial-gradient(circle at 18% -8%,rgba(226,67,255,.16),transparent 26%),
+    radial-gradient(circle at 82% -2%,rgba(99,46,190,.12),transparent 23%),
+    linear-gradient(180deg,#0d0414 0%,#12071c 34%,#0b0411 100%)!important;
+}
+
+/* The dark stage is intentional; cards keep each theme's readable surfaces. */
+body.theme-light .workspace,
+body.theme-sepia .workspace,
+body.theme-midnight .workspace,
+body.theme-synthwave .workspace,
+body.theme-dark .workspace,
+body.theme-light .main,
+body.theme-sepia .main,
+body.theme-midnight .main,
+body.theme-synthwave .main,
+body.theme-dark .main{
+  background:transparent;
+}
