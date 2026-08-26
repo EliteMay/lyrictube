@@ -1,0 +1,140 @@
+diff --git a/app.js b/app.js
+--- a/app.js
++++ b/app.js
+@@ -2545,6 +2600,52 @@ function findInterludeInsertIndex(atTime){
+   // Append rather than guessing between Google-imported lines.
+   return syncDraft.length;
+ }
++function setSelectedSyncLine(index,{scroll=false}={}){
++  syncSelectedIndex=clamp(Number(index)||0,0,Math.max(0,syncDraft.length-1));
++  document.querySelectorAll(".sync-editor-row").forEach((row,i)=>{row.classList.toggle("selected",i===syncSelectedIndex)});
++  if(scroll){
++    const target=document.querySelector(`.sync-editor-row[data-index="${syncSelectedIndex}"]`);
++    target?.scrollIntoView({block:"nearest",behavior:"smooth"});
++  }
++}
++function stampSyncLine(index){
++  const line=syncDraft[index];
++  if(!line)return;
++  pushSyncUndo({type:"line",index,prevTime:line.time});
++  line.time=syncRelativeSeconds(currentPlayerTime());
++  renderSyncEditor();
++  setSelectedSyncLine(index,{scroll:true});
++  showToast(`${index+1}行目を ${formatTime(line.time)} に設定しました。`);
++}
++function nudgeSyncLine(index,deltaSec){
++  const line=syncDraft[index];
++  if(!line)return;
++  const scrollTop=els.syncEditorList.scrollTop;
++  pushSyncUndo({type:"line",index,prevTime:Number(line.time)||0});
++  line.time=Math.max(0,(Number(line.time)||0)+deltaSec);
++  syncSelectedIndex=index;
++  renderSyncEditor();
++  requestAnimationFrame(()=>{
++    els.syncEditorList.scrollTop=scrollTop;
++    const row=els.syncEditorList.querySelector(`.sync-editor-row[data-index="${index}"]`);
++    row?.classList.add("changed","line-adjusted");
++  });
++  updateSyncUndoButton();
++  showToast(`この行だけ ${deltaSec>0?"+":""}${deltaSec.toFixed(1)}秒。動画位置は動きません。`);
++}
++function makeSyncLineNudgeButton(index,delta){
++  const btn=document.createElement("button");
++  btn.type="button";
++  btn.className="sync-line-nudge-btn";
++  btn.textContent=`${delta>0?"+":""}${delta.toFixed(1)}`;
++  btn.title=`この歌詞行の保存時間だけ ${delta>0?"+":""}${delta.toFixed(1)}秒変更（動画は動きません）`;
++  btn.addEventListener("click",e=>{
++    e.stopPropagation();
++    setSelectedSyncLine(index);
++    nudgeSyncLine(index,delta);
++  });
++  return btn;
++}
+ function addInterludeMarker(){
+   if(!els.syncDialog.open||!syncDraft.length)return;
+   const at=syncRelativeSeconds(currentPlayerTime());
+@@ -2584,19 +2685,22 @@ function renderSyncEditor(){
+   syncDraft.forEach((line,index)=>{
+     const marker=isSyncMarkerText(line.text);
+     const row=document.createElement("div");
+-    row.className=`sync-editor-row${marker?" interlude":""}`;
++    row.className=`sync-editor-row${marker?" interlude":""}${index===syncSelectedIndex?" selected":""}`;
+     row.dataset.index=index;
++    row.addEventListener("click",()=>setSelectedSyncLine(index));
+ 
+     const timeInput=document.createElement("input");
+     timeInput.type="text";
+     timeInput.value=formatTime(line.time);
+     timeInput.setAttribute("aria-label",`${index+1}行目の時間`);
++    timeInput.addEventListener("focus",()=>setSelectedSyncLine(index));
+     timeInput.addEventListener("change",()=>{
+       const next=parseTimecode(timeInput.value);
+       pushSyncUndo({type:"line",index,prevTime:line.time});
+       line.time=next;
+       timeInput.value=formatTime(next);
+       row.classList.add("changed");
++      setSelectedSyncLine(index);
+     });
+ 
+     const text=document.createElement("div");
+@@ -2609,15 +2713,14 @@ function renderSyncEditor(){
+     const stamp=document.createElement("button");
+     stamp.type="button";
+     stamp.className="stamp-btn";
+-    stamp.textContent="今の時間";
++    stamp.textContent=index===syncSelectedIndex?"今の時間を入れる（選択中）":"今の時間";
+     stamp.title=marker
+       ?"動画の現在位置をこの ♪ の時間に設定"
+       :"動画の現在位置をこの行の時間に設定（押し直せば上書き）";
+-    stamp.addEventListener("click",()=>{
+-      pushSyncUndo({type:"line",index,prevTime:line.time});
+-      line.time=syncRelativeSeconds(currentPlayerTime());
+-      timeInput.value=formatTime(line.time);
+-      row.classList.add("changed");
++    stamp.addEventListener("click",e=>{
++      e.stopPropagation();
++      setSelectedSyncLine(index);
++      stampSyncLine(index);
+     });
+ 
+     const go=document.createElement("button");
+@@ -2625,20 +2728,36 @@ function renderSyncEditor(){
+     go.className="sync-seek-line-btn";
+     go.textContent="この時間へ";
+     go.title="この行の時間へ動画を移動";
+-    go.addEventListener("click",()=>{
++    go.addEventListener("click",e=>{
++      e.stopPropagation();
++      setSelectedSyncLine(index);
+       const v=getVersion();
+       seekSyncPlayer(Number(v?.startTime||0)+line.time+Number(v?.lyricsOffset||0));
+     });
+ 
+     actions.append(stamp,go);
+ 
++    const lineNudge=document.createElement("div");
++    lineNudge.className="sync-line-nudge";
++    const lineLabel=document.createElement("span");
++    lineLabel.className="sync-line-nudge-label";
++    lineLabel.textContent="この行だけ";
++    lineNudge.append(
++      lineLabel,
++      makeSyncLineNudgeButton(index,-0.5),
++      makeSyncLineNudgeButton(index,-0.1),
++      makeSyncLineNudgeButton(index,0.1),
++      makeSyncLineNudgeButton(index,0.5)
++    );
++    actions.appendChild(lineNudge);
++
+     if(marker){
+       const del=document.createElement("button");
+       del.type="button";
+       del.className="sync-delete-marker-btn";
+       del.textContent="♪を削除";
+       del.title="この間奏マーカーだけ削除";
+-      del.addEventListener("click",()=>removeInterludeMarker(index));
++      del.addEventListener("click",e=>{e.stopPropagation();removeInterludeMarker(index)});
+       actions.appendChild(del);
+     }
+ 
