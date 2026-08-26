@@ -1,4 +1,4 @@
-# LyricTube GitHub v28
+# LyricTube GitHub v29
 
 YouTube動画と歌詞を同じ画面で管理・再生する、個人利用向けの静的Webアプリです。
 
@@ -33,6 +33,22 @@ LRCLIBの仕様に従って `Lrclib-Client` ヘッダーを使用し、検索間
 
 YouTube Data APIキーは使用しません。
 
+## v29 追加内容
+
+- サイトアイコン追加（favicon対応）
+- ブランド強化（ロゴ導入・公式感を意識したUI調整）
+- 設定追加（起動画面 / コンパクト表示 / サムネ表示 / ガラス風質感 / 動き抑制 / ヘルプ導線）
+- ヘルプダイアログ追加（？ボタン）
+- 同期エディタで `Shift + T` による選択行への現在時間打刻
+- PowerToys Text Extractor (`Win + Shift + T`) の歌詞OCR手順をヘルプへ追加
+- 起動時画面を現在の表示画面とは別設定として保存
+
+### Win + Shift + T と歌詞OCR
+
+WindowsでPowerToys Text Extractorを使っている場合、通常は `Win + Shift + T` で画面上の歌詞を範囲選択して文字化し、LyricTubeの歌詞欄へ `Ctrl + V` で貼り付けできます。
+
+これはWindows側のショートカットなので、GitHub PagesのWebサイト自体がグローバルに取得するものではありません。同期画面では別途 `Shift + T` を使うと、選択中の歌詞行へ現在時間を打刻できます。
+
 ## GitHub Pages化で削除したもの
 
 - `server.mjs`
@@ -46,6 +62,7 @@ YouTube動画はURLを貼って登録します。
 ## データ保存
 
 ブラウザ `localStorage` の `lyrictube.library.v3` に保存します。
+
 GitHubリポジトリへ曲データや個人バックアップを自動保存しません。
 
 ## 旧ローカル版から移行
@@ -59,7 +76,7 @@ GitHub Pagesと `127.0.0.1` は別オリジンなのでlocalStorageは自動移�
 
 ## GitHub Pages公開方法
 
-1. ファイル一式をリポジトリのルートへ置く
+1. このファイル一式をリポジトリのルートへ置く
 2. `Settings` → `Pages`
 3. `Deploy from a branch`
 4. Branch: `main`
@@ -76,11 +93,7 @@ GitHub Pagesと `127.0.0.1` は別オリジンなのでlocalStorageは自動移�
 - `.gitignore`
 - `README.md`
 - `作業報告書.md`
-- `.github/workflows/apply-chatgpt-patch.yml`
-
-## 今後の更新方法
-
-初回ファイル配置後は、ChatGPTから小さな差分パッチをGitHubへ置き、GitHub Actionsで適用できる更新ワークフローを用意しています。
+- `docs/README_v27_local.md`
 
 ## 注意点
 
