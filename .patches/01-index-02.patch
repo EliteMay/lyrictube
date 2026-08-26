@@ -1,0 +1,10 @@
+--- a/index.html
++++ b/index.html
+@@ -42,6 +51,7 @@
+ 
+       <div class="sidebar-tools">
+         <button id="settingsBtn" class="ghost-btn" type="button">設定</button>
++        <button id="helpBtn" class="ghost-btn" data-help-topic="overview" type="button">？ 使い方</button>
+         <button id="exportBtn" class="ghost-btn" type="button">書き出し</button>
+         <label class="ghost-btn file-label">読み込み<input id="importInput" type="file" accept="application/json"></label>
+       </div>
