@@ -1,0 +1,10 @@
+# OS/editor
+.DS_Store
+Thumbs.db
+*.log
+
+# Local secrets/backups
+.env
+.env.*
+settings.json
+*_backup.json
