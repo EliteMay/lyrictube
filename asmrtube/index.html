@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#111318">
+  <title>ASMRTube</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">ASMRTube <span>v1</span></div>
+      <button class="primary full" id="addVideoBtn">＋ ASMRを追加</button>
+      <nav class="nav" id="nav">
+        <button class="nav-btn active" data-view="all">すべて</button>
+        <button class="nav-btn" data-view="favorites">お気に入り</button>
+        <button class="nav-btn" data-view="recent">最近聴いた</button>
+        <button class="nav-btn" data-view="sleep">睡眠向け</button>
+      </nav>
+      <div class="sidebar-title">プレイリスト</div>
+      <div id="playlistList" class="playlist-list"></div>
+      <button class="ghost full" id="newPlaylistBtn">＋ プレイリスト</button>
+      <div class="sidebar-spacer"></div>
+      <button class="ghost full" id="exportBtn">JSON書き出し</button>
+      <label class="ghost full file-label">JSON読み込み<input type="file" id="importInput" accept="application/json"></label>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h1 id="viewTitle">ASMRライブラリ</h1>
+          <p id="viewSub">登録したASMRをすぐ探して再生できます</p>
+        </div>
+        <div class="top-actions">
+          <input id="searchInput" class="search" type="search" placeholder="タイトル・配信者・タグを検索">
+          <button class="ghost" id="filterBtn">絞り込み</button>
+        </div>
+      </header>
+
+      <section id="filters" class="filters hidden">
+        <div class="filter-group"><span>耳</span><div id="earFilters" class="chips"></div></div>
+        <div class="filter-group"><span>種類</span><div id="typeFilters" class="chips"></div></div>
+        <button class="ghost" id="clearFiltersBtn">条件クリア</button>
+      </section>
+
+      <section class="content-grid">
+        <div class="library-panel">
+          <div class="section-head"><strong id="resultCount">0件</strong><select id="sortSelect"><option value="new">新しく追加</option><option value="title">タイトル順</option><option value="rating">評価順</option></select></div>
+          <div id="libraryGrid" class="library-grid"></div>
+          <div id="emptyState" class="empty hidden"><div class="empty-icon">🎧</div><h2>まだASMRがありません</h2><p>YouTube URLを登録するとここに並びます。</p><button class="primary" id="emptyAddBtn">最初のASMRを追加</button></div>
+        </div>
+
+        <aside class="detail-panel" id="detailPanel">
+          <div class="detail-empty">カードを選ぶと詳細を表示します</div>
+        </aside>
+      </section>
+    </main>
+  </div>
+
+  <footer class="player-bar">
+    <div class="now-playing"><img id="miniThumb" alt=""><div><strong id="miniTitle">未再生</strong><span id="miniCreator">ASMRを選択してください</span></div></div>
+    <div class="player-center"><button id="prevBtn">◀◀</button><button id="playBtn" class="play">▶</button><button id="nextBtn">▶▶</button><div class="progress-wrap"><span id="timeNow">0:00</span><input id="seek" type="range" min="0" max="1000" value="0"><span id="timeTotal">0:00</span></div></div>
+    <div class="player-right"><button id="loopBtn">A-B</button><input id="volume" type="range" min="0" max="100" value="35"><button id="sleepBtn">🌙</button></div>
+  </footer>
+
+  <div id="ytPlayerHost" class="yt-host"></div>
+
+  <dialog id="videoDialog" class="dialog">
+    <form method="dialog" id="videoForm">
+      <div class="dialog-head"><h2 id="videoDialogTitle">ASMRを追加</h2><button value="cancel" class="icon-btn">×</button></div>
+      <input type="hidden" id="editId">
+      <label>YouTube URL<input id="videoUrl" required placeholder="https://www.youtube.com/watch?v=..."></label>
+      <div class="two"><label>タイトル<input id="videoTitle" required placeholder="ASMRタイトル"></label><label>配信者<input id="creator" placeholder="配信者 / チャンネル"></label></div>
+      <label>タグ<input id="tags" placeholder="耳かき, 囁き, 睡眠, 両耳"></label>
+      <div class="two"><label>評価<select id="rating"><option value="0">未評価</option><option value="1">普通</option><option value="2">好き</option><option value="3">かなり好き</option><option value="4">神</option></select></label><label>作品音量<input id="itemVolume" type="number" min="0" max="100" value="35"></label></div>
+      <label class="check"><input id="sleepFriendly" type="checkbox"> 睡眠向け</label>
+      <div class="dialog-actions"><button value="cancel" class="ghost">キャンセル</button><button type="submit" value="default" class="primary">保存</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="timestampDialog" class="dialog wide">
+    <form method="dialog" id="timestampForm">
+      <div class="dialog-head"><div><h2>コメントからタイムスタンプ取込</h2><p>YouTubeコメントを丸ごと貼り付けても時間行だけ抽出します。</p></div><button value="cancel" class="icon-btn">×</button></div>
+      <textarea id="timestampPaste" rows="10" placeholder="0:00 オープニング&#10;3:24 右耳かき&#10;10:51 囁き"></textarea>
+      <div class="inline-actions"><button type="button" id="parseTimestampsBtn" class="primary">タイムスタンプを解析</button><span id="parseSummary"></span></div>
+      <div id="timestampPreview" class="timestamp-preview"></div>
+      <div class="dialog-actions"><button value="cancel" class="ghost">キャンセル</button><button id="saveTimestampsBtn" type="button" class="primary" disabled>すべて追加</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="sleepDialog" class="dialog small">
+    <form method="dialog">
+      <div class="dialog-head"><h2>スリープタイマー</h2><button value="cancel" class="icon-btn">×</button></div>
+      <div class="sleep-options"><button value="cancel" data-sleep="15">15分</button><button value="cancel" data-sleep="30">30分</button><button value="cancel" data-sleep="45">45分</button><button value="cancel" data-sleep="60">60分</button><button value="cancel" data-sleep="90">90分</button><button value="cancel" data-sleep="0">解除</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="playlistDialog" class="dialog small"><form method="dialog" id="playlistForm"><div class="dialog-head"><h2>プレイリスト作成</h2><button value="cancel" class="icon-btn">×</button></div><label>名前<input id="playlistName" required maxlength="40"></label><div class="dialog-actions"><button value="cancel" class="ghost">キャンセル</button><button type="submit" class="primary">作成</button></div></form></dialog>
+
+  <div id="toast" class="toast"></div>
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script src="app.js"></script>
+</body>
+</html>
