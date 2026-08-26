@@ -46,7 +46,6 @@ YouTube動画はURLを貼って登録します。
 ## データ保存
 
 ブラウザ `localStorage` の `lyrictube.library.v3` に保存します。
-
 GitHubリポジトリへ曲データや個人バックアップを自動保存しません。
 
 ## 旧ローカル版から移行
@@ -60,7 +59,7 @@ GitHub Pagesと `127.0.0.1` は別オリジンなのでlocalStorageは自動移�
 
 ## GitHub Pages公開方法
 
-1. このファイル一式をリポジトリのルートへ置く
+1. ファイル一式をリポジトリのルートへ置く
 2. `Settings` → `Pages`
 3. `Deploy from a branch`
 4. Branch: `main`
@@ -77,7 +76,11 @@ GitHub Pagesと `127.0.0.1` は別オリジンなのでlocalStorageは自動移�
 - `.gitignore`
 - `README.md`
 - `作業報告書.md`
-- `docs/README_v27_local.md`
+- `.github/workflows/apply-chatgpt-patch.yml`
+
+## 今後の更新方法
+
+初回ファイル配置後は、ChatGPTから小さな差分パッチをGitHubへ置き、GitHub Actionsで適用できる更新ワークフローを用意しています。
 
 ## 注意点
 
