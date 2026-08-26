@@ -1,0 +1,303 @@
+--- a/styles.css
++++ b/styles.css
+@@ -1932,3 +1932,300 @@
+   line-height:1.55;
+   color:#87909c;
+ }
++
++/* v29 official refresh */
++body{
++  background:
++    radial-gradient(circle at 18% -8%, rgba(102,115,255,.12), transparent 24%),
++    radial-gradient(circle at 82% -2%, rgba(120,86,255,.10), transparent 22%),
++    linear-gradient(180deg,#070a10 0%,#0a0e14 28%,#0b1017 100%);
++}
++body::before{
++  content:"";
++  position:fixed;
++  inset:0;
++  pointer-events:none;
++  background:linear-gradient(180deg,rgba(255,255,255,.02),transparent 22%,transparent 78%,rgba(255,255,255,.015));
++  opacity:.9;
++  z-index:-1;
++}
++.sidebar{
++  background:linear-gradient(180deg,rgba(11,14,20,.96),rgba(9,12,17,.96));
++  box-shadow:inset -1px 0 0 rgba(255,255,255,.05);
++}
++.topbar{
++  background:linear-gradient(180deg,rgba(10,14,20,.92),rgba(10,14,20,.82));
++  box-shadow:0 12px 30px rgba(0,0,0,.18);
++}
++.version-card,.transport-card,.range-card,.sync-card,.lyrics-panel,.player-card,.browse-card,.dialog,.settings-section{
++  box-shadow:0 14px 40px rgba(0,0,0,.18);
++}
++.brand-lockup{
++  display:flex;
++  align-items:center;
++  gap:12px;
++  min-width:0;
++}
++.brand-logo{
++  width:44px;
++  height:44px;
++  border-radius:13px;
++  display:block;
++  object-fit:cover;
++  box-shadow:0 10px 24px rgba(0,0,0,.28);
++}
++.brand-subtitle{
++  color:#9ea8ba;
++  font-size:11px;
++  letter-spacing:.05em;
++  margin-top:4px;
++}
++.now-playing-summary{
++  display:flex;
++  align-items:center;
++  gap:14px;
++  min-width:0;
++}
++.now-cover{
++  width:56px;
++  height:56px;
++  border-radius:16px;
++  overflow:hidden;
++  background:rgba(255,255,255,.05);
++  border:1px solid rgba(255,255,255,.08);
++  box-shadow:0 10px 24px rgba(0,0,0,.22);
++  flex:0 0 auto;
++}
++.now-cover img{width:100%;height:100%;object-fit:cover;display:block}
++.now-badge,.now-stat{
++  display:inline-flex;
++  align-items:center;
++  min-height:24px;
++  padding:0 10px;
++  border-radius:999px;
++  background:rgba(255,255,255,.05);
++  border:1px solid rgba(255,255,255,.08);
++  font-size:11px;
++  color:#cad2df;
++}
++.now-meta-line{
++  display:flex;
++  align-items:center;
++  gap:8px;
++  margin-bottom:6px;
++  flex-wrap:wrap;
++}
++.top-actions{align-items:center}
++.ghost-btn.help-launch,.chip.help-chip{
++  border-color:rgba(120,130,255,.16);
++  background:rgba(120,130,255,.08);
++  color:#d8e0ff;
++}
++.ghost-btn.help-launch:hover,.chip.help-chip:hover{
++  background:rgba(120,130,255,.15);
++}
++.settings-section{
++  margin:0 22px 14px;
++  padding:16px;
++  border:1px solid var(--border);
++  border-radius:16px;
++  background:linear-gradient(180deg,rgba(255,255,255,.025),rgba(255,255,255,.01));
++}
++.settings-dialog{padding-bottom:12px}
++.settings-title-row{
++  display:flex;
++  align-items:flex-start;
++  justify-content:space-between;
++  gap:12px;
++  margin-bottom:10px;
++}
++.setting-switch{margin-top:12px}
++.slider-row{
++  display:flex;
++  align-items:center;
++  gap:10px;
++}
++.slider-label{font-size:12px;color:var(--muted)}
++.settings-actions{
++  display:flex;
++  gap:8px;
++  flex-wrap:wrap;
++  margin-top:10px;
++}
++.shortcut-note{margin-top:12px;line-height:1.7}
++.help-dialog-body{padding:0 22px 22px;display:grid;gap:12px}
++.help-block{
++  border:1px solid var(--border);
++  background:#0d1014;
++  border-radius:14px;
++  padding:14px 15px;
++}
++.help-block h4{margin:0 0 9px;font-size:15px}
++.help-block p,.help-block li{color:#cfd6e3;line-height:1.75}
++.help-block ol,.help-block ul{margin:8px 0 0 20px;padding:0}
++.sync-editor-row.selected{
++  border-color:rgba(139,92,246,.38);
++  box-shadow:0 0 0 1px rgba(139,92,246,.14) inset;
++  background:rgba(139,92,246,.09);
++}
++body.density-compact .song-item{padding:8px;border-radius:10px}
++body.density-compact .song-meta strong{font-size:13px}
++body.density-compact .song-meta span{font-size:11px;margin-top:2px}
++body.density-compact .browse-card{padding:10px;border-radius:14px}
++body.density-compact .browse-body{gap:5px}
++body.hide-library-thumbs .song-item{grid-template-columns:minmax(0,1fr) auto}
++body.hide-library-thumbs .song-item .thumb{display:none}
++body.hide-library-thumbs .browse-cover{display:none}
++body.hide-library-thumbs .browse-card{padding-top:16px}
++body.glass-off .topbar,
++body.glass-off .sidebar,
++body.glass-off .dialog,
++body.glass-off .version-card,
++body.glass-off .transport-card,
++body.glass-off .range-card,
++body.glass-off .lyrics-panel,
++body.glass-off .player-card,
++body.glass-off .browse-card{backdrop-filter:none!important}
++body.hide-help-tips [data-help-topic]{display:none!important}
++body.reduce-motion *,
++body.reduce-motion *::before,
++body.reduce-motion *::after{
++  animation-duration:.01ms!important;
++  animation-iteration-count:1!important;
++  transition-duration:.01ms!important;
++  scroll-behavior:auto!important;
++}
++@media (max-width:780px){
++  .brand-subtitle{display:none}
++  .now-cover{width:48px;height:48px;border-radius:14px}
++  .settings-actions{flex-direction:column}
++}
++
++/* v29 brand integration + firm visual hierarchy */
++.browse-hero{
++  position:relative;
++  overflow:hidden;
++  min-height:196px;
++  display:grid;
++  grid-template-columns:minmax(0,1fr) minmax(280px,420px);
++  align-items:center;
++  gap:28px;
++  padding:28px 30px;
++  border:1px solid rgba(255,255,255,.075);
++  background:
++    linear-gradient(118deg,rgba(16,20,29,.98),rgba(13,17,25,.92) 58%,rgba(18,17,31,.90));
++  box-shadow:0 20px 54px rgba(0,0,0,.24);
++}
++.browse-hero::after{
++  content:"";
++  position:absolute;
++  inset:auto -90px -170px auto;
++  width:430px;
++  height:430px;
++  border-radius:50%;
++  background:radial-gradient(circle,rgba(112,82,255,.13),transparent 68%);
++  pointer-events:none;
++}
++.browse-hero-copy{position:relative;z-index:2;max-width:720px}
++.browse-hero-copy h2{font-size:clamp(28px,3vw,42px);letter-spacing:-.045em;margin:4px 0 10px}
++.browse-hero-copy .muted{max-width:680px;line-height:1.8}
++.browse-hero-actions{margin-top:20px}
++.browse-brand-art{
++  position:relative;
++  z-index:1;
++  display:flex;
++  align-items:center;
++  justify-content:flex-end;
++  min-width:0;
++}
++.browse-brand-art img{
++  width:min(100%,400px);
++  max-height:170px;
++  object-fit:cover;
++  object-position:center;
++  border-radius:18px;
++  opacity:.82;
++  filter:saturate(.82) contrast(1.05);
++  box-shadow:0 18px 48px rgba(0,0,0,.26);
++}
++.ocr-tip{
++  margin-top:10px;
++  padding:11px 12px;
++  border:1px solid rgba(126,138,255,.13);
++  border-radius:10px;
++  background:rgba(109,104,255,.055);
++  color:#aeb7c6;
++  font-size:11px;
++  line-height:1.65;
++}
++.ocr-tip strong{display:block;color:#d7deea;margin-bottom:4px;font-size:11px}
++.ocr-tip kbd{font-size:9px;padding:2px 5px}
++.help-dialog{width:min(720px,calc(100vw - 24px))}
++.settings-section>label>span:first-child{font-weight:650;color:#d8dee9}
++.settings-section select{
++  min-height:40px;
++  border-radius:10px;
++  border:1px solid var(--border);
++  background:#0d1118;
++  color:#e7ecf4;
++  padding:0 12px;
++}
++.version-badge{
++  text-transform:uppercase;
++  letter-spacing:.08em;
++  font-size:9px;
++  font-weight:850;
++}
++.primary-btn,.primary-soft,.ghost-btn,.chip,.icon-btn{
++  letter-spacing:.005em;
++}
++@media(max-width:900px){
++  .browse-hero{grid-template-columns:1fr;min-height:0;padding:24px}
++  .browse-brand-art{display:none}
++}
++
++/* v29 per-line timing controls */
++.sync-line-nudge{
++  display:flex;
++  align-items:center;
++  gap:4px;
++  margin-left:3px;
++  padding:4px;
++  border:1px solid rgba(255,255,255,.06);
++  border-radius:9px;
++  background:rgba(255,255,255,.018);
++}
++.sync-line-nudge-label{
++  margin:0 3px 0 2px;
++  color:#828c9b;
++  font-size:9px;
++  font-weight:750;
++  white-space:nowrap;
++}
++.sync-line-nudge-btn{
++  min-width:40px;
++  height:28px;
++  padding:0 6px;
++  border:1px solid rgba(126,150,255,.13);
++  border-radius:7px;
++  background:rgba(94,112,220,.06);
++  color:#b8c5db;
++  cursor:pointer;
++  font-size:9px;
++  font-weight:780;
++  font-variant-numeric:tabular-nums;
++}
++.sync-line-nudge-btn:hover{
++  border-color:rgba(126,150,255,.28);
++  background:rgba(94,112,220,.14);
++  color:#eef3ff;
++}
++.sync-editor-row.line-adjusted{animation:syncLinePulseV29 .42s ease}
++@keyframes syncLinePulseV29{
++  0%{box-shadow:0 0 0 0 rgba(130,100,255,.24)}
++  100%{box-shadow:0 0 0 7px transparent}
++}
++@media(max-width:720px){
++  .sync-line-nudge{width:100%;margin-left:0}
++  .sync-line-nudge-btn{flex:1}
++}
