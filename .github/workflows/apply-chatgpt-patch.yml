@@ -16,17 +16,18 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Apply queued patches
+      - name: Apply queued v29 patches
         shell: bash
         run: |
           set -euo pipefail
           shopt -s nullglob
-          patches=(.patches/*.patch)
+          patches=(.patches/v29-*.patch)
           if [ ${#patches[@]} -eq 0 ]; then
-            echo "No patch files found."
+            echo "No v29 patch files found."
             exit 1
           fi
           for patch in "${patches[@]}"; do
+            echo "Applying $patch"
             git apply --check "$patch"
             git apply "$patch"
           done
@@ -37,5 +38,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "Apply ChatGPT update"
+          git commit -m "Apply LyricTube v29 update"
           git push
