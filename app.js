@@ -1,4 +1,4 @@
-const APP_VERSION = "v30";
+const APP_VERSION = "v30.2";
 const STORAGE_KEY = "lyrictube.library.v3";
 const LEGACY_KEY = "lyrictube.songs.v1";
 const LIB_VERSION = 3;
@@ -1906,6 +1906,34 @@ function chooseLyrics(index){
   closeLyricsResultsAndReturn();
   setTimeout(()=>showToast(item.syncedLyrics?"時間付き歌詞を選択しました。":"通常歌詞を選択しました。"),80);
 }
+function findRegisteredVideo(videoId,{excludeSongId="",excludeVersionId=""}={}){
+  const target=String(videoId||"").trim();
+  if(!target)return null;
+  for(const song of library.songs||[]){
+    for(const version of song.versions||[]){
+      if(String(version.videoId||"")!==target)continue;
+      if(song.id===excludeSongId&&version.id===excludeVersionId)continue;
+      return {song,version};
+    }
+  }
+  return null;
+}
+function duplicateVideoNotice(duplicate){
+  if(!duplicate)return "この動画はすでに登録されています。";
+  const songTitle=duplicate.song?.title||"無題";
+  const version=duplicate.version||{};
+  const typeLabel=typeName(version.type)||"動画";
+  const label=String(version.label||"").trim();
+  return `この動画はすでに「${songTitle}」の${label?`「${label}」`:`${typeLabel}`}として登録されています。`;
+}
+function blockDuplicateVideo(videoId,options={}){
+  const duplicate=findRegisteredVideo(videoId,options);
+  if(!duplicate)return false;
+  const message=duplicateVideoNotice(duplicate);
+  showToast("この動画はすでに登録されています。");
+  alert(message);
+  return true;
+}
 function saveSongForm(){
   const editing=els.editingSongId.value;
   const old=library.songs.find(s=>s.id===editing);
@@ -1974,6 +2002,8 @@ function saveSongForm(){
       showToast("正しいYouTube URLを入力してください。");
       return;
     }
+    if(blockDuplicateVideo(videoId))return;
+
 
     const v=makeVersion({
       youtubeUrl:url,
@@ -2371,6 +2401,7 @@ function saveVersionForm(){
   }
 
   const editing=els.editingVersionId.value;
+  if(blockDuplicateVideo(videoId,{excludeSongId:song.id,excludeVersionId:editing}))return;
   const old=song.versions.find(v=>v.id===editing);
   let toastMessage="";
 
@@ -2399,9 +2430,6 @@ function saveVersionForm(){
     }
     selectedVersionId=old.id;
   }else{
-    if(song.versions.some(v=>v.videoId===videoId)){
-      if(!confirm("同じ動画がすでに登録されています。別バージョンとして追加しますか？"))return;
-    }
     const v=makeVersion({
       youtubeUrl:url,
       videoId,

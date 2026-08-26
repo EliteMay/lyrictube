@@ -1,5 +1,5 @@
 {
-  "appVersion": "v30",
+  "appVersion": "v30.2",
   "dataFormatVersion": 3,
   "storageKey": "lyrictube.library.v3",
   "legacyStorageKey": "lyrictube.songs.v1",
@@ -127,5 +127,13 @@
     "roundHelpIcons": true,
     "themeAccentConsistency": true,
     "lightThemeReadability": true
+  },
+  "duplicateVideoProtection": {
+    "enabled": true,
+    "scope": "all-songs-and-versions",
+    "compareBy": "youtubeVideoId",
+    "blockNewDuplicate": true,
+    "blockEditToExistingVideo": true,
+    "preserveExistingDuplicates": true
   }
 }
