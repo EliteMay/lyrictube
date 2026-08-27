@@ -1,5 +1,5 @@
 {
-  "appVersion": "v30.2",
+  "appVersion": "v31",
   "dataFormatVersion": 3,
   "storageKey": "lyrictube.library.v3",
   "legacyStorageKey": "lyrictube.songs.v1",
@@ -11,7 +11,8 @@
     "GitHub Pagesで動作する静的構成。Node.js/ローカルサーバー不要。",
     "ライブラリ保存形式はlyrictube.library.v3を維持。",
     "曲・歌詞・プレイリスト・設定はブラウザlocalStorageへ保存。",
-    "APIキーや個人データをGitHubへ保存しない。"
+    "v31ではdata/library.jsonを初回共有データとして読み込める。",
+    "v31の簡易パスワードはdata/site-config.jsonへ平文保存する私的利用向け仕様。"
   ],
   "design": {
     "direction": "dark-music",
@@ -135,5 +136,17 @@
     "blockNewDuplicate": true,
     "blockEditToExistingVideo": true,
     "preserveExistingDuplicates": true
+  },
+  "v31MobileAccess": {
+    "mobileBreakpoint": 900,
+    "drawerSidebar": true,
+    "singleColumnPlayer": true,
+    "mobileDialogs": true,
+    "safeArea": true,
+    "simplePasswordConfig": "data/site-config.json",
+    "sharedLibrarySeed": "data/library.json",
+    "sharedSeedWhenLocalStorageEmpty": true,
+    "sharedReloadButton": true,
+    "serverRequired": false
   }
 }
