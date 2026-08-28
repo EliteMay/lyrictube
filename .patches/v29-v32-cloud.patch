@@ -1,0 +1,63 @@
+diff --git a/app.js b/app.js
+--- a/app.js
++++ b/app.js
+@@ -1 +1 @@
+-const APP_VERSION = "v31";
++const APP_VERSION = "v32";
+diff --git a/index.html b/index.html
+--- a/index.html
++++ b/index.html
+@@ -530,2 +530,2 @@
+-  <script src="profile-data.js?v=31.2"></script>
+-  <script src="site-shell.js?v=31.2"></script>
++  <script src="profile-data.js?v=32"></script>
++  <script src="site-shell.js?v=32"></script>
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -1 +1 @@
+-# LyricTube GitHub v31.1
++# LyricTube GitHub v32
+@@ -194,2 +194,15 @@
+ LyricTubeの書き出しJSONを `data/library-kaito.json` として置き換えると、新しい端末で `2526` ログインした人が同じ初期ライブラリを利用できます。既に利用済みの端末では設定の「共有JSONを再読み込み」を使用します。
+ ゲスト側のライブラリを更新したい場合だけ `data/library.json` を変更します。
++
++## v32 Supabaseクラウドアカウント
++
++- Supabaseの `LyricTube` プロジェクトへアカウント・ライブラリ・セッションを保存します。
++- `kaito` は管理者アカウントで、パスワード `2526`。ログイン画面でアカウント名を空欄にした場合も `kaito` として扱います。
++- 管理者は設定の「アカウント管理」から友達用アカウントを追加・削除・パスワード変更できます。
++- 新規アカウントは空のライブラリ、または現在のライブラリを複製して作成できます。
++- 各アカウントの曲・プレイリスト・設定はSupabaseへ自動保存され、別PC/スマホでも同じアカウントで利用できます。
++- ブラウザからDBテーブルを直接操作せず、`lyrictube-api` Edge Functionを経由します。
++- パスワードはPostgreSQL `pgcrypto` のbcrypt形式でハッシュ保存します。
++- ゲストは引き続き端末内だけの別データです。
++- `lyrictube.library.v3` のライブラリJSON構造は維持します。
++- かいとのクラウドライブラリが空の場合、既存PCのかいと用localStorageまたは `data/library-kaito.json` から初回移行を試みます。
+diff --git a/作業報告書.md b/作業報告書.md
+--- a/作業報告書.md
++++ b/作業報告書.md
+@@ -779,1 +779,19 @@
+ ### 未確認
++
++## GitHub v32 / 2026-08-29 Supabaseクラウドアカウント
++
++### 変更
++- Supabase `LyricTube` プロジェクトへ `lyrictube_accounts` / `lyrictube_libraries` / `lyrictube_sessions` を作成。
++- RLSを有効化し、anon/authenticatedからのテーブル直接操作を無効化。
++- パスワードはpgcrypto bcryptでハッシュ保存。
++- `lyrictube-api` Edge Functionを追加し、ログイン・ライブラリ読込/保存・アカウント管理を集約。
++- `kaito / 2526` を初期管理者として作成し、DB内部のログイン判定成功を確認。
++- GitHub Pages側をアカウント名＋パスワードログインへ変更。アカウント名空欄時はkaitoを使用。
++- アカウントごとにローカルキャッシュも分離し、変更時はSupabaseへ自動保存。
++- 管理者向けアカウント管理画面を設定内へ追加。新規作成、現在ライブラリ複製、パスワード変更、削除に対応。
++- ログアウト、クラウドから再読み込み、ログイン中アカウント表示を追加。
++- ゲストモードはクラウドアカウントと分離したまま維持。
++
++### 確認
++- Supabase migration適用成功。
++- `kaito / 2526` のDBログイン判定成功。
++
++### 未確認
++- 実ブラウザからEdge Function経由のログイン・自動保存・アカウント管理の最終操作は公開後に要確認。
++- 実機iPhone / Androidでの最終操作は未確認。
