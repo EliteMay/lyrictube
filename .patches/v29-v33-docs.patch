@@ -1,0 +1,49 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -1 +1 @@
+-# LyricTube GitHub v32
++# LyricTube GitHub v33
+@@ -221,0 +222,11 @@
++
++## v33 差分クラウド同期
++
++- ブラウザ内では従来どおり `lyrictube.library.v3` を使用します。
++- Supabaseでは曲・プレイリスト・設定を分割して保存します。
++- 通常の編集では、変更された曲・プレイリスト・設定だけを約900msまとめて同期します。
++- ログイン時は分割データをv3ライブラリJSONへ再構成して読み込みます。
++- JSON全読み込みや全リセットなど、全置換が必要な操作だけライブラリ全体を置き換えます。
++- 曲とプレイリストの並び順は `sort_order` で維持します。
++- 旧 `lyrictube_libraries` の全JSONは移行バックアップとして当面残します。
++- 同じ項目を複数端末から同時編集した場合は、最後に同期された内容が優先されます。
+diff --git "a/作業報告書.md" "b/作業報告書.md"
+--- "a/作業報告書.md"
++++ "b/作業報告書.md"
+@@ -798,0 +799,25 @@
++
++## GitHub v33 / 2026-08-29 差分クラウド同期
++
++### 変更
++- Supabaseへ `lyrictube_songs` / `lyrictube_playlists` / `lyrictube_account_state` を追加。
++- 旧クラウドJSONから、曲108件・プレイリスト1件・設定を分割テーブルへ移行。
++- 曲/プレイリストに `sort_order` を追加し、従来の並び順を維持。
++- `lyrictube-api` Edge Functionをv2へ更新し、`sync_changes` による部分更新へ対応。
++- `profile-data.js` で保存前後のv3 JSONを比較し、変更されたIDだけ差分として生成。
++- `cloud-sync.js` を追加し、変更を約900msまとめて送信。通信失敗時は再試行。
++- ログイン時は分割テーブルから従来の `lyrictube.library.v3` 形式へ再構成。
++- 通常編集時の全ライブラリJSON送信を停止。
++- ページ終了時の無条件な全JSON保存を停止。
++- Edge FunctionへのPOSTを `text/plain` にして、通常のJSON Content-Typeで発生していたCORS preflightを削減。
++- JSON全読み込み/全リセット用に全置換APIは残した。
++- 旧 `lyrictube_libraries` は即削除せず移行バックアップとして維持。
++
++### 確認
++- `kaito` の分割後データは108曲・1プレイリスト・version 3を維持。
++- `kaito2` は0曲・0プレイリスト・version 3を維持。
++- GitHub Pages v33 build / deployment成功。
++- `index.html` が `profile-data.js?v=33` → `cloud-sync.js?v=33` → `site-shell.js?v=33` の順に読み込むことを確認。
++- 旧v32の全JSON同期初期化が起動しないことを確認。
++
++### 未確認
++- 実ブラウザで曲1件を編集した際の最終的な通信量の実測。
++- 複数PC/スマホから同一曲を同時編集した場合の実利用上の競合挙動。
