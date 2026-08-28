@@ -40,7 +40,7 @@ diff --git a/app.js b/app.js
 --- a/app.js
 +++ b/app.js
 @@ -1 +1 @@
--const APP_VERSION = "v31";
+-const APP_VERSION = "v32";
 +const APP_VERSION = "v33";
 diff --git a/data/defaults.json b/data/defaults.json
 --- a/data/defaults.json
