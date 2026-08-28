@@ -7,16 +7,27 @@
   const SHARED_LIBRARY_URL = "data/library.json";
   const CONFIG_URL = "data/site-config.json";
   const OWNER_ACCESS_CODE = "2526";
+  const VERSION = "31.1";
 
-  function qs(selector, root = document) {
-    return root.querySelector(selector);
-  }
-
+  const qs = (selector, root = document) => root.querySelector(selector);
   function make(tag, className = "", text = "") {
     const el = document.createElement(tag);
     if (className) el.className = className;
     if (text) el.textContent = text;
     return el;
+  }
+
+  function prepareV311Assets() {
+    document.title = "LyricTube GitHub v31.1";
+    const mobile = qs('link[href^="mobile.css"]');
+    if (mobile) mobile.href = `mobile.css?v=${VERSION}`;
+    if (!qs('link[data-guest-style]')) {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = `guest.css?v=${VERSION}`;
+      link.dataset.guestStyle = "true";
+      document.head.appendChild(link);
+    }
   }
 
   function createAccessGate() {
@@ -48,7 +59,7 @@
 
   async function readConfig() {
     try {
-      const res = await fetch(`${CONFIG_URL}?v=31.1`, { cache: "no-store" });
+      const res = await fetch(`${CONFIG_URL}?v=${VERSION}`, { cache: "no-store" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       return {
@@ -78,7 +89,6 @@
       const submit = qs("#accessSubmit", gate);
       const guest = qs("#guestAccessBtn", gate);
       const status = qs("#accessStatus", gate);
-
       input.disabled = false;
       submit.disabled = false;
       guest.disabled = false;
@@ -98,7 +108,6 @@
         status.textContent = "コードが違います。";
         input.focus();
       });
-
       guest.addEventListener("click", () => finishGate(gate, "guest", config, resolve));
     });
   }
@@ -106,18 +115,15 @@
   async function unlockSite() {
     const gate = createAccessGate();
     const config = await readConfig();
-
     if (!config.enabled) {
       gate.remove();
       return { config, role: "owner" };
     }
-
     const storedRole = config.rememberSession ? sessionStorage.getItem(ACCESS_SESSION_KEY) : null;
     if (storedRole === "owner" || storedRole === "guest") {
       gate.remove();
       return { config, role: storedRole };
     }
-
     const role = await waitForAccess(gate, config);
     return { config, role };
   }
@@ -127,7 +133,7 @@
   }
 
   async function fetchSharedLibrary() {
-    const res = await fetch(`${SHARED_LIBRARY_URL}?v=31.1&t=${Date.now()}`, { cache: "no-store" });
+    const res = await fetch(`${SHARED_LIBRARY_URL}?v=${VERSION}&t=${Date.now()}`, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     if (!libraryLooksUsable(data)) throw new Error("library.json format error");
@@ -152,7 +158,7 @@
   function loadMainApp() {
     return new Promise((resolve, reject) => {
       const script = document.createElement("script");
-      script.src = "app.js?v=31.1";
+      script.src = `app.js?v=${VERSION}`;
       script.async = false;
       script.onload = resolve;
       script.onerror = () => reject(new Error("app.js load failed"));
@@ -165,7 +171,6 @@
     const button = qs("#mobileMenuBtn");
     if (button) button.setAttribute("aria-expanded", "false");
   }
-
   function openMobileSidebar() {
     document.body.classList.add("mobile-sidebar-open");
     const button = qs("#mobileMenuBtn");
@@ -177,7 +182,6 @@
     const sidebar = qs(".sidebar");
     const brandRow = qs(".brand-row");
     if (!topbar || !sidebar || qs("#mobileMenuBtn")) return;
-
     const menu = make("button", "mobile-menu-btn", "☰");
     menu.id = "mobileMenuBtn";
     menu.type = "button";
@@ -199,25 +203,15 @@
     backdrop.setAttribute("aria-label", "ライブラリを閉じる");
     document.body.appendChild(backdrop);
 
-    menu.addEventListener("click", () => {
-      document.body.classList.contains("mobile-sidebar-open") ? closeMobileSidebar() : openMobileSidebar();
-    });
+    menu.addEventListener("click", () => document.body.classList.contains("mobile-sidebar-open") ? closeMobileSidebar() : openMobileSidebar());
     close.addEventListener("click", closeMobileSidebar);
     backdrop.addEventListener("click", closeMobileSidebar);
-
     sidebar.addEventListener("click", event => {
       if (!window.matchMedia("(max-width: 900px)").matches) return;
-      if (event.target.closest(".song-item,.view-btn,.playlist-item,.page-switch-btn")) {
-        setTimeout(closeMobileSidebar, 40);
-      }
+      if (event.target.closest(".song-item,.view-btn,.playlist-item,.page-switch-btn")) setTimeout(closeMobileSidebar, 40);
     });
-
-    window.addEventListener("keydown", event => {
-      if (event.key === "Escape") closeMobileSidebar();
-    });
-    window.addEventListener("resize", () => {
-      if (!window.matchMedia("(max-width: 900px)").matches) closeMobileSidebar();
-    }, { passive: true });
+    window.addEventListener("keydown", event => { if (event.key === "Escape") closeMobileSidebar(); });
+    window.addEventListener("resize", () => { if (!window.matchMedia("(max-width: 900px)").matches) closeMobileSidebar(); }, { passive: true });
   }
 
   function initSharedLibraryReloadButton(config, role) {
@@ -225,7 +219,6 @@
     const settingsDialog = qs("#settingsDialog");
     const versionInfo = qs(".version-info", settingsDialog || document);
     if (!settingsDialog || !versionInfo) return;
-
     const wrap = make("div", "shared-library-setting");
     const copy = make("div", "shared-library-setting-copy");
     copy.innerHTML = `<strong>共有JSON</strong><span>data/library.json をこの端末へ読み込み直します。</span>`;
@@ -234,7 +227,6 @@
     button.type = "button";
     wrap.append(copy, button);
     versionInfo.before(wrap);
-
     button.addEventListener("click", async () => {
       if (!confirm("この端末の曲・プレイリストを共有JSONで置き換えます。続けますか？")) return;
       button.disabled = true;
@@ -255,44 +247,27 @@
   }
 
   function applyGuestMode(role) {
+    document.documentElement.dataset.accessRole = role;
     if (role !== "guest") return;
     document.body.classList.add("guest-mode");
-    document.documentElement.dataset.accessRole = "guest";
-
     const hideSelectors = [
-      "#addSongBtn",
-      "#browseAddSongBtn",
-      "#editSongBtn",
-      "#deleteSongBtn",
-      "#addVersionBtn",
-      "#editVersionBtn",
-      "#deleteVersionBtn",
-      "#setStartBtn",
-      "#setEndBtn",
-      "#resetRangeBtn",
-      "#markSkipStartBtn",
-      "#markSkipEndBtn",
-      "#openSyncEditorBtn",
-      "#offsetMinus",
-      "#offsetPlus",
-      "#offsetInput",
-      "#autoSkipToggle",
-      "#importInput"
+      "#addSongBtn", "#browseAddSongBtn", "#editSongBtn", "#deleteSongBtn",
+      "#addVersionBtn", "#editVersionBtn", "#deleteVersionBtn",
+      "#setStartBtn", "#setEndBtn", "#resetRangeBtn", "#markSkipStartBtn", "#markSkipEndBtn",
+      "#openSyncEditorBtn", "#offsetMinus", "#offsetPlus", "#offsetInput", "#autoSkipToggle", "#importInput"
     ];
     hideSelectors.forEach(selector => {
       const el = qs(selector);
       if (!el) return;
       const host = el.matches("input") ? el.closest("label") : el;
-      if (host) host.classList.add("guest-hidden");
+      host?.classList.add("guest-hidden");
     });
-
     const topbar = qs(".topbar");
     if (topbar && !qs("#guestModeBadge")) {
       const badge = make("span", "guest-mode-badge", "GUEST");
       badge.id = "guestModeBadge";
       topbar.appendChild(badge);
     }
-
     const versionInfo = qs(".version-info");
     if (versionInfo && !qs("#guestModeNote")) {
       const note = make("div", "guest-mode-note");
@@ -302,10 +277,12 @@
     }
   }
 
-  function keepV31Label() {
+  function keepV311Labels() {
     const apply = () => {
-      const el = qs("#settingsAppVersion");
-      if (el) el.textContent = "GH v31.1";
+      const settingVersion = qs("#settingsAppVersion");
+      if (settingVersion) settingVersion.textContent = "GH v31.1";
+      const badge = qs(".version-badge");
+      if (badge) badge.textContent = "GH v31.1";
     };
     apply();
     document.addEventListener("click", event => {
@@ -314,6 +291,7 @@
   }
 
   async function start() {
+    prepareV311Assets();
     const { config, role } = await unlockSite();
     await seedSharedLibraryIfEmpty(config.sharedLibrary);
     try {
@@ -326,7 +304,7 @@
     initMobileNavigation();
     initSharedLibraryReloadButton(config, role);
     applyGuestMode(role);
-    keepV31Label();
+    keepV311Labels();
   }
 
   start();
