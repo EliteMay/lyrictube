@@ -1,4 +1,4 @@
-# LyricTube GitHub v32
+# LyricTube GitHub v33
 
 YouTube動画と歌詞を同じ画面で管理・再生する、個人利用向けの静的Webアプリです。
 
@@ -219,3 +219,14 @@ LyricTubeの書き出しJSONを `data/library-kaito.json` として置き換え�
 - ゲストは引き続き端末内だけの別データです。
 - `lyrictube.library.v3` のライブラリJSON構造は維持します。
 - かいとのクラウドライブラリが空の場合、既存PCのかいと用localStorageまたは `data/library-kaito.json` から初回移行を試みます。
+
+## v33 差分クラウド同期
+
+- ブラウザ内では従来どおり `lyrictube.library.v3` を使用します。
+- Supabaseでは曲・プレイリスト・設定を分割して保存します。
+- 通常の編集では、変更された曲・プレイリスト・設定だけを約900msまとめて同期します。
+- ログイン時は分割データをv3ライブラリJSONへ再構成して読み込みます。
+- JSON全読み込みや全リセットなど、全置換が必要な操作だけライブラリ全体を置き換えます。
+- 曲とプレイリストの並び順は `sort_order` で維持します。
+- 旧 `lyrictube_libraries` の全JSONは移行バックアップとして当面残します。
+- 同じ項目を複数端末から同時編集した場合は、最後に同期された内容が優先されます。
