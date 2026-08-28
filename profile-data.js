@@ -57,6 +57,78 @@
     nativeSetItem.call(localStorage, MIGRATION_KEY, new Date().toISOString());
   }
 
+  function parseLibrary(raw) {
+    if (!raw) return null;
+    try {
+      const value = JSON.parse(raw);
+      if (!value || typeof value !== "object" || !Array.isArray(value.songs) || !Array.isArray(value.playlists || [])) return null;
+      return value;
+    } catch {
+      return null;
+    }
+  }
+
+  function stableJson(value) {
+    try { return JSON.stringify(value); } catch { return ""; }
+  }
+
+  function buildDelta(before, after) {
+    if (!after) {
+      return { replaceLibrary: { version: 3, songs: [], playlists: [], settings: {} } };
+    }
+
+    const oldSongs = new Map((before?.songs || []).map((song, index) => [String(song?.id || ""), { song, index }]));
+    const newSongs = new Map((after.songs || []).map((song, index) => [String(song?.id || ""), { song, index }]));
+    const oldPlaylists = new Map((before?.playlists || []).map((playlist, index) => [String(playlist?.id || ""), { playlist, index }]));
+    const newPlaylists = new Map((after.playlists || []).map((playlist, index) => [String(playlist?.id || ""), { playlist, index }]));
+
+    const upsertSongs = [];
+    const deleteSongIds = [];
+    for (const [id, entry] of newSongs) {
+      if (!id) continue;
+      const old = oldSongs.get(id);
+      if (!old || old.index !== entry.index || stableJson(old.song) !== stableJson(entry.song)) {
+        upsertSongs.push({ song: entry.song, sortOrder: entry.index });
+      }
+    }
+    for (const id of oldSongs.keys()) {
+      if (id && !newSongs.has(id)) deleteSongIds.push(id);
+    }
+
+    const upsertPlaylists = [];
+    const deletePlaylistIds = [];
+    for (const [id, entry] of newPlaylists) {
+      if (!id) continue;
+      const old = oldPlaylists.get(id);
+      if (!old || old.index !== entry.index || stableJson(old.playlist) !== stableJson(entry.playlist)) {
+        upsertPlaylists.push({ playlist: entry.playlist, sortOrder: entry.index });
+      }
+    }
+    for (const id of oldPlaylists.keys()) {
+      if (id && !newPlaylists.has(id)) deletePlaylistIds.push(id);
+    }
+
+    const oldState = {
+      version: Number(before?.version || 3),
+      settings: before?.settings || {},
+      exportedAt: before?.exportedAt ?? null,
+    };
+    const newState = {
+      version: Number(after?.version || 3),
+      settings: after?.settings || {},
+      exportedAt: after?.exportedAt ?? null,
+    };
+    const state = stableJson(oldState) === stableJson(newState) ? null : newState;
+
+    if (!upsertSongs.length && !deleteSongIds.length && !upsertPlaylists.length && !deletePlaylistIds.length && !state) return null;
+    return { upsertSongs, deleteSongIds, upsertPlaylists, deletePlaylistIds, state };
+  }
+
+  function emitCloudDelta(delta) {
+    if (!delta) return;
+    queueMicrotask(() => document.dispatchEvent(new CustomEvent("lyrictube:cloud-library-delta", { detail: delta })));
+  }
+
   migrateExistingOwnerDataOnce();
 
   Storage.prototype.getItem = function(key) {
@@ -72,9 +144,12 @@
 
   Storage.prototype.setItem = function(key, value) {
     if (this === localStorage && String(key) === BASE_LIBRARY_KEY && currentRole()) {
-      const result = nativeSetItem.call(this, roleStorageKey(), value);
+      const targetKey = roleStorageKey();
+      const beforeRaw = nativeGetItem.call(this, targetKey);
+      const result = nativeSetItem.call(this, targetKey, value);
       if (currentRole() === "cloud") {
-        queueMicrotask(() => document.dispatchEvent(new CustomEvent("lyrictube:cloud-library-changed")));
+        const delta = buildDelta(parseLibrary(beforeRaw), parseLibrary(String(value)));
+        emitCloudDelta(delta);
       }
       return result;
     }
@@ -83,10 +158,10 @@
 
   Storage.prototype.removeItem = function(key) {
     if (this === localStorage && String(key) === BASE_LIBRARY_KEY && currentRole()) {
-      const result = nativeRemoveItem.call(this, roleStorageKey());
-      if (currentRole() === "cloud") {
-        queueMicrotask(() => document.dispatchEvent(new CustomEvent("lyrictube:cloud-library-changed")));
-      }
+      const targetKey = roleStorageKey();
+      const beforeRaw = nativeGetItem.call(this, targetKey);
+      const result = nativeRemoveItem.call(this, targetKey);
+      if (currentRole() === "cloud" && beforeRaw) emitCloudDelta(buildDelta(parseLibrary(beforeRaw), null));
       return result;
     }
     return nativeRemoveItem.call(this, key);
