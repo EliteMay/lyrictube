@@ -1,0 +1,22 @@
+diff --git a/index.html b/index.html
+--- a/index.html
++++ b/index.html
+@@ -529,1 +529,2 @@
+-  <script src="site-shell.js?v=31.1"></script>
++  <script src="profile-data.js?v=31.2"></script>
++  <script src="site-shell.js?v=31.2"></script>
+diff --git a/site-shell.js b/site-shell.js
+--- a/site-shell.js
++++ b/site-shell.js
+@@ -10,1 +10,1 @@
+-  const VERSION = "31.1";
++  const VERSION = "31.2";
+@@ -20,1 +20,1 @@
+-    document.title = "LyricTube GitHub v31.1";
++    document.title = "LyricTube GitHub v31.2";
+@@ -280,1 +280,1 @@
+-      if (settingVersion) settingVersion.textContent = "GH v31.1";
++      if (settingVersion) settingVersion.textContent = "GH v31.2";
+@@ -282,1 +282,1 @@
+-      if (badge) badge.textContent = "GH v31.1";
++      if (badge) badge.textContent = "GH v31.2";
