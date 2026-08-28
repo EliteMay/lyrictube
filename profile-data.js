@@ -6,6 +6,7 @@
   const GUEST_LIBRARY_KEY = "lyrictube.library.guest.v3";
   const LEGACY_KEY = "lyrictube.songs.v1";
   const ACCESS_SESSION_KEY = "lyrictube.simpleAccess.v2";
+  const CLOUD_SESSION_KEY = "lyrictube.cloudSession.v1";
   const OWNER_LIBRARY_URL = "data/library-kaito.json";
   const GUEST_LIBRARY_URL = "data/library.json";
   const MIGRATION_KEY = "lyrictube.profileStorage.migrated.v1";
@@ -15,13 +16,34 @@
   const nativeRemoveItem = Storage.prototype.removeItem;
   const nativeFetch = window.fetch.bind(window);
 
+  function readCloudSession() {
+    try {
+      const raw = nativeGetItem.call(sessionStorage, CLOUD_SESSION_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  }
+
   function currentRole() {
-    const role = sessionStorage.getItem(ACCESS_SESSION_KEY);
-    return role === "guest" ? "guest" : role === "owner" ? "owner" : null;
+    const accessRole = nativeGetItem.call(sessionStorage, ACCESS_SESSION_KEY);
+    if (accessRole === "guest") return "guest";
+    const cloud = readCloudSession();
+    if (cloud?.token && cloud?.account?.id) return "cloud";
+    return accessRole === "owner" ? "owner" : null;
+  }
+
+  function cloudLibraryKey() {
+    const cloud = readCloudSession();
+    const id = String(cloud?.account?.id || "unknown").replace(/[^a-zA-Z0-9_-]/g, "");
+    return `lyrictube.library.cloud.${id}.v3`;
   }
 
   function roleStorageKey() {
-    return currentRole() === "guest" ? GUEST_LIBRARY_KEY : OWNER_LIBRARY_KEY;
+    const role = currentRole();
+    if (role === "guest") return GUEST_LIBRARY_KEY;
+    if (role === "cloud") return cloudLibraryKey();
+    return OWNER_LIBRARY_KEY;
   }
 
   function migrateExistingOwnerDataOnce() {
@@ -50,14 +72,22 @@
 
   Storage.prototype.setItem = function(key, value) {
     if (this === localStorage && String(key) === BASE_LIBRARY_KEY && currentRole()) {
-      return nativeSetItem.call(this, roleStorageKey(), value);
+      const result = nativeSetItem.call(this, roleStorageKey(), value);
+      if (currentRole() === "cloud") {
+        queueMicrotask(() => document.dispatchEvent(new CustomEvent("lyrictube:cloud-library-changed")));
+      }
+      return result;
     }
     return nativeSetItem.call(this, key, value);
   };
 
   Storage.prototype.removeItem = function(key) {
     if (this === localStorage && String(key) === BASE_LIBRARY_KEY && currentRole()) {
-      return nativeRemoveItem.call(this, roleStorageKey());
+      const result = nativeRemoveItem.call(this, roleStorageKey());
+      if (currentRole() === "cloud") {
+        queueMicrotask(() => document.dispatchEvent(new CustomEvent("lyrictube:cloud-library-changed")));
+      }
+      return result;
     }
     return nativeRemoveItem.call(this, key);
   };
@@ -77,15 +107,17 @@
   };
 
   window.LyricTubeProfiles = Object.freeze({
-    owner: {
-      label: "かいと",
-      storageKey: OWNER_LIBRARY_KEY,
-      libraryUrl: OWNER_LIBRARY_URL
-    },
-    guest: {
-      label: "ゲスト",
-      storageKey: GUEST_LIBRARY_KEY,
-      libraryUrl: GUEST_LIBRARY_URL
-    }
+    baseLibraryKey: BASE_LIBRARY_KEY,
+    ownerLocalKey: OWNER_LIBRARY_KEY,
+    guestLocalKey: GUEST_LIBRARY_KEY,
+    cloudSessionKey: CLOUD_SESSION_KEY,
+    ownerLibraryUrl: OWNER_LIBRARY_URL,
+    guestLibraryUrl: GUEST_LIBRARY_URL,
+    currentRole,
+    roleStorageKey,
+    readCloudSession,
+    nativeGetItem: (storage, key) => nativeGetItem.call(storage, key),
+    nativeSetItem: (storage, key, value) => nativeSetItem.call(storage, key, value),
+    nativeRemoveItem: (storage, key) => nativeRemoveItem.call(storage, key)
   });
 })();
