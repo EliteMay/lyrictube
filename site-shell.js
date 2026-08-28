@@ -7,7 +7,7 @@
   const SHARED_LIBRARY_URL = "data/library.json";
   const CONFIG_URL = "data/site-config.json";
   const OWNER_ACCESS_CODE = "2526";
-  const VERSION = "31.1";
+  const VERSION = "31.2";
 
   const qs = (selector, root = document) => root.querySelector(selector);
   function make(tag, className = "", text = "") {
@@ -18,7 +18,7 @@
   }
 
   function prepareV311Assets() {
-    document.title = "LyricTube GitHub v31.1";
+    document.title = "LyricTube GitHub v31.2";
     const mobile = qs('link[href^="mobile.css"]');
     if (mobile) mobile.href = `mobile.css?v=${VERSION}`;
     if (!qs('link[data-guest-style]')) {
@@ -280,9 +280,9 @@
   function keepV311Labels() {
     const apply = () => {
       const settingVersion = qs("#settingsAppVersion");
-      if (settingVersion) settingVersion.textContent = "GH v31.1";
+      if (settingVersion) settingVersion.textContent = "GH v31.2";
       const badge = qs(".version-badge");
-      if (badge) badge.textContent = "GH v31.1";
+      if (badge) badge.textContent = "GH v31.2";
     };
     apply();
     document.addEventListener("click", event => {
