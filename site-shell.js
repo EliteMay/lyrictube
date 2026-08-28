@@ -8,7 +8,7 @@
   const CONFIG_URL = "data/site-config.json";
   const GUEST_LIBRARY_URL = "data/library.json";
   const API_URL = "https://ctktkyxuzkrsigwoswoc.supabase.co/functions/v1/lyrictube-api";
-  const VERSION = "32";
+  const VERSION = "33";
 
   const qs = (selector, root = document) => root.querySelector(selector);
   const qsa = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -40,7 +40,7 @@
   async function api(action, payload = {}) {
     const res = await fetch(API_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "text/plain" },
       body: JSON.stringify({ action, ...payload })
     });
     let data = null;
@@ -50,7 +50,7 @@
   }
 
   function prepareAssets() {
-    document.title = "LyricTube GitHub v32";
+    document.title = "LyricTube GitHub v33";
     const mobile = qs('link[href^="mobile.css"]');
     if (mobile) mobile.href = `mobile.css?v=${VERSION}`;
     if (!qs('link[data-guest-style]')) {
@@ -170,7 +170,12 @@
   }
 
   function storeActiveLibrary(library) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(library));
+    const p = profiles();
+    if (p?.nativeSetItem && p?.roleStorageKey) {
+      p.nativeSetItem(localStorage, p.roleStorageKey(), JSON.stringify(library));
+    } else {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(library));
+    }
     localStorage.removeItem(LEGACY_KEY);
   }
 
@@ -460,8 +465,8 @@
 
   function keepVersionLabels() {
     const apply = () => {
-      if (qs("#settingsAppVersion")) qs("#settingsAppVersion").textContent = "GH v32";
-      if (qs(".version-badge")) qs(".version-badge").textContent = "GH v32";
+      if (qs("#settingsAppVersion")) qs("#settingsAppVersion").textContent = "GH v33";
+      if (qs(".version-badge")) qs(".version-badge").textContent = "GH v33";
     };
     apply();
     document.addEventListener("click", e => { if (e.target.closest("#settingsBtn")) setTimeout(apply, 0); });
@@ -473,7 +478,7 @@
     const gate = createAccessGate();
     const access = await unlockSite(gate, config);
     if (access.role === "guest") await seedGuestLibraryIfEmpty(config.sharedLibrary);
-    initCloudSync(access.role, access.session);
+    // v33: partial cloud sync is handled by cloud-sync.js.
     try { await loadMainApp(); } catch (error) { console.error(error); alert("LyricTubeの読み込みに失敗しました。ページを再読み込みしてください。"); return; }
     initMobileNavigation();
     applyGuestMode(access.role);
