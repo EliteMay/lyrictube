@@ -1,4 +1,4 @@
-# LyricTube GitHub v31.1
+# LyricTube GitHub v32
 
 YouTube動画と歌詞を同じ画面で管理・再生する、個人利用向けの静的Webアプリです。
 
@@ -206,3 +206,16 @@ LRCLIB公式ドキュメントでは、ブラウザJavaScriptでUser-Agentを設
 
 LyricTubeの書き出しJSONを `data/library-kaito.json` として置き換えると、新しい端末で `2526` ログインした人が同じ初期ライブラリを利用できます。既に利用済みの端末では設定の「共有JSONを再読み込み」を使用します。
 ゲスト側のライブラリを更新したい場合だけ `data/library.json` を変更します。
+
+## v32 Supabaseクラウドアカウント
+
+- Supabaseの `LyricTube` プロジェクトへアカウント・ライブラリ・セッションを保存します。
+- `kaito` は管理者アカウントで、パスワード `2526`。ログイン画面でアカウント名を空欄にした場合も `kaito` として扱います。
+- 管理者は設定の「アカウント管理」から友達用アカウントを追加・削除・パスワード変更できます。
+- 新規アカウントは空のライブラリ、または現在のライブラリを複製して作成できます。
+- 各アカウントの曲・プレイリスト・設定はSupabaseへ自動保存され、別PC/スマホでも同じアカウントで利用できます。
+- ブラウザからDBテーブルを直接操作せず、`lyrictube-api` Edge Functionを経由します。
+- パスワードはPostgreSQL `pgcrypto` のbcrypt形式でハッシュ保存します。
+- ゲストは引き続き端末内だけの別データです。
+- `lyrictube.library.v3` のライブラリJSON構造は維持します。
+- かいとのクラウドライブラリが空の場合、既存PCのかいと用localStorageまたは `data/library-kaito.json` から初回移行を試みます。
