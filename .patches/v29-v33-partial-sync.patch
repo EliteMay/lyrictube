@@ -1,31 +1,16 @@
 diff --git a/site-shell.js b/site-shell.js
 --- a/site-shell.js
 +++ b/site-shell.js
-@@ -8,7 +8,7 @@
-   const CONFIG_URL = "data/site-config.json";
-   const GUEST_LIBRARY_URL = "data/library.json";
-   const API_URL = "https://ctktkyxuzkrsigwoswoc.supabase.co/functions/v1/lyrictube-api";
+@@ -11 +11 @@
 -  const VERSION = "32";
 +  const VERSION = "33";
-@@ -37,7 +37,7 @@
-   async function api(action, payload = {}) {
-     const res = await fetch(API_URL, {
-       method: "POST",
+@@ -43 +43 @@
 -      headers: { "Content-Type": "application/json" },
 +      headers: { "Content-Type": "text/plain" },
-       body: JSON.stringify({ action, ...payload })
-     });
-@@ -46,7 +46,7 @@
-   }
- 
-   function prepareAssets() {
+@@ -51 +51 @@
 -    document.title = "LyricTube GitHub v32";
 +    document.title = "LyricTube GitHub v33";
-     const mobile = qs('link[href^="mobile.css"]');
-@@ -164,8 +164,13 @@
-   }
- 
-   function storeActiveLibrary(library) {
+@@ -173 +173,6 @@
 -    localStorage.setItem(STORAGE_KEY, JSON.stringify(library));
 +    const p = profiles();
 +    if (p?.nativeSetItem && p?.roleStorageKey) {
@@ -33,27 +18,19 @@ diff --git a/site-shell.js b/site-shell.js
 +    } else {
 +      localStorage.setItem(STORAGE_KEY, JSON.stringify(library));
 +    }
-     localStorage.removeItem(LEGACY_KEY);
-   }
-@@ -465,8 +470,8 @@
-   function keepVersionLabels() {
-     const apply = () => {
+@@ -463 +468 @@
 -      if (qs("#settingsAppVersion")) qs("#settingsAppVersion").textContent = "GH v32";
--      if (qs(".version-badge")) qs(".version-badge").textContent = "GH v32";
 +      if (qs("#settingsAppVersion")) qs("#settingsAppVersion").textContent = "GH v33";
+@@ -464 +469 @@
+-      if (qs(".version-badge")) qs(".version-badge").textContent = "GH v32";
 +      if (qs(".version-badge")) qs(".version-badge").textContent = "GH v33";
-     };
-@@ -480,7 +485,6 @@
-     const gate = createAccessGate();
-     const access = await unlockSite(gate, config);
-     if (access.role === "guest") await seedGuestLibraryIfEmpty(config.sharedLibrary);
+@@ -476 +481 @@
 -    initCloudSync(access.role, access.session);
-     try { await loadMainApp(); } catch (error) { console.error(error); alert("LyricTubeの読み込みに失敗しました。ページを再読み込みしてください。"); return; }
-     initMobileNavigation();
++    // v33: partial cloud sync is handled by cloud-sync.js.
 diff --git a/index.html b/index.html
 --- a/index.html
 +++ b/index.html
-@@ -1,2 +1,3 @@
+@@ -531,2 +531,3 @@
 -  <script src="profile-data.js?v=32"></script>
 -  <script src="site-shell.js?v=32"></script>
 +  <script src="profile-data.js?v=33"></script>
@@ -68,10 +45,6 @@ diff --git a/app.js b/app.js
 diff --git a/data/defaults.json b/data/defaults.json
 --- a/data/defaults.json
 +++ b/data/defaults.json
-@@ -1,5 +1,5 @@
- {
+@@ -2 +2 @@
 -  "appVersion": "v31",
 +  "appVersion": "v33",
-   "dataFormatVersion": 3,
-   "storageKey": "lyrictube.library.v3",
-   "legacyStorageKey": "lyrictube.songs.v1",
