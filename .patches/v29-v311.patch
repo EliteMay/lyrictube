@@ -1,0 +1,112 @@
+diff --git a/index.html b/index.html
+--- a/index.html
++++ b/index.html
+@@ -3,11 +3,12 @@
+ <head>
+   <meta charset="utf-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1">
+-  <title>LyricTube GitHub v31</title>
++  <title>LyricTube GitHub v31.1</title>
+   <link rel="icon" type="image/webp" href="data:image/webp;base64,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">
+   <link rel="apple-touch-icon" href="data:image/webp;base64,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">
+   <link rel="stylesheet" href="styles.css?v=30.1">
+-  <link rel="stylesheet" href="mobile.css?v=31">
++  <link rel="stylesheet" href="mobile.css?v=31.1">
++  <link rel="stylesheet" href="guest.css?v=31.1">
+ </head>
+@@ -528,5 +529,5 @@
+ 
+   <div id="toast" class="toast" aria-live="polite"></div>
+-  <script src="site-shell.js?v=31"></script>
++  <script src="site-shell.js?v=31.1"></script>
+ </body>
+ </html>
+diff --git a/data/site-config.json b/data/site-config.json
+--- a/data/site-config.json
++++ b/data/site-config.json
+@@ -1,6 +1,6 @@
+ {
+   "enabled": true,
+-  "password": "lyrictube",
++  "password": "2526",
+   "rememberSession": true,
+   "sharedLibrary": true
+ }
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -1,4 +1,4 @@
+-# LyricTube GitHub v31
++# LyricTube GitHub v31.1
+@@ -82,23 +82,33 @@
+ ## 簡易パスワード
+ 
+-v31は友達向けの簡易ロックとして、`data/site-config.json` の `password` を使います。
++v31.1は、通常モードとゲストモードの2通りで入れます。
+ 
+-初期値は以下です。
++- 通常モード: アクセスコード `2526`。曲追加・編集・削除・歌詞同期などを含む全機能を使用可能。
++- ゲストモード: パスワード不要。再生、歌詞、お気に入り、プレイリストなどを利用可能。
++- ゲストでは曲追加、曲情報編集、削除、動画バージョン編集、開始/終了/スキップ、歌詞同期編集を非表示にします。
++- お気に入りとプレイリストはゲスト端末のlocalStorageへ保存されます。
++
++設定ファイルは以下です。
+ 
+ ```json
+ {
+   "enabled": true,
+-  "password": "lyrictube",
++  "password": "2526",
+   "rememberSession": true,
+   "sharedLibrary": true
+ }
+ ```
+ 
+-パスワードを変える場合は `password` の文字だけ変更してください。`enabled` を `false` にするとパスワード画面を無効化できます。
++現在の通常モードのコードは `site-shell.js` 側でも `2526` として設定しています。`enabled` を `false` にするとアクセス画面を無効化できます。
+ 
+ これは本格的な認証ではなく、GitHub Pages上のファイルを見ればパスワードや共有JSONを確認できる簡易方式です。私的利用・友達間利用を前提としています。
++
++### ゲストモード
++
++最初の画面で `ゲストで入る` を押すだけで利用できます。画面上部に `GUEST` バッジが表示されます。通常モードへ切り替えたい場合は新しいタブで開くか、そのタブのsessionStorageを消してからアクセスコードを入力してください。
+@@ -137,6 +147,7 @@
+ - `styles.css` — PCを含む基本UI
+ - `mobile.css` — v31のスマホUI / パスワード画面
++- `guest.css` — v31.1のゲスト入口 / GUEST表示
+ - `app.js` — LyricTube本体
+ - `site-shell.js` — v31の簡易ロック / 共有JSON / スマホメニュー
+diff --git a/作業報告書.md b/作業報告書.md
+--- a/作業報告書.md
++++ b/作業報告書.md
+@@ -730,7 +730,7 @@
+ ### パスワード仕様
+ - ユーザー要望に合わせ、サーバー認証なしの簡易方式。
+ - パスワードは `data/site-config.json` に平文で保存。
+-- 初期パスワードは `lyrictube`。
++- 通常モードのアクセスコードは `2526`。
+ - リポジトリ/配信ファイルを直接確認すれば内容を見られるため、本格的なセキュリティ用途ではない。
+ - APIキー等の秘密情報を保存する用途には使用しない。
+@@ -746,3 +746,20 @@
+ - YouTube IFrame再生、LRCLIB直接検索、Google歌詞検索。
+ - Cover / Live / FIRST TAKE、開始/終了、スキップ、歌詞オフセット。
+ - 歌詞同期、間奏♪、1行だけの時間微調整、Shift+T。
++
++
++## GitHub v31.1 / 2026-08-28 ゲストモード
++
++### 追加
++- 最初のアクセス画面へ `ゲストで入る` を追加。
++- 通常モードはアクセスコード `2526`。
++- ゲストはパスワード不要。
++- ゲスト時は上部へ `GUEST` バッジを表示。
++- ゲストでは曲追加、曲編集、削除、動画バージョン編集、開始/終了、スキップ、歌詞同期編集を非表示。
++- お気に入り・プレイリストはゲストでも利用可能で、その端末のlocalStorageへ保存。
++- ゲスト用CSSを `guest.css` へ分離。
++
++### 維持
++- YouTube再生、LRCLIB、歌詞表示、自動スクロール、テーマ、スマホUI、共有JSONを維持。
++- `lyrictube.library.v3` は変更なし。
++
++### 未確認
++- 実機iPhone / Androidでのゲスト入口と全タップ操作は未確認。
