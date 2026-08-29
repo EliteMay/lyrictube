@@ -205,8 +205,20 @@
   document.body.appendChild(providerScript);
 
   const localMediaScript = document.createElement("script");
-  localMediaScript.src = "local-media.js?v=36.1";
+  localMediaScript.src = "local-media.js?v=36.2";
   localMediaScript.async = false;
   localMediaScript.onerror = () => console.warn("[LyricTube] local-media.js could not be loaded; YouTube and legacy device audio remain available.");
   document.body.appendChild(localMediaScript);
+
+  // app.js and the legacy local-audio extension initialize asynchronously after login.
+  // When a saved local-media song is the current selection on reload, ask the patched
+  // loader to restore it once all layers are ready.
+  const restoreTimer = setInterval(() => {
+    try {
+      if (!document.documentElement.dataset.localMedia || typeof getVersion !== "function" || typeof loadSelectedVideo !== "function") return;
+      clearInterval(restoreTimer);
+      if (getVersion()?.source === "localmedia") loadSelectedVideo(false);
+    } catch {}
+  }, 120);
+  setTimeout(() => clearInterval(restoreTimer), 30000);
 })();
