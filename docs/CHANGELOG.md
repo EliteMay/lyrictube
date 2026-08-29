@@ -1,0 +1,64 @@
+# Changelog
+
+## v0.10.0 — Foundation cleanup
+
+### Architecture
+
+- ユーザー向けSemVerとBuild番号を `version.js` へ一本化
+- `library-schema.js` と `data/library.schema.json` を追加
+- `window.LyricTubeCore` Facadeを追加し、追加機能がコア内部へ直接依存しすぎない移行を開始
+
+### Local Media
+
+- MP3系とMP4/WebMを `local-media.js` へ統合
+- 旧 `local-audio.js / local-audio.css` runtimeを廃止
+- 旧IndexedDB `lyrictube.localAudio.v1` から新DBへの移行処理を追加
+- 別端末でファイルが無い状態を明示
+- 設定画面へ端末ファイル容量表示を追加
+- timeupdate時のUI更新を約8fps上限へ抑制
+
+### Cloud
+
+- Cloud writerを `cloud-sync.js` のみに統一
+- `site-shell.js` の旧全体保存Writerを削除
+- 同期待ち差分をlocalStorageへ保持
+- online / session-ready / pagehide / visibilitychangeで再送
+
+### Login
+
+- 前回成功したアカウント名を端末にだけ記憶
+- 次回はパスワードのみでログイン可能
+- パスワード自体は保存しない
+- Supabase側へログイン失敗回数制限を追加
+
+### Lyrics
+
+- LRCLIB + SyncLRC + lyrics.ovh構成を正式文書化
+- Provider metadataをSchemaへ追加
+
+### UI / Static
+
+- 巨大Base64ロゴを `assets/lyrictube-icon.svg` へ分離
+- HTMLタイトルと表示バージョンを整理
+- index.htmlから旧Local Audio資産を除去
+
+### CI
+
+- 一部JSだけでなく全JavaScriptを `node --check`
+- 全JSONを検証
+- HTMLローカル参照切れを検出
+- 旧Local Audio runtime再混入を検出
+- Base64画像の再埋め込みを検出
+
+## v0.9.x
+
+- `v35 / v36` の開発番号からSemVer表示へ移行
+- MP3 / MP4直接追加
+- SyncLRC / lyrics.ovh追加
+- 前回アカウント記憶の試験実装
+
+## Legacy v03〜v35
+
+初期の複数YouTubeバージョン、LRC同期、同期エディタ、プレイリスト、ゲスト、Supabaseアカウント、タグ、端末音源などを段階的に追加した世代です。
+
+詳細な旧作業記録はGit履歴を参照してください。現行仕様はREADMEと本docsを正とします。
