@@ -195,4 +195,12 @@
     nativeSetItem: (storage, key, value) => nativeSetItem.call(storage, key, value),
     nativeRemoveItem: (storage, key) => nativeRemoveItem.call(storage, key)
   });
+
+  // Optional lyrics-provider extension. Loading it here keeps app.js independent
+  // and preserves the existing LRCLIB implementation as the primary provider.
+  const providerScript = document.createElement("script");
+  providerScript.src = "lyrics-providers.js?v=36";
+  providerScript.async = false;
+  providerScript.onerror = () => console.warn("[LyricTube] lyrics-providers.js could not be loaded; LRCLIB-only mode remains available.");
+  document.body.appendChild(providerScript);
 })();
