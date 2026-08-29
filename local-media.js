@@ -946,7 +946,7 @@
       typeof loadSelectedVideo === "function" &&
       typeof makeVersion === "function" &&
       $("songForm") && $("versionForm") &&
-      document.querySelector(".player-card") &&
+      document.querySelector(".player-card")
     ) {
       clearInterval(timer);
       init();
