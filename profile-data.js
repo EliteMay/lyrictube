@@ -10,6 +10,7 @@
   const OWNER_LIBRARY_URL = "data/library-owner.json";
   const GUEST_LIBRARY_URL = "data/library.json";
   const MIGRATION_KEY = "lyrictube.profileStorage.migrated.v1";
+  const BUILD_REVISION = "20260829-8";
 
   const nativeGetItem = Storage.prototype.getItem;
   const nativeSetItem = Storage.prototype.setItem;
@@ -196,16 +197,25 @@
     nativeRemoveItem: (storage, key) => nativeRemoveItem.call(storage, key)
   });
 
+  // Public version presentation is separated from technical build/cache revisions.
+  // This mirrors VReview's semantic version display instead of exposing v35/v36-like
+  // development counters directly in the UI.
+  const versionScript = document.createElement("script");
+  versionScript.src = `version-meta.js?v=${BUILD_REVISION}`;
+  versionScript.async = false;
+  versionScript.onerror = () => console.warn("[LyricTube] version-meta.js could not be loaded.");
+  document.body.appendChild(versionScript);
+
   // Optional feature extensions. They are kept outside app.js so the v3 library
   // format and the existing YouTube/LRCLIB implementation remain compatible.
   const providerScript = document.createElement("script");
-  providerScript.src = "lyrics-providers.js?v=36";
+  providerScript.src = `lyrics-providers.js?v=${BUILD_REVISION}`;
   providerScript.async = false;
   providerScript.onerror = () => console.warn("[LyricTube] lyrics-providers.js could not be loaded; LRCLIB-only mode remains available.");
   document.body.appendChild(providerScript);
 
   const localMediaScript = document.createElement("script");
-  localMediaScript.src = "local-media.js?v=36.2";
+  localMediaScript.src = `local-media.js?v=${BUILD_REVISION}`;
   localMediaScript.async = false;
   localMediaScript.onerror = () => console.warn("[LyricTube] local-media.js could not be loaded; YouTube and legacy device audio remain available.");
   document.body.appendChild(localMediaScript);
