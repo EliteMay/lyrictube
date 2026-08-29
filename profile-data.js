@@ -7,7 +7,7 @@
   const LEGACY_KEY = "lyrictube.songs.v1";
   const ACCESS_SESSION_KEY = "lyrictube.simpleAccess.v2";
   const CLOUD_SESSION_KEY = "lyrictube.cloudSession.v1";
-  const OWNER_LIBRARY_URL = "data/library-kaito.json";
+  const OWNER_LIBRARY_URL = "data/library-owner.json";
   const GUEST_LIBRARY_URL = "data/library.json";
   const MIGRATION_KEY = "lyrictube.profileStorage.migrated.v1";
 

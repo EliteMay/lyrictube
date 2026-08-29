@@ -8,7 +8,7 @@
   const CONFIG_URL = "data/site-config.json";
   const GUEST_LIBRARY_URL = "data/library.json";
   const API_URL = "https://ctktkyxuzkrsigwoswoc.supabase.co/functions/v1/lyrictube-api";
-  const VERSION = "34.1";
+  const VERSION = "34.2";
 
   const qs = (selector, root = document) => root.querySelector(selector);
   const qsa = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -50,7 +50,7 @@
   }
 
   function prepareAssets() {
-    document.title = "LyricTube GitHub v34.1";
+    document.title = "LyricTube GitHub v34.2";
     const mobile = qs('link[href^="mobile.css"]');
     if (mobile) mobile.href = `mobile.css?v=${VERSION}`;
     if (!qs('link[data-guest-style]')) {
@@ -83,11 +83,11 @@
         <div class="access-mark">♫</div>
         <p class="access-eyebrow">CLOUD LIBRARY</p>
         <h1 id="accessTitle">LyricTube</h1>
-        <p class="access-copy">アカウントごとに曲データをクラウド保存します。かいとはアカウント名を空欄のまま2526で入れます。</p>
+        <p class="access-copy">アカウントごとに曲データをクラウド保存します。登録済みのアカウント名とパスワードでログインしてください。</p>
         <form id="accessForm" autocomplete="off">
           <div class="access-account-row">
             <label class="access-label" for="accessUsername">ACCOUNT</label>
-            <input id="accessUsername" type="text" autocomplete="username" placeholder="アカウント名（かいとは空欄OK）" disabled>
+            <input id="accessUsername" type="text" autocomplete="username" placeholder="アカウント名" disabled>
           </div>
           <label class="access-label" for="accessPassword">PASSWORD</label>
           <div class="access-input-row">
@@ -134,8 +134,8 @@
     return data && typeof data === "object" && Array.isArray(data.songs) && Array.isArray(data.playlists || []);
   }
 
-  async function maybeMigrateKaitoLibrary(cloudLibrary, session) {
-    if (session?.account?.username !== "kaito") return cloudLibrary;
+  async function maybeMigratePrimaryLibrary(cloudLibrary, session) {
+    if (session?.account?.isAdmin !== true) return cloudLibrary;
     const emptyCloud = !cloudLibrary?.songs?.length && !(cloudLibrary?.playlists || []).length;
     if (!emptyCloud) return cloudLibrary;
 
@@ -156,7 +156,7 @@
     }
 
     try {
-      const url = p?.ownerLibraryUrl || "data/library-kaito.json";
+      const url = p?.ownerLibraryUrl || "data/library-owner.json";
       const res = await fetch(`${url}?v=${VERSION}&t=${Date.now()}`, { cache: "no-store" });
       if (res.ok) {
         const parsed = await res.json();
@@ -188,7 +188,7 @@
 
     const existing = await validateStoredCloudSession();
     if (existing) {
-      let library = await maybeMigrateKaitoLibrary(existing.library, existing.session);
+      const library = await maybeMigratePrimaryLibrary(existing.library, existing.session);
       storeActiveLibrary(library);
       gate.remove();
       return { role: "cloud", config, session: existing.session };
@@ -211,8 +211,11 @@
       form.addEventListener("submit", async event => {
         event.preventDefault();
         const password = passwordInput.value;
-        const username = usernameInput.value.trim() || "kaito";
-        if (!password) return;
+        const username = usernameInput.value.trim();
+        if (!username || !password) {
+          status.textContent = "アカウント名とパスワードを入力してください。";
+          return;
+        }
         submit.disabled = true;
         status.textContent = "ログイン中…";
         try {
@@ -221,7 +224,7 @@
           setCloudSession(session);
           sessionStorage.setItem(ACCESS_SESSION_KEY, "cloud");
           const loaded = await api("load_library", { token: session.token });
-          const library = await maybeMigrateKaitoLibrary(loaded.library, session);
+          const library = await maybeMigratePrimaryLibrary(loaded.library, session);
           storeActiveLibrary(library);
           gate.classList.add("unlocking");
           setTimeout(() => { gate.remove(); resolve({ role: "cloud", config, session }); }, 170);
@@ -465,8 +468,8 @@
 
   function keepVersionLabels() {
     const apply = () => {
-      if (qs("#settingsAppVersion")) qs("#settingsAppVersion").textContent = "GH v34.1";
-      if (qs(".version-badge")) qs(".version-badge").textContent = "GH v34.1";
+      if (qs("#settingsAppVersion")) qs("#settingsAppVersion").textContent = "GH v34.2";
+      if (qs(".version-badge")) qs(".version-badge").textContent = "GH v34.2";
     };
     apply();
     document.addEventListener("click", e => { if (e.target.closest("#settingsBtn")) setTimeout(apply, 0); });
