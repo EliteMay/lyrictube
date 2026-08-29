@@ -2,17 +2,18 @@
   "use strict";
 
   const meta = Object.freeze({
-    version: "v0.10.1",
-    build: "20260830-1",
+    version: "v0.10.2",
+    build: "20260830-2",
     dataSchema: 4,
     product: "LyricTube"
   });
 
   function applyUi() {
     document.title = meta.product;
-    document.querySelectorAll(".version-badge").forEach(el => {
+    document.querySelectorAll("[data-app-version], .version-badge").forEach(el => {
       el.textContent = meta.version;
       el.title = `${meta.product} ${meta.version} · build ${meta.build}`;
+      el.setAttribute("aria-label", `${meta.product} ${meta.version}`);
     });
     const settings = document.getElementById("settingsAppVersion");
     if (settings) {

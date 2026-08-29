@@ -1,4 +1,4 @@
-const APP_VERSION = window.LyricTubeVersion?.version || "v0.10.1";
+const APP_VERSION = window.LyricTubeVersion?.version || "v0.10.2";
 const STORAGE_KEY = "lyrictube.library.v3";
 const LEGACY_KEY = "lyrictube.songs.v1";
 const LIB_VERSION = 3;
