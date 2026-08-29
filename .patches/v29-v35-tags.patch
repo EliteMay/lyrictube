@@ -48,13 +48,6 @@ diff --git a/index.html b/index.html
 +  <script src="site-shell.js?v=35"></script>
 +  <script src="local-audio.js?v=35"></script>
 +  <script src="tags.js?v=35"></script>
-diff --git a/.github/workflows/validate-js.yml b/.github/workflows/validate-js.yml
---- a/.github/workflows/validate-js.yml
-+++ b/.github/workflows/validate-js.yml
-@@ -10,0 +11 @@
-+      - 'tags.js'
-@@ -28,0 +30 @@
-+          node --check tags.js
 diff --git a/README.md b/README.md
 --- a/README.md
 +++ b/README.md
@@ -82,7 +75,7 @@ diff --git a/README.md b/README.md
 diff --git a/作業報告書.md b/作業報告書.md
 --- a/作業報告書.md
 +++ b/作業報告書.md
-@@ -870,0 +871,29 @@
+@@ -870,0 +871,30 @@
 +
 +## GitHub v35 / 2026-08-29 ユーザータグ
 +
@@ -98,7 +91,6 @@ diff --git a/作業報告書.md b/作業報告書.md
 +- タグ管理画面で作成、名前変更、10色プリセット変更、削除、曲検索、個別付与、一括付与 / 解除に対応。
 +- 曲のタグ編集画面から新規タグを作ってそのまま選択可能。
 +- ゲストは端末内、クラウドアカウントはそのアカウントのライブラリ内でタグを保持。
-+- `validate-js.yml` に `tags.js` の `node --check` を追加。
 +
 +### クラウド同期
 +- 新規Supabaseテーブルは追加していない。
@@ -112,8 +104,8 @@ diff --git a/作業報告書.md b/作業報告書.md
 +- 認証情報をGitHubへ追加しない。
 +
 +### 確認
-+- `tags.js` は作成前に `node --check` で構文確認。
-+- GitHub ActionsのJavaScript構文検査対象へ追加。
++- `tags.js` は反映前に `node --check` で構文確認。
++- 既存のGitHub Actions検査ワークフローは権限制約により変更していない。
 +
 +### 未確認
 +- 実機スマホでのタグ管理画面の最終タップ操作。
