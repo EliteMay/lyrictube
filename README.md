@@ -1,240 +1,211 @@
 # LyricTube
 
-**Current version: v0.9.0**  
-**Build: 20260829-8**
+**Current version: v0.10.0**  
+**Build: 20260829-10**
 
-YouTube動画・端末の音声/動画ファイルと歌詞をまとめて管理し、同期歌詞付きで再生する個人用Webアプリです。
-
-GitHub Pagesでそのまま利用できる静的構成を基本にしつつ、アカウント利用時はSupabase経由で曲情報をクラウド同期します。
+YouTube動画、端末のMP3/MP4、通常歌詞、同期歌詞を1つのライブラリで管理する個人用Webアプリです。
 
 ## 目的
 
-- YouTubeのMV / Cover / Liveを1つの曲としてまとめて管理する
-- MP3 / MP4など手元のファイルも同じライブラリで扱う
-- 通常歌詞とLRC同期歌詞を管理する
-- 歌詞のタイミングを細かく編集する
-- PC / スマホのどちらでも使いやすくする
-- GitHub Pagesで追加費用なしに使える構成を維持する
-
-## 現在の主な機能
-
-### 再生ソース
-
-- YouTube IFrame Player
-- 端末音声
-  - MP3
-  - M4A
-  - AAC
-  - WAV
-  - OGG / OGA
-  - OPUS
-  - FLAC
-- 端末動画
-  - MP4
-  - WebM
-  - M4V
-
-新しい曲を追加するときに、最初から **YouTube / 端末ファイル（MP3 / MP4）** を選択できます。
-Cover / Liveなどの追加バージョンでも同じように再生ソースを選べます。
-
-### 曲 / バージョン管理
-
-- 1曲に複数バージョンを登録
-- 原曲 / MV
-- Cover / 歌ってみた
-- FIRST TAKE系
-- Live
-- Acoustic
-- その他
-- 動画ごとの開始位置 / 終了位置
-- 途中スキップ区間
-- 動画ごとの歌詞オフセット
-- 動画専用LRC
-- 同じYouTube動画IDの重複登録防止
-
-### 歌詞
-
-自動検索は複数ソースを使います。
-
-1. LRCLIB
-2. SyncLRC
-3. lyrics.ovh
-
-取得結果にはプロバイダー情報を保持し、同期歌詞がある場合はそのままLRCとして利用できます。
-通常歌詞しか無い場合も、LyricTubeの同期エディタで時間を付けられます。
-
-### 同期エディタ
-
-- LRC時間同期
-- `♪ 間奏を追加`
-- 選択行への現在時間打刻
-- 各行だけ `-0.5 / -0.1 / +0.1 / +0.5秒`
-- Undo
-- 歌詞本文を修正したとき、可能な範囲で既存タイミングを維持
-
-### ライブラリ
-
-- 全曲
-- お気に入り
-- 最近聴いた曲
-- プレイリスト
-- タグ
-- 曲検索
-- 曲を探す画面
-- JSON書き出し / 読み込み
-
-### アカウント / ゲスト
-
-- Supabaseクラウドアカウント
-- ゲストモード
-- アカウントごとの曲情報保存
-- ゲストでは編集系機能を制限
-
-## データ保存
-
-### 曲情報
-
-曲・歌詞・プレイリスト・設定などは `lyrictube.library.v3` 互換のJSON構造を維持しています。
-
-利用モードに応じて、ブラウザ内ではアカウント別のlocalStorageへ保存されます。
-クラウドアカウントではSupabase側にも曲情報を同期します。
-
-### MP3 / MP4などのファイル本体
-
-端末ファイル本体は **GitHubにもSupabaseにも送信しません**。
-
-ブラウザのIndexedDBへ、その端末だけのデータとして保存します。
-
-そのため別PC / スマホへログインした場合、曲名・歌詞などは同期されても、MP3 / MP4本体はその端末で再登録する必要があります。
-
-ブラウザのサイトデータを削除すると端末ファイルが消える場合があります。
-
-## バージョン管理
-
-VReviewと同じ考え方で、ユーザーに見せるバージョンと技術的な更新番号を分離します。
-
-### ユーザー向け
-
-Semantic Versioning形式を使います。
-
-```text
-v0.9.0
-│ │ └─ PATCH: 不具合修正・小改善
-│ └─── MINOR: 機能追加・まとまった改善
-└───── MAJOR: 大きな仕様段階
-```
-
-現在は正式な `v1.0.0` 前なので `v0.x.x` とします。
-主要機能が安定し、通常利用で重大な未確認部分がなくなった段階で `v1.0.0` に上げます。
-
-### 内部ビルド
-
-キャッシュ更新やデバッグには日付 + revisionを使います。
-
-```text
-20260829-8
-```
-
-この値は通常UIでは目立たせません。
-
-旧 `v31 / v34 / v35 / v36` のような番号は、過去の作業履歴として作業報告書や旧ドキュメントに残すだけにします。
+- MV / Cover / Live / FIRST TAKEなどを「1曲の複数バージョン」として管理する
+- MP3 / MP4など手元のファイルも同じプレイヤーで扱う
+- LRCLIB / SyncLRC / lyrics.ovhを使って歌詞を探す
+- LRC同期歌詞を表示・編集する
+- PC / スマホのどちらでも利用する
+- GitHub Pagesで公開できる静的構成を維持する
+- アカウント利用時はSupabaseへ曲情報をクラウド同期する
 
 ## 崩してはいけない仕様
 
-- GitHub Pagesで利用可能な静的構成
-- `lyrictube.library.v3` の既存データ互換
-- 曲と複数再生バージョンの分離
-- 動画ごとの開始 / 終了 / スキップ / 歌詞同期
-- YouTube動画そのものを保存しない
-- 端末MP3 / MP4をユーザー操作なしに外部送信しない
-- APIキーやパスワードを公開リポジトリへ保存しない
-- クラウド更新後も端末ファイルを勝手に削除しない
-- 編集機能をゲストへ無断開放しない
+1. GitHub Pagesで動くこと
+2. APIキーやパスワードを公開リポジトリへ保存しないこと
+3. `lyrictube.library.v3` の既存データを読み込めること
+4. 1曲に複数の再生バージョンを持てること
+5. YouTubeと端末ファイルを混在できること
+6. 端末ファイル本体をGitHub / Supabaseへアップロードしないこと
+7. 曲開始 / 終了 / スキップ / 歌詞オフセット / 動画専用同期を維持すること
+8. 歌詞の手動編集と同期エディタを維持すること
+9. ゲストとクラウドアカウントのデータを混在させないこと
+10. 大きな仕様変更時はSchema / README / 作業報告を同時更新すること
 
-## ファイル構成
-
-主要ファイルだけ記載します。
+## 現在の構成
 
 ```text
 index.html
-styles.css
-mobile.css
-guest.css
-app.js
-site-shell.js
-profile-data.js
-cloud-sync.js
-lyrics-providers.js
-version-meta.js
-local-audio.js
-local-audio.css
-local-media.js
-tags.js
-tags.css
+├─ version.js                 表示バージョン / Build / Schema番号
+├─ library-schema.js          ライブラリ正規化・移行
+├─ profile-data.js            アカウント別localStorageルーティング
+├─ cloud-sync.js              Supabase差分同期（唯一の同期Writer）
+├─ site-shell.js              ログイン / ゲスト / スマホ外枠
+├─ lyrics-providers.js        LRCLIB + SyncLRC + lyrics.ovh統合
+├─ local-media.js             MP3 / MP4 / WebM + IndexedDB
+├─ tags.js                    タグ
+└─ app.js                     既存コアUI / 再生 / 同期編集
+```
+
+`app.js` はまだ大きいため、v0.10系では互換性を壊さない範囲で公開Facadeを追加し、今後段階的に分割します。機能を一気に移動して既存ライブラリや再生を壊す変更は行いません。
+
+## バージョン管理
+
+ユーザー向けのバージョンとキャッシュ用Buildを分離しています。
+
+- 表示: `v0.10.0`
+- Build: `20260829-10`
+- データSchema: `4`
+
+正本は `version.js` です。旧 `v35 / v36` の番号は現行UIのバージョンとして使用しません。
+
+## 再生ソース
+
+### YouTube
+
+YouTube IFrame Player APIを使用します。YouTube Data APIキーは不要です。
+
+### 端末ファイル
+
+`local-media.js` が以下を扱います。
+
+- MP3
+- M4A
+- AAC
+- WAV
+- OGG / OGA
+- OPUS
+- FLAC
+- MP4
+- WebM
+- M4V
+
+ファイル本体はIndexedDB `lyrictube.localMedia.v1` に保存します。クラウドへは曲情報とファイル名などのメタデータだけを同期します。
+
+旧 `lyrictube.localAudio.v1` が残っている場合、Local Media初期化時に新ストレージへ移行を試みます。
+
+別端末ではファイル本体は存在しないため、「この端末にファイルがありません」と表示し、再登録できます。
+
+## 歌詞検索
+
+自動検索は以下の順で候補を統合します。
+
+1. LRCLIB
+2. SyncLRC
+3. lyrics.ovh（通常歌詞の補完）
+
+結果は重複除去し、取得元を表示します。保存時は `lyricsProvider` / `lyricsProviderId` を記録します。旧 `lrclibId` も互換性のため維持します。
+
+## クラウド同期
+
+Supabaseを使用します。
+
+- `profile-data.js`: localStorageへの変更から差分を生成
+- `cloud-sync.js`: 差分をまとめてSupabaseへ送信
+- `site-shell.js`: ログイン・初回読込のみ担当
+
+v0.10.0から **クラウド保存Writerは `cloud-sync.js` の1本だけ**です。以前の `site-shell.js` 全体保存処理は無効化しています。
+
+同期待ちデータは端末のlocalStorageへ一時保存するため、通信失敗直後にページを閉じても次回再送できます。
+
+## ログイン
+
+初回はアカウント名 + パスワードでログインします。
+
+成功したアカウント名だけを端末に保存し、次回はパスワード欄だけ表示できます。パスワードそのものは保存しません。「変更」から別アカウントへ切り替えられます。
+
+Supabase側では同一アカウントへの連続ログイン失敗を制限します。
+
+## データ
+
+現在の互換キーは `lyrictube.library.v3` のままです。
+
+内部Schemaは `settings.dataSchemaVersion = 4` を使用します。読み込み時は `library-schema.js` が不足フィールド・旧Local Audio・Provider情報などを正規化します。
+
+機械可読Schema:
+
+- `data/library.schema.json`
+
+詳細は `docs/DATA_SCHEMA.md`。
+
+## 保存場所
+
+| データ | 保存先 |
+|---|---|
+| 曲 / プレイリスト / 設定 | localStorage + Supabase（クラウド時） |
+| MP3 / MP4本体 | IndexedDB（その端末のみ） |
+| ログインセッション | sessionStorage |
+| 前回成功したアカウント名 | localStorage |
+| 同期待ちキュー | localStorage |
+
+## GitHub Pages
+
+静的HTML / CSS / JS構成なのでGitHub Pagesで利用できます。
+
+1. `Settings`
+2. `Pages`
+3. `Deploy from a branch`
+4. `main`
+5. `/ (root)`
+
+APIキー・パスワード・秘密情報をリポジトリへ追加しないでください。
+
+## 自動検証
+
+GitHub Actions `Validate LyricTube` で以下を確認します。
+
+- 全 `.js` の `node --check`
+- 全 `.json` のJSON構文
+- `index.html` のローカル参照切れ
+- 廃止したLocal Audio runtimeの再混入
+- Base64画像のHTML再埋め込み
+- Python保守ツールの構文
+
+## ファイル構成
+
+```text
+assets/
+  lyrictube-icon.svg
 
 data/
   defaults.json
   library.json
   library-owner.json
+  library.schema.json
   site-config.json
 
 docs/
-作業報告書.md
+  ARCHITECTURE.md
+  CLOUD.md
+  DATA_SCHEMA.md
+  LYRICS.md
+  STORAGE.md
+  CHANGELOG.md
+  KNOWN_ISSUES.md
+
+app.js
+version.js
+library-schema.js
+profile-data.js
+cloud-sync.js
+site-shell.js
+lyrics-providers.js
+local-media.js
+tags.js
+styles.css
+mobile.css
+guest.css
+auth-ui.css
+tags.css
+index.html
 ```
 
-### 主な役割
+## 注意点
 
-- `app.js` — プレイヤー / 曲 / 歌詞 / 同期エディタ本体
-- `site-shell.js` — ログイン / ゲスト / スマホ補助UI
-- `profile-data.js` — アカウント別保存先と拡張スクリプト読み込み
-- `cloud-sync.js` — Supabaseクラウド同期
-- `lyrics-providers.js` — LRCLIB + SyncLRC + lyrics.ovh
-- `local-media.js` — MP3 / MP4などの端末ファイル追加・再生
-- `local-audio.js` — 旧端末音源互換レイヤー
-- `tags.js` — タグ管理
-- `version-meta.js` — ユーザー向けSemantic Version表示
+- ブラウザのサイトデータを削除するとLocal Media本体も消える可能性があります。
+- MP4の再生可否はブラウザが対応する映像/音声Codecに依存します。
+- YouTube埋め込み不可動画は再生できません。
+- 外部歌詞サービス障害時は、そのProviderだけ一時的に利用できません。
+- Supabaseへ同期するのは曲情報であり、MP3 / MP4本体ではありません。
 
-## GitHub Pages
+## 既知の課題
 
-1. `Settings`
-2. `Pages`
-3. `Deploy from a branch`
-4. Branch: `main`
-5. Folder: `/ (root)`
-6. `Save`
+`app.js` は旧バージョンから機能を積み重ねてきたため、まだ大きな単一ファイルです。v0.10.0では重複ランタイムとデータ・同期の土台を先に整理しました。今後は動作を維持したままPlayer / Lyrics / Library / UI単位に段階分割します。
 
-GitHub PagesではNode.jsや `start.bat` は不要です。
-
-## セキュリティ / 公開時の注意
-
-公開リポジトリへ以下を直接入れないでください。
-
-- Supabase Service Role Key
-- API秘密鍵
-- パスワード
-- 個人情報
-- MP3 / MP4など配布権限のないメディア本体
-
-ブラウザから利用する公開可能な設定と、秘密にする必要がある情報は分離してください。
-
-## 現在の未確認・既知の注意点
-
-- SyncLRC / lyrics.ovhは外部サービスのCORSや障害の影響を受けます。
-- YouTube埋め込み禁止動画は再生できません。
-- MP4の再生可否はブラウザが対応する動画 / 音声Codecにも依存します。
-- 端末ファイルはIndexedDBのため、ブラウザやOSのストレージ整理で削除される可能性があります。
-- 実機の全ブラウザ / 全スマホでの最終操作確認は未完了です。
-
-確認できていない項目は作業報告書で「確認済み」と扱わない方針です。
-
-## 完成条件
-
-`v1.0.0` とする目安は以下です。
-
-- YouTube / MP3 / MP4の主要再生が安定
-- 曲追加 / 編集 / 削除が安定
-- クラウド同期で重大なデータ消失がない
-- 歌詞検索と同期編集が通常利用できる
-- PC / スマホで致命的なUI崩れがない
-- README / 作業報告書が現仕様と一致
-- 既知の重大不具合が残っていない
+詳細は `docs/KNOWN_ISSUES.md` を参照してください。
