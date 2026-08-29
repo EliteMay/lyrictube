@@ -902,8 +902,8 @@ body::before{
 /* ==========================================================
    v19: YouTube search + API settings
    ========================================================== */
-.sidebar-tools{grid-template-columns:repeat(3,minmax(0,1fr))}
-.sidebar-tools .ghost-btn,.sidebar-tools .file-label{min-width:0;padding-left:8px;padding-right:8px}
+.sidebar-tools{grid-template-columns:minmax(46px,.72fr) 32px minmax(0,1fr) minmax(0,1fr);gap:6px;align-items:center}
+.sidebar-tools .ghost-btn:not(.help-icon-btn),.sidebar-tools .file-label{min-width:0;padding-left:7px;padding-right:7px;font-size:13px;white-space:nowrap;overflow:hidden}.sidebar-tools .help-icon-btn{justify-self:center}
 .browse-hero-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .youtube-input-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center}
 .youtube-input-row input{min-width:0}
@@ -971,8 +971,8 @@ body::before{
   .youtube-input-row{grid-template-columns:1fr 1fr}
   .youtube-input-row input{grid-column:1/-1}
   .youtube-result{grid-template-columns:135px minmax(0,1fr)}
-  .sidebar-tools{grid-template-columns:1fr 1fr}
-  .sidebar-tools #settingsBtn{grid-column:1/-1}
+  .sidebar-tools{grid-template-columns:minmax(46px,.72fr) 32px minmax(0,1fr) minmax(0,1fr)}
+  .sidebar-tools #settingsBtn{grid-column:auto}
 }
 @media(max-width:480px){
   .youtube-result{grid-template-columns:1fr}

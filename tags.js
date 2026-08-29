@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const TAG_VERSION = window.LyricTubeVersion?.version || "v0.10.0";
+  const TAG_VERSION = window.LyricTubeVersion?.version || "v0.10.1";
   const COLOR_PRESETS = [
     { id: "violet", label: "紫" },
     { id: "blue", label: "青" },
