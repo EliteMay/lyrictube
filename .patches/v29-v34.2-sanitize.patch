@@ -1,0 +1,192 @@
+diff --git a/app.js b/app.js
+--- a/app.js
++++ b/app.js
+@@ -1 +1 @@
+-const APP_VERSION = "v34.1";
++const APP_VERSION = "v34.2";
+diff --git a/data/defaults.json b/data/defaults.json
+--- a/data/defaults.json
++++ b/data/defaults.json
+@@ -2 +2 @@
+-  "appVersion": "v34.1",
++  "appVersion": "v34.2",
+diff --git a/profile-data.js b/profile-data.js
+--- a/profile-data.js
++++ b/profile-data.js
+@@ -10 +10 @@
+-  const OWNER_LIBRARY_URL = "data/library-kaito.json";
++  const OWNER_LIBRARY_URL = "data/library-owner.json";
+diff --git a/site-shell.js b/site-shell.js
+--- a/site-shell.js
++++ b/site-shell.js
+@@ -11 +11 @@
+-  const VERSION = "34.1";
++  const VERSION = "34.2";
+@@ -53 +53 @@
+-    document.title = "LyricTube GitHub v34.1";
++    document.title = "LyricTube GitHub v34.2";
+@@ -86 +86 @@
+-        <p class="access-copy">アカウントごとに曲データをクラウド保存します。かいとはアカウント名を空欄のまま2526で入れます。</p>
++        <p class="access-copy">アカウントごとに曲データをクラウド保存します。登録済みのアカウント名とパスワードでログインしてください。</p>
+@@ -90 +90 @@
+-            <input id="accessUsername" type="text" autocomplete="username" placeholder="アカウント名（かいとは空欄OK）" disabled>
++            <input id="accessUsername" type="text" autocomplete="username" placeholder="アカウント名" disabled>
+@@ -137,2 +137,2 @@
+-  async function maybeMigrateKaitoLibrary(cloudLibrary, session) {
+-    if (session?.account?.username !== "kaito") return cloudLibrary;
++  async function maybeMigratePrimaryLibrary(cloudLibrary, session) {
++    if (session?.account?.isAdmin !== true) return cloudLibrary;
+@@ -159 +159 @@
+-      const url = p?.ownerLibraryUrl || "data/library-kaito.json";
++      const url = p?.ownerLibraryUrl || "data/library-owner.json";
+@@ -191 +191 @@
+-      let library = await maybeMigrateKaitoLibrary(existing.library, existing.session);
++      const library = await maybeMigratePrimaryLibrary(existing.library, existing.session);
+@@ -214,2 +214,5 @@
+-        const username = usernameInput.value.trim() || "kaito";
+-        if (!password) return;
++        const username = usernameInput.value.trim();
++        if (!username || !password) {
++          status.textContent = "アカウント名とパスワードを入力してください。";
++          return;
++        }
+@@ -224 +227 @@
+-          const library = await maybeMigrateKaitoLibrary(loaded.library, session);
++          const library = await maybeMigratePrimaryLibrary(loaded.library, session);
+@@ -468,2 +471,2 @@
+-      if (qs("#settingsAppVersion")) qs("#settingsAppVersion").textContent = "GH v34.1";
+-      if (qs(".version-badge")) qs(".version-badge").textContent = "GH v34.1";
++      if (qs("#settingsAppVersion")) qs("#settingsAppVersion").textContent = "GH v34.2";
++      if (qs(".version-badge")) qs(".version-badge").textContent = "GH v34.2";
+diff --git a/index.html b/index.html
+--- a/index.html
++++ b/index.html
+@@ -6 +6 @@
+-  <title>LyricTube GitHub v34.1</title>
++  <title>LyricTube GitHub v34.2</title>
+@@ -532 +532 @@
+-  <script src="profile-data.js?v=34.1"></script>
++  <script src="profile-data.js?v=34.2"></script>
+@@ -534 +534 @@
+-  <script src="site-shell.js?v=34.1"></script>
++  <script src="site-shell.js?v=34.2"></script>
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -1 +1 @@
+-# LyricTube GitHub v34
++# LyricTube GitHub v34.2
+@@ -83 +83 @@
+-v31.1では、通常モードとゲストモードの2通りで入れます。
++現在は、Supabaseクラウドアカウントまたはゲストモードで入れます。
+@@ -85 +85 @@
+-- 通常モード: アクセスコード `2526`。全機能を使用可能。
++- クラウドモード: Supabaseに登録済みのアカウント名・パスワードでログイン。全機能を使用可能。
+@@ -90 +90 @@
+-これは本格的な認証ではなく、GitHub Pages上のファイルを見ればコードや共有JSONを確認できる簡易方式です。私的利用・友達間利用を前提としています。
++クラウドログインの認証情報はSupabase側で管理し、GitHub Pagesのファイルには保存しません。
+@@ -96 +96 @@
+-通常モードへ切り替えたい場合は、新しいタブで開くか、そのタブのsessionStorageを消してからアクセスコード `2526` を入力してください。
++クラウドモードへ切り替えたい場合は、ログアウト後に登録済みのアカウント名・パスワードでログインしてください。
+@@ -143 +143 @@
+-- `data/site-config.json` — 簡易アクセス設定
++- `data/site-config.json` — 公開可能なサイト設定（認証情報は置かない）
+@@ -156 +156 @@
+-- v31.1のアクセスコードは公開リポジトリ上で確認できる簡易方式であり、秘密情報を守る用途には使わないでください。
++- 認証情報・APIキー・秘密情報は公開リポジトリへ保存しません。
+@@ -194 +194 @@
+-- 通常モードのアクセスコードを `2526` に固定。
++- 当時は通常モードに固定アクセスコード方式を使用。現在はSupabaseアカウント認証へ移行済み。
+@@ -199 +199 @@
+-## v31.2 かいと用ライブラリ分離
++## v31.2 旧オーナー用ライブラリ分離
+@@ -201,2 +201,2 @@
+-- `2526` で入る通常モードを「かいと」用として扱います。
+-- かいと用の初期/再読み込み元は `data/library-kaito.json`。
++- 当時の通常モードを旧オーナー用プロファイルとして分離しました。
++- 旧オーナー用の初期/再読み込み元は `data/library-owner.json`。
+@@ -205,2 +205,2 @@
+-- v31.2以前の `lyrictube.library.v3` が残っている場合は、初回のみかいと側へ移行します。
+-- GitHub Pagesは静的サイトのため、サイト内編集が `data/library-kaito.json` へ自動反映されるわけではありません。各端末の編集はその端末へ保存されます。
++- v31.2以前の `lyrictube.library.v3` が残っている場合は、初回のみ旧オーナー側へ移行します。
++- GitHub Pagesは静的サイトのため、サイト内編集が `data/library-owner.json` へ自動反映されるわけではありません。各端末の編集はその端末へ保存されます。
+@@ -208 +208 @@
+-### かいと用JSONの更新
++### 旧オーナー用JSONの更新
+@@ -210 +210 @@
+-LyricTubeの書き出しJSONを `data/library-kaito.json` として置き換えると、新しい端末で `2526` ログインした人が同じ初期ライブラリを利用できます。既に利用済みの端末では設定の「共有JSONを再読み込み」を使用します。
++旧互換用の書き出しJSONを `data/library-owner.json` として置き換えると、旧オーナープロファイルの初期ライブラリとして利用できます。現在のクラウドアカウントではSupabase同期を使用します。
+@@ -216 +216 @@
+-- `kaito` は管理者アカウントで、パスワード `2526`。ログイン画面でアカウント名を空欄にした場合も `kaito` として扱います。
++- 初期管理者アカウントはSupabase側で管理します。ユーザー名・パスワードなどの認証情報はGitHubへ保存しません。
+@@ -224 +224 @@
+-- かいとのクラウドライブラリが空の場合、既存PCのかいと用localStorageまたは `data/library-kaito.json` から初回移行を試みます。
++- 管理者のクラウドライブラリが空の場合、既存PCの旧オーナー用localStorageまたは `data/library-owner.json` から初回移行を試みます。
+@@ -260,0 +261,8 @@
++
++## v34.2 公開リポジトリの認証情報整理
++
++- GitHub上のコード・README・作業報告には個人名、具体的なユーザー名、パスワードを記載しない方針へ変更。
++- ログイン時はアカウント名とパスワードの両方を入力必須に変更。
++- 旧簡易アクセス用のパスワード設定を公開設定JSONから削除。
++- 旧オーナー用フォールバック名を `data/library-owner.json` に一般化。
++- Supabase上のアカウント・曲データ・プレイリストは変更しません。
+diff --git "a/\344\275\234\346\245\255\345\240\261\345\221\212\346\233\270.md" "b/\344\275\234\346\245\255\345\240\261\345\221\212\346\233\270.md"
+--- "a/\344\275\234\346\245\255\345\240\261\345\221\212\346\233\270.md"
++++ "b/\344\275\234\346\245\255\345\240\261\345\221\212\346\233\270.md"
+@@ -725 +725 @@
+-- `data/site-config.json` を追加。パスワード・ロック有効/無効・セッション保持を設定可能。
++- `data/site-config.json` を追加。当時は簡易アクセス情報も扱っていましたが、現在は公開可能なサイト設定だけを保持。
+@@ -732,2 +732,2 @@
+-- パスワードは `data/site-config.json` に平文で保存。
+-- 通常モードのアクセスコードは `2526`。
++- 当時は `data/site-config.json` に簡易アクセス情報を保存していました。現在は廃止済み。
++- 当時は固定アクセスコード方式を使用（値は非掲載）。
+@@ -752 +752 @@
+-- 通常モードはアクセスコード `2526`、ゲストはパスワード不要。
++- 当時の通常モードは固定アクセスコード方式、ゲストはパスワード不要。
+@@ -760 +760 @@
+-## GitHub v31.2 / 2026-08-29 かいと用ライブラリ分離
++## GitHub v31.2 / 2026-08-29 旧オーナー用ライブラリ分離
+@@ -764,2 +764,2 @@
+-- `2526` で入る通常モードをかいと用プロファイルとして扱うよう変更。
+-- かいと用共有データを `data/library-kaito.json` から読み込む構成を追加。
++- 当時の通常モードを旧オーナー用プロファイルとして扱うよう変更。
++- 旧オーナー用共有データを `data/library-owner.json` から読み込む構成を追加。
+@@ -768 +768 @@
+-- 旧 `lyrictube.library.v3` は初回のみかいと側へ引き継ぐ移行処理を追加。
++- 旧 `lyrictube.library.v3` は初回のみ旧オーナー側へ引き継ぐ移行処理を追加。
+@@ -773 +773 @@
+-- ユーザー提供のv3書き出しJSONをかいと用共有ライブラリとして使用する前提。
++- ユーザー提供のv3書き出しJSONを旧オーナー用共有ライブラリとして使用する前提。
+@@ -777,2 +777,2 @@
+-- GitHubコネクタのテキスト更新APIでは、約624KBのローカル添付JSONをファイルとして直接アップロードできないため、`data/library-kaito.json` 本体は現在プレースホルダー。
+-- ユーザーが `library-kaito.json` をGitHubの `data/` へ1回アップロードすれば、v31.2の共有処理が有効になる。
++- GitHubコネクタのテキスト更新APIでは、約624KBのローカル添付JSONをファイルとして直接アップロードできないため、旧オーナー用共有JSON本体は当時プレースホルダーでした。
++- 旧互換用の共有JSONファイル名は現在 `library-owner.json` に一般化済み。
+@@ -789,2 +789,2 @@
+-- `kaito / 2526` を初期管理者として作成し、DB内部のログイン判定成功を確認。
+-- GitHub Pages側をアカウント名＋パスワードログインへ変更。アカウント名空欄時はkaitoを使用。
++- 初期管理者アカウントをSupabase側に作成し、DB内部のログイン判定成功を確認。認証情報は非掲載。
++- GitHub Pages側をアカウント名＋パスワードログインへ変更。認証情報はGitHubへ保存しない方針。
+@@ -798 +798 @@
+-- `kaito / 2526` のDBログイン判定成功。
++- 初期管理者アカウントのDBログイン判定成功。
+@@ -817,2 +817,2 @@
+-- `kaito` の分割後データは108曲・1プレイリスト・version 3を維持。
+-- `kaito2` は0曲・0プレイリスト・version 3を維持。
++- 管理者アカウントの分割後データは108曲・1プレイリスト・version 3を維持。
++- テスト用アカウントは0曲・0プレイリスト・version 3を維持。
+@@ -866,0 +867,14 @@
++
++## GitHub v34.2 / 2026-08-29 公開リポジトリの認証情報整理
++
++### 変更
++- 公開GitHub上のREADME・作業報告・ログイン画面から個人名、具体的なユーザー名、パスワード記載を削除。
++- `data/site-config.json` から旧簡易アクセス用パスワード項目を削除。
++- ログイン画面でアカウント名の既定値を使わず、アカウント名とパスワードの両方を必須化。
++- 旧オーナー用フォールバックファイル名を `data/library-owner.json` に一般化。
++- Supabase上のアカウント・曲データ・プレイリストは変更しない。
++
++### 注意
++- 公開リポジトリの過去コミット履歴に以前の記載が残る可能性があるため、現在の認証情報はGitHubへ再掲載しない。
