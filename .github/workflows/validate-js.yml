@@ -1,0 +1,28 @@
+name: Validate LyricTube JavaScript
+
+on:
+  push:
+    paths:
+      - 'app.js'
+      - 'site-shell.js'
+      - 'profile-data.js'
+      - 'cloud-sync.js'
+      - 'local-audio.js'
+      - '.github/workflows/validate-js.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check JavaScript syntax
+        run: |
+          node --check app.js
+          node --check site-shell.js
+          node --check profile-data.js
+          node --check cloud-sync.js
+          node --check local-audio.js
