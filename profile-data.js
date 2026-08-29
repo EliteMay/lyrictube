@@ -10,12 +10,15 @@
   const OWNER_LIBRARY_URL = "data/library-owner.json";
   const GUEST_LIBRARY_URL = "data/library.json";
   const MIGRATION_KEY = "lyrictube.profileStorage.migrated.v1";
-  const BUILD_REVISION = "20260829-8";
 
   const nativeGetItem = Storage.prototype.getItem;
   const nativeSetItem = Storage.prototype.setItem;
   const nativeRemoveItem = Storage.prototype.removeItem;
   const nativeFetch = window.fetch.bind(window);
+
+  function schema() {
+    return window.LyricTubeLibrarySchema || null;
+  }
 
   function readCloudSession() {
     try {
@@ -47,26 +50,37 @@
     return OWNER_LIBRARY_KEY;
   }
 
+  function normalizeLibrary(value) {
+    if (!value || typeof value !== "object") return value;
+    try { return schema()?.migrate?.(value) || value; }
+    catch { return value; }
+  }
+
+  function parseLibrary(raw) {
+    if (!raw) return null;
+    try {
+      const value = normalizeLibrary(JSON.parse(raw));
+      if (!value || typeof value !== "object" || !Array.isArray(value.songs) || !Array.isArray(value.playlists || [])) return null;
+      return value;
+    } catch {
+      return null;
+    }
+  }
+
+  function serializeLibrary(raw) {
+    const parsed = typeof raw === "string" ? parseLibrary(raw) : normalizeLibrary(raw);
+    return parsed ? JSON.stringify(parsed) : String(raw ?? "");
+  }
+
   function migrateExistingOwnerDataOnce() {
     if (nativeGetItem.call(localStorage, MIGRATION_KEY)) return;
     const ownerProfile = nativeGetItem.call(localStorage, OWNER_LIBRARY_KEY);
     const guestProfile = nativeGetItem.call(localStorage, GUEST_LIBRARY_KEY);
     if (!ownerProfile && !guestProfile) {
       const existing = nativeGetItem.call(localStorage, BASE_LIBRARY_KEY);
-      if (existing) nativeSetItem.call(localStorage, OWNER_LIBRARY_KEY, existing);
+      if (existing) nativeSetItem.call(localStorage, OWNER_LIBRARY_KEY, serializeLibrary(existing));
     }
     nativeSetItem.call(localStorage, MIGRATION_KEY, new Date().toISOString());
-  }
-
-  function parseLibrary(raw) {
-    if (!raw) return null;
-    try {
-      const value = JSON.parse(raw);
-      if (!value || typeof value !== "object" || !Array.isArray(value.songs) || !Array.isArray(value.playlists || [])) return null;
-      return value;
-    } catch {
-      return null;
-    }
   }
 
   function stableJson(value) {
@@ -75,7 +89,7 @@
 
   function buildDelta(before, after) {
     if (!after) {
-      return { replaceLibrary: { version: 3, songs: [], playlists: [], settings: {} } };
+      return { replaceLibrary: normalizeLibrary({ version: 3, songs: [], playlists: [], settings: {} }) };
     }
 
     const oldSongs = new Map((before?.songs || []).map((song, index) => [String(song?.id || ""), { song, index }]));
@@ -88,37 +102,21 @@
     for (const [id, entry] of newSongs) {
       if (!id) continue;
       const old = oldSongs.get(id);
-      if (!old || old.index !== entry.index || stableJson(old.song) !== stableJson(entry.song)) {
-        upsertSongs.push({ song: entry.song, sortOrder: entry.index });
-      }
+      if (!old || old.index !== entry.index || stableJson(old.song) !== stableJson(entry.song)) upsertSongs.push({ song: entry.song, sortOrder: entry.index });
     }
-    for (const id of oldSongs.keys()) {
-      if (id && !newSongs.has(id)) deleteSongIds.push(id);
-    }
+    for (const id of oldSongs.keys()) if (id && !newSongs.has(id)) deleteSongIds.push(id);
 
     const upsertPlaylists = [];
     const deletePlaylistIds = [];
     for (const [id, entry] of newPlaylists) {
       if (!id) continue;
       const old = oldPlaylists.get(id);
-      if (!old || old.index !== entry.index || stableJson(old.playlist) !== stableJson(entry.playlist)) {
-        upsertPlaylists.push({ playlist: entry.playlist, sortOrder: entry.index });
-      }
+      if (!old || old.index !== entry.index || stableJson(old.playlist) !== stableJson(entry.playlist)) upsertPlaylists.push({ playlist: entry.playlist, sortOrder: entry.index });
     }
-    for (const id of oldPlaylists.keys()) {
-      if (id && !newPlaylists.has(id)) deletePlaylistIds.push(id);
-    }
+    for (const id of oldPlaylists.keys()) if (id && !newPlaylists.has(id)) deletePlaylistIds.push(id);
 
-    const oldState = {
-      version: Number(before?.version || 3),
-      settings: before?.settings || {},
-      exportedAt: before?.exportedAt ?? null,
-    };
-    const newState = {
-      version: Number(after?.version || 3),
-      settings: after?.settings || {},
-      exportedAt: after?.exportedAt ?? null,
-    };
+    const oldState = { version: Number(before?.version || 3), settings: before?.settings || {}, exportedAt: before?.exportedAt ?? null };
+    const newState = { version: Number(after?.version || 3), settings: after?.settings || {}, exportedAt: after?.exportedAt ?? null };
     const state = stableJson(oldState) === stableJson(newState) ? null : newState;
 
     if (!upsertSongs.length && !deleteSongIds.length && !upsertPlaylists.length && !deletePlaylistIds.length && !state) return null;
@@ -137,7 +135,12 @@
       const stringKey = String(key);
       if (stringKey === LEGACY_KEY && currentRole() === "guest") return null;
       if (stringKey === BASE_LIBRARY_KEY && currentRole()) {
-        return nativeGetItem.call(this, roleStorageKey());
+        const targetKey = roleStorageKey();
+        const raw = nativeGetItem.call(this, targetKey);
+        if (!raw) return raw;
+        const normalized = serializeLibrary(raw);
+        if (normalized !== raw) nativeSetItem.call(this, targetKey, normalized);
+        return normalized;
       }
     }
     return nativeGetItem.call(this, key);
@@ -147,11 +150,9 @@
     if (this === localStorage && String(key) === BASE_LIBRARY_KEY && currentRole()) {
       const targetKey = roleStorageKey();
       const beforeRaw = nativeGetItem.call(this, targetKey);
-      const result = nativeSetItem.call(this, targetKey, value);
-      if (currentRole() === "cloud") {
-        const delta = buildDelta(parseLibrary(beforeRaw), parseLibrary(String(value)));
-        emitCloudDelta(delta);
-      }
+      const normalized = serializeLibrary(String(value));
+      const result = nativeSetItem.call(this, targetKey, normalized);
+      if (currentRole() === "cloud") emitCloudDelta(buildDelta(parseLibrary(beforeRaw), parseLibrary(normalized)));
       return result;
     }
     return nativeSetItem.call(this, key, value);
@@ -192,43 +193,11 @@
     currentRole,
     roleStorageKey,
     readCloudSession,
+    parseLibrary,
+    normalizeLibrary,
+    buildDelta,
     nativeGetItem: (storage, key) => nativeGetItem.call(storage, key),
     nativeSetItem: (storage, key, value) => nativeSetItem.call(storage, key, value),
     nativeRemoveItem: (storage, key) => nativeRemoveItem.call(storage, key)
   });
-
-  // Public version presentation is separated from technical build/cache revisions.
-  // This mirrors VReview's semantic version display instead of exposing v35/v36-like
-  // development counters directly in the UI.
-  const versionScript = document.createElement("script");
-  versionScript.src = `version-meta.js?v=${BUILD_REVISION}`;
-  versionScript.async = false;
-  versionScript.onerror = () => console.warn("[LyricTube] version-meta.js could not be loaded.");
-  document.body.appendChild(versionScript);
-
-  // Optional feature extensions. They are kept outside app.js so the v3 library
-  // format and the existing YouTube/LRCLIB implementation remain compatible.
-  const providerScript = document.createElement("script");
-  providerScript.src = `lyrics-providers.js?v=${BUILD_REVISION}`;
-  providerScript.async = false;
-  providerScript.onerror = () => console.warn("[LyricTube] lyrics-providers.js could not be loaded; LRCLIB-only mode remains available.");
-  document.body.appendChild(providerScript);
-
-  const localMediaScript = document.createElement("script");
-  localMediaScript.src = `local-media.js?v=${BUILD_REVISION}`;
-  localMediaScript.async = false;
-  localMediaScript.onerror = () => console.warn("[LyricTube] local-media.js could not be loaded; YouTube and legacy device audio remain available.");
-  document.body.appendChild(localMediaScript);
-
-  // app.js and the legacy local-audio extension initialize asynchronously after login.
-  // When a saved local-media song is the current selection on reload, ask the patched
-  // loader to restore it once all layers are ready.
-  const restoreTimer = setInterval(() => {
-    try {
-      if (!document.documentElement.dataset.localMedia || typeof getVersion !== "function" || typeof loadSelectedVideo !== "function") return;
-      clearInterval(restoreTimer);
-      if (getVersion()?.source === "localmedia") loadSelectedVideo(false);
-    } catch {}
-  }, 120);
-  setTimeout(() => clearInterval(restoreTimer), 30000);
 })();
