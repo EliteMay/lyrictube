@@ -19,9 +19,8 @@ def replace_required(path: str, old: str, new: str, count: int | None = None):
 
 index = Path("index.html")
 text = index.read_text(encoding="utf-8")
-text = text.replace('rel="icon" type="image/svg+xml" href="assets/lyrictube-icon.svg"', 'rel="icon" type="image/webp" href="assets/lyrictube-icon.webp"')
-text = text.replace('rel="apple-touch-icon" href="assets/lyrictube-icon.svg"', 'rel="apple-touch-icon" href="assets/lyrictube-icon.webp"')
-text = text.replace('src="assets/lyrictube-icon.svg" class="brand-logo"', 'src="assets/lyrictube-icon.webp" class="brand-logo"')
+text = text.replace("assets/lyrictube-icon.svg", "assets/lyrictube-icon.webp")
+text = text.replace('type="image/svg+xml" href="assets/lyrictube-icon.webp"', 'type="image/webp" href="assets/lyrictube-icon.webp"')
 old_brand = '<p class="eyebrow">MY MUSIC</p>\n            <div class="brand-title-line"><h1>LyricTube</h1><span class="version-badge">v0.10.1</span></div>'
 new_brand = '<p class="eyebrow">MY MUSIC · <span data-app-version>v0.10.2</span></p>\n            <div class="brand-title-line"><h1>LyricTube</h1></div>'
 if old_brand not in text:
