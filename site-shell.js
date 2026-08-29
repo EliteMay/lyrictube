@@ -8,7 +8,7 @@
   const CONFIG_URL = "data/site-config.json";
   const GUEST_LIBRARY_URL = "data/library.json";
   const API_URL = "https://ctktkyxuzkrsigwoswoc.supabase.co/functions/v1/lyrictube-api";
-  const VERSION = "34";
+  const VERSION = "34.1";
 
   const qs = (selector, root = document) => root.querySelector(selector);
   const qsa = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -50,7 +50,7 @@
   }
 
   function prepareAssets() {
-    document.title = "LyricTube GitHub v34";
+    document.title = "LyricTube GitHub v34.1";
     const mobile = qs('link[href^="mobile.css"]');
     if (mobile) mobile.href = `mobile.css?v=${VERSION}`;
     if (!qs('link[data-guest-style]')) {
@@ -465,8 +465,8 @@
 
   function keepVersionLabels() {
     const apply = () => {
-      if (qs("#settingsAppVersion")) qs("#settingsAppVersion").textContent = "GH v34";
-      if (qs(".version-badge")) qs(".version-badge").textContent = "GH v34";
+      if (qs("#settingsAppVersion")) qs("#settingsAppVersion").textContent = "GH v34.1";
+      if (qs(".version-badge")) qs(".version-badge").textContent = "GH v34.1";
     };
     apply();
     document.addEventListener("click", e => { if (e.target.closest("#settingsBtn")) setTimeout(apply, 0); });

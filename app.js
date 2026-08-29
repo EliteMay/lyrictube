@@ -1,4 +1,4 @@
-const APP_VERSION = "v34";
+const APP_VERSION = "v34.1";
 const STORAGE_KEY = "lyrictube.library.v3";
 const LEGACY_KEY = "lyrictube.songs.v1";
 const LIB_VERSION = 3;

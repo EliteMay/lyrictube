@@ -22,6 +22,7 @@
   let originalEnforcePlaybackRules = null;
   let originalRestartCurrent = null;
   let originalTypeName = null;
+  let originalRenderBottomPlayer = null;
 
   const records = new Map();
   const audio = document.createElement("audio");
@@ -414,6 +415,7 @@
     originalEnforcePlaybackRules = enforcePlaybackRules;
     originalRestartCurrent = restartCurrent;
     originalTypeName = typeName;
+    originalRenderBottomPlayer = renderBottomPlayer;
 
     loadSelectedVideo = loadLocalOrYoutube;
     currentPlayerTime = () => localMode() ? (Number(audio.currentTime) || 0) : originalCurrentPlayerTime();
@@ -426,6 +428,12 @@
     enforcePlaybackRules = enforceLocalRules;
     restartCurrent = restartLocal;
     typeName = type => type === "local" ? "端末音源" : originalTypeName(type);
+
+    renderBottomPlayer = (...args) => {
+      const result = originalRenderBottomPlayer(...args);
+      if (localMode() && $("bottomSeek")) $("bottomSeek").disabled = false;
+      return result;
+    };
   }
 
   function createUi() {
@@ -619,7 +627,43 @@
     }
   }
 
+  function setLocalRange(kind) {
+    if (!localMode()) return false;
+    const version = safeVersion();
+    if (!version) return false;
+    const t = Number(audio.currentTime) || 0;
+    if (kind === "start") {
+      version.startTime = Math.max(0, t);
+      if (version.endTime !== null && Number(version.endTime) <= version.startTime) version.endTime = null;
+      showMessage(`曲開始を ${formatTime(version.startTime)} に設定しました。`);
+    } else {
+      if (t <= Number(version.startTime || 0)) {
+        showMessage("曲開始より後ろの位置で押してください。");
+        return true;
+      }
+      version.endTime = t;
+      showMessage(`曲終了を ${formatTime(version.endTime)} に設定しました。`);
+    }
+    version.updatedAt = nowIso();
+    persistLibrary();
+    renderVersionControls(version);
+    return true;
+  }
+
   function installDomHandlers() {
+    const interceptLocalButton = (id, handler) => {
+      $(id)?.addEventListener("click", event => {
+        if (!localMode()) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        handler();
+      }, true);
+    };
+
+    interceptLocalButton("bottomPlayBtn", toggleAudioPlayback);
+    interceptLocalButton("syncPlayPauseBtn", toggleAudioPlayback);
+    interceptLocalButton("setStartBtn", () => setLocalRange("start"));
+    interceptLocalButton("setEndBtn", () => setLocalRange("end"));
     $("bottomSeek")?.addEventListener("change", () => {
       if (localMode()) seekLocal(Number($("bottomSeek").value) || 0);
     });
@@ -739,7 +783,7 @@
       if (button) button.disabled = true;
     }
 
-    document.documentElement.dataset.localAudio = "v34";
+    document.documentElement.dataset.localAudio = "v34.1";
   }
 
   const timer = setInterval(() => {
