@@ -37,12 +37,16 @@
   audio.id = "localMediaAudio";
   audio.preload = "metadata";
   audio.playsInline = true;
+  audio.setAttribute("playsinline", "");
+  audio.setAttribute("webkit-playsinline", "");
   document.body.appendChild(audio);
 
   const video = document.createElement("video");
   video.id = "localMediaVideo";
   video.preload = "metadata";
   video.playsInline = true;
+  video.setAttribute("playsinline", "");
+  video.setAttribute("webkit-playsinline", "");
   video.controls = true;
   video.hidden = true;
 
@@ -122,6 +126,7 @@
 
   function tx(mode, callback) {
     return new Promise((resolve, reject) => {
+      if (!db) return reject(new Error("端末ファイル保存の準備ができていません。"));
       const transaction = db.transaction(STORE_NAME, mode);
       const store = transaction.objectStore(STORE_NAME);
       let result;
@@ -167,7 +172,7 @@
 
   async function deleteRecord(song, version) {
     const key = keyFor(song, version);
-    if (!key) return;
+    if (!key || !db) return;
     await tx("readwrite", store => store.delete(key));
     records.delete(key);
   }
@@ -219,6 +224,22 @@
     if (relink) relink.textContent = missing ? "ファイルを再登録" : "ファイルを変更";
   }
 
+  function refreshLocalSurface() {
+    const row = currentRow();
+    if (!row) {
+      video.hidden = true;
+      showLocalStage(true, null);
+      return;
+    }
+    if (row.kind === "video") {
+      $("localMediaStage")?.classList.add("hidden");
+      video.hidden = false;
+    } else {
+      video.hidden = true;
+      showLocalStage(false, row);
+    }
+  }
+
   function localMode() {
     const song = currentSong();
     const version = currentVersion(song);
@@ -238,14 +259,14 @@
     if (!row) {
       stopLocalMedia();
       hideBasePlayer();
-      video.hidden = true;
-      showLocalStage(true, null);
+      refreshLocalSurface();
       try { updateBottomPlayer?.(); } catch {}
+      updateSourceButton();
       return true;
     }
 
     const key = keyFor(song, version);
-    if (activeKey !== key) {
+    if (activeKey !== key || !activeElement?.src) {
       stopLocalMedia();
       activeUrl = URL.createObjectURL(row.blob);
       activeElement = row.kind === "video" ? video : audio;
@@ -261,14 +282,7 @@
     }
 
     hideBasePlayer();
-    if (row.kind === "video") {
-      $("localMediaStage")?.classList.add("hidden");
-      video.hidden = false;
-    } else {
-      video.hidden = true;
-      showLocalStage(false, row);
-    }
-
+    refreshLocalSurface();
     try { resetLyricsViewport?.(); } catch {}
     try { updateBottomPlayer?.(); } catch {}
     updateSourceButton();
@@ -361,7 +375,10 @@
       if (isLocalMediaVersion(version)) {
         const row = currentRow();
         if ($("bottomSeek")) $("bottomSeek").disabled = !row;
-        if ($("bottomArtist") && row) $("bottomArtist").textContent = `${currentSong()?.artist || ""}${currentSong()?.artist ? " · " : ""}${row.kind === "video" ? "端末動画" : "端末音源"}`;
+        if ($("bottomArtist") && row) {
+          const artist = currentSong()?.artist || "";
+          $("bottomArtist").textContent = `${artist}${artist ? " · " : ""}${row.kind === "video" ? "端末動画" : "端末音源"}`;
+        }
       }
       return result;
     };
@@ -391,7 +408,8 @@
       .source-switch{display:flex;gap:8px;padding:8px;border:1px solid var(--border);border-radius:12px;background:var(--panel2);margin:10px 0 14px}.source-switch button{flex:1;border:0;border-radius:9px;padding:10px 12px;background:transparent;color:var(--muted);font-weight:800;cursor:pointer}.source-switch button.active{background:var(--accentSoft);color:var(--text);box-shadow:inset 0 0 0 1px hsl(var(--accent-h,258) 70% 60% / .28)}
       .local-media-fields{display:grid;gap:8px;margin:0 0 12px}.local-media-file-box{display:grid;gap:8px;padding:14px;border:1px dashed var(--border);border-radius:12px;background:var(--panel2)}.local-media-file-box strong{font-size:12px}.local-media-file-box small{color:var(--muted);line-height:1.45}.local-media-file-box input{width:100%}
       #localMediaVideo{position:absolute;inset:0;width:100%;height:100%;z-index:4;background:#000;object-fit:contain}
-      #localMediaStage{position:absolute;inset:0;z-index:4;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 22% 20%,hsl(var(--accent-h,258) 75% 62% / .18),transparent 40%),linear-gradient(145deg,var(--panel2),var(--panel));text-align:center}.local-media-card{display:grid;gap:12px;justify-items:center;max-width:520px}.local-media-card .icon{width:92px;aspect-ratio:1;border-radius:24px;display:grid;place-items:center;font-size:34px;background:var(--accentSoft);border:1px solid var(--border)}.local-media-card strong{font-size:22px}.local-media-card span{font-size:12px;color:var(--muted);overflow-wrap:anywhere}.local-media-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}.local-media-play{width:54px;height:54px;border:0;border-radius:50%;background:var(--accent);color:#fff;font-size:19px;cursor:pointer}.local-media-play:disabled{opacity:.4}.hidden{display:none!important}
+      #localMediaStage{position:absolute;inset:0;z-index:4;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 22% 20%,hsl(var(--accent-h,258) 75% 62% / .18),transparent 40%),linear-gradient(145deg,var(--panel2),var(--panel));text-align:center}#localMediaStage.hidden{display:none!important}
+      .local-media-card{display:grid;gap:12px;justify-items:center;max-width:520px}.local-media-card .icon{width:92px;aspect-ratio:1;border-radius:24px;display:grid;place-items:center;font-size:34px;background:var(--accentSoft);border:1px solid var(--border)}.local-media-card strong{font-size:22px}.local-media-card span{font-size:12px;color:var(--muted);overflow-wrap:anywhere}.local-media-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}.local-media-play{width:54px;height:54px;border:0;border-radius:50%;background:var(--accent);color:#fff;font-size:19px;cursor:pointer}.local-media-play:disabled{opacity:.4}
       #localMediaAudio{position:fixed;width:1px;height:1px;opacity:.001;pointer-events:none;left:-10px;bottom:-10px}
       .local-media-source-btn{display:none}.local-media-source-btn.visible{display:inline-flex}
       @media(max-width:700px){.source-switch{display:grid;grid-template-columns:1fr 1fr}.local-media-card strong{font-size:18px}#localMediaStage{padding:18px}}
@@ -654,6 +672,28 @@
     }
   }
 
+  function finishYoutubeConversionAfterSubmit() {
+    if (versionSourceMode !== "youtube") return;
+    const song = currentSong();
+    const editingId = $("editingVersionId")?.value || "";
+    const before = song?.versions?.find(v => v.id === editingId) || null;
+    if (!song || !before || before.source !== "localmedia") return;
+
+    setTimeout(async () => {
+      const converted = song.versions.find(v => v.id === editingId) || null;
+      if (!converted?.videoId) return;
+      try { await deleteRecord(song, converted); } catch {}
+      delete converted.source;
+      delete converted.localMediaKind;
+      delete converted.localFileName;
+      converted.updatedAt = nowIso();
+      song.updatedAt = nowIso();
+      persistLibrary();
+      if (selectedVersionId === converted.id) loadSelectedVideo(false);
+      updateSourceButton();
+    }, 0);
+  }
+
   async function relinkCurrentFile() {
     const song = currentSong();
     const version = currentVersion(song);
@@ -685,6 +725,7 @@
   function installHandlers() {
     $("songForm")?.addEventListener("submit", saveNewLocalSong, true);
     $("versionForm")?.addEventListener("submit", saveLocalVersion, true);
+    $("versionForm")?.addEventListener("submit", finishYoutubeConversionAfterSubmit);
 
     $("bottomSeek")?.addEventListener("input", () => {
       if (localMode()) seekLocal(Number($("bottomSeek").value) || 0);
@@ -708,11 +749,11 @@
     for (const el of [audio, video]) {
       el.addEventListener("play", () => {
         try { markPlayed?.(); } catch {}
-        showLocalStage(false, currentRow());
+        refreshLocalSurface();
         try { updateBottomPlayer?.(); } catch {}
       });
       el.addEventListener("pause", () => {
-        showLocalStage(false, currentRow());
+        refreshLocalSurface();
         try { updateBottomPlayer?.(); } catch {}
       });
       el.addEventListener("timeupdate", () => {
@@ -723,7 +764,7 @@
         try { handleTrackEnd?.("media-ended"); } catch {}
       });
       el.addEventListener("error", () => {
-        if (localMode()) toast("このファイルを再生できませんでした。MP4ならH.264/AAC、WebMならVP8/VP9系を試してください。");
+        if (isLocalMediaVersion(currentVersion())) toast("このファイルを再生できませんでした。MP4ならH.264/AAC、WebMならVP8/VP9系を試してください。");
       });
     }
 
@@ -740,7 +781,7 @@
         if (isLocalMediaVersion(version)) valid.add(keyFor(song, version));
       }
     }
-    for (const [key, row] of [...records]) {
+    for (const [key] of [...records]) {
       if (!valid.has(key)) {
         try { await tx("readwrite", store => store.delete(key)); } catch {}
         records.delete(key);
