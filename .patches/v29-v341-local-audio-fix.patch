@@ -1,0 +1,160 @@
+diff --git a/local-audio.js b/local-audio.js
+--- a/local-audio.js
++++ b/local-audio.js
+@@ -22,4 +22,5 @@
+   let originalEnforcePlaybackRules = null;
+   let originalRestartCurrent = null;
+   let originalTypeName = null;
++  let originalRenderBottomPlayer = null;
+ 
+@@ -413,7 +414,8 @@
+     originalToggleSyncPlayback = toggleSyncPlayback;
+     originalEnforcePlaybackRules = enforcePlaybackRules;
+     originalRestartCurrent = restartCurrent;
+     originalTypeName = typeName;
++    originalRenderBottomPlayer = renderBottomPlayer;
+ 
+     loadSelectedVideo = loadLocalOrYoutube;
+     currentPlayerTime = () => localMode() ? (Number(audio.currentTime) || 0) : originalCurrentPlayerTime();
+@@ -426,4 +428,10 @@
+     enforcePlaybackRules = enforceLocalRules;
+     restartCurrent = restartLocal;
+     typeName = type => type === "local" ? "端末音源" : originalTypeName(type);
++
++    renderBottomPlayer = (...args) => {
++      const result = originalRenderBottomPlayer(...args);
++      if (localMode() && $("bottomSeek")) $("bottomSeek").disabled = false;
++      return result;
++    };
+   }
+@@ -622 +630,37 @@
+-  function installDomHandlers() {
++  function setLocalRange(kind) {
++    if (!localMode()) return false;
++    const version = safeVersion();
++    if (!version) return false;
++    const t = Number(audio.currentTime) || 0;
++    if (kind === "start") {
++      version.startTime = Math.max(0, t);
++      if (version.endTime !== null && Number(version.endTime) <= version.startTime) version.endTime = null;
++      showMessage(`曲開始を ${formatTime(version.startTime)} に設定しました。`);
++    } else {
++      if (t <= Number(version.startTime || 0)) {
++        showMessage("曲開始より後ろの位置で押してください。");
++        return true;
++      }
++      version.endTime = t;
++      showMessage(`曲終了を ${formatTime(version.endTime)} に設定しました。`);
++    }
++    version.updatedAt = nowIso();
++    persistLibrary();
++    renderVersionControls(version);
++    return true;
++  }
++
++  function installDomHandlers() {
++    const interceptLocalButton = (id, handler) => {
++      $(id)?.addEventListener("click", event => {
++        if (!localMode()) return;
++        event.preventDefault();
++        event.stopImmediatePropagation();
++        handler();
++      }, true);
++    };
++
++    interceptLocalButton("bottomPlayBtn", toggleAudioPlayback);
++    interceptLocalButton("syncPlayPauseBtn", toggleAudioPlayback);
++    interceptLocalButton("setStartBtn", () => setLocalRange("start"));
++    interceptLocalButton("setEndBtn", () => setLocalRange("end"));
+@@ -742 +786 @@
+-    document.documentElement.dataset.localAudio = "v34";
++    document.documentElement.dataset.localAudio = "v34.1";
+diff --git a/app.js b/app.js
+--- a/app.js
++++ b/app.js
+@@ -1 +1 @@
+-const APP_VERSION = "v34";
++const APP_VERSION = "v34.1";
+diff --git a/data/defaults.json b/data/defaults.json
+--- a/data/defaults.json
++++ b/data/defaults.json
+@@ -2 +2 @@
+-  "appVersion": "v34",
++  "appVersion": "v34.1",
+diff --git a/site-shell.js b/site-shell.js
+--- a/site-shell.js
++++ b/site-shell.js
+@@ -11 +11 @@
+-  const VERSION = "34";
++  const VERSION = "34.1";
+@@ -53 +53 @@
+-    document.title = "LyricTube GitHub v34";
++    document.title = "LyricTube GitHub v34.1";
+@@ -468,2 +468,2 @@
+-      if (qs("#settingsAppVersion")) qs("#settingsAppVersion").textContent = "GH v34";
+-      if (qs(".version-badge")) qs(".version-badge").textContent = "GH v34";
++      if (qs("#settingsAppVersion")) qs("#settingsAppVersion").textContent = "GH v34.1";
++      if (qs(".version-badge")) qs(".version-badge").textContent = "GH v34.1";
+diff --git a/index.html b/index.html
+--- a/index.html
++++ b/index.html
+@@ -6 +6 @@
+-  <title>LyricTube GitHub v34</title>
++  <title>LyricTube GitHub v34.1</title>
+@@ -10,3 +10,3 @@
+-  <link rel="stylesheet" href="mobile.css?v=34">
+-  <link rel="stylesheet" href="guest.css?v=34">
+-  <link rel="stylesheet" href="local-audio.css?v=34">
++  <link rel="stylesheet" href="mobile.css?v=34.1">
++  <link rel="stylesheet" href="guest.css?v=34.1">
++  <link rel="stylesheet" href="local-audio.css?v=34.1">
+@@ -532,4 +532,4 @@
+-  <script src="profile-data.js?v=34"></script>
+-  <script src="cloud-sync.js?v=34"></script>
+-  <script src="site-shell.js?v=34"></script>
+-  <script src="local-audio.js?v=34"></script>
++  <script src="profile-data.js?v=34.1"></script>
++  <script src="cloud-sync.js?v=34.1"></script>
++  <script src="site-shell.js?v=34.1"></script>
++  <script src="local-audio.js?v=34.1"></script>
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -1 +1 @@
+-# LyricTube GitHub v34
++# LyricTube GitHub v34.1
+@@ -249 +249,12 @@
+ ### 制限
++
++- iPhone / Androidのバックグラウンド継続可否はOS・ブラウザの省電力制御にも依存するため、すべての端末で画面OFF再生を保証するものではありません。
++- IndexedDBの音源はその端末だけのデータです。JSON書き出しには音源ファイル本体を含めません。
++- 1ファイルの登録上限は250MBです。
++
++## v34.1 端末音源操作の補強
++
++- 端末音源再生中のボトムプレイヤー「再生 / 一時停止」をローカル音源へ確実に接続。
++- 同期エディタの「再生 / 一時停止」をローカル音源へ確実に接続。
++- YouTube URLが無い端末音源専用曲でもボトムシークを有効化。
++- 端末音源専用曲でも現在位置から曲開始 / 曲終了を設定可能。
+diff --git "a/作業報告書.md" "b/作業報告書.md"
+--- "a/作業報告書.md"
++++ "b/作業報告書.md"
+@@ -849 +849,18 @@
+ - 既存のv33クラウドDBテーブル/保存形式に変更なし。
++
++### 未確認
++- 実機iPhone / Androidでの画面OFF・ロック画面バックグラウンド継続。
++- 実際のMP3 / M4Aファイルを使ったブラウザ再生。
++- iOSのストレージ圧迫時にIndexedDBが保持される期間。
++
++## GitHub v34.1 / 2026-08-29 端末音源操作補強
++
++### 修正
++- app.jsが先に登録していたボトム再生ボタンのYouTube用イベントを、端末音源時だけcaptureで差し替え。
++- 同期エディタの再生ボタンも端末音源時だけcaptureで差し替え。
++- `renderBottomPlayer` をラップし、端末音源専用曲でもシークバーを有効化。
++- 曲開始 / 曲終了ボタンを端末音源のcurrentTimeで設定可能にした。
++- v34.1キャッシュキーへ更新し、スマホで旧local-audio.jsが残りにくいようにした。
++
++### 確認
++- 修正後 `local-audio.js` の構文チェック。
