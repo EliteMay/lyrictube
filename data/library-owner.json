@@ -3,6 +3,8 @@
   "songs": [],
   "playlists": [],
   "settings": {
+    "dataSchemaVersion": 4,
+    "tags": [],
     "theme": "dark",
     "lyricsFontSize": 18,
     "showBottomPlayer": true,
