@@ -1,152 +1,69 @@
 {
-  "appVersion": "v35",
+  "appVersion": "v0.10.0",
+  "buildRevision": "20260829-10",
   "dataFormatVersion": 3,
+  "dataSchemaVersion": 4,
   "storageKey": "lyrictube.library.v3",
   "legacyStorageKey": "lyrictube.songs.v1",
-  "external": {
-    "lrclibSearch": "https://lrclib.net/api/search",
-    "youtubeIframe": "https://www.youtube.com/iframe_api"
+  "deployment": {
+    "mode": "github-pages-static",
+    "serverRequired": false,
+    "githubPagesCompatible": true
   },
-  "notes": [
-    "GitHub Pagesで動作する静的構成。Node.js/ローカルサーバー不要。",
-    "ライブラリ保存形式はlyrictube.library.v3を維持。",
-    "曲・歌詞・プレイリスト・設定はブラウザlocalStorageへ保存。",
-    "v31ではdata/library.jsonを初回共有データとして読み込める。",
-    "v31の簡易パスワードはdata/site-config.jsonへ平文保存する私的利用向け仕様。"
-  ],
+  "external": {
+    "youtubeIframe": "https://www.youtube.com/iframe_api",
+    "lyricsProviders": [
+      "LRCLIB",
+      "SyncLRC",
+      "lyrics.ovh"
+    ]
+  },
+  "storage": {
+    "library": "localStorage + Supabase when signed in",
+    "localMedia": "IndexedDB: lyrictube.localMedia.v1",
+    "cloudQueue": "localStorage",
+    "session": "sessionStorage"
+  },
+  "media": {
+    "youtube": true,
+    "localAudio": true,
+    "localVideo": true,
+    "localFilesUploadToCloud": false,
+    "maxLocalFileBytes": 1073741824
+  },
   "design": {
     "direction": "dark-music",
     "ambientThumbnail": true,
     "dynamicAccent": true,
-    "fixedBottomPlayer": true
+    "fixedBottomPlayer": true,
+    "mobileBreakpoint": 900
   },
-  "smartViews": [
-    "needsLyrics",
-    "needsSync",
-    "covers"
-  ],
-  "manualLyricsScrollPauseSeconds": 8,
-  "playlistQuickAdd": {
-    "enabled": true,
-    "changesPlayback": false,
-    "buttonLocation": "library-row-right"
+  "features": {
+    "multipleVersions": true,
+    "playlists": true,
+    "favorites": true,
+    "recentlyPlayed": true,
+    "tags": true,
+    "lyricsSync": true,
+    "manualLyricsEditing": true,
+    "skipSegments": true,
+    "startEndRange": true,
+    "guestMode": true,
+    "cloudAccounts": true,
+    "rememberLastAccountName": true
   },
-  "largeBrowsePage": {
-    "enabled": true,
-    "cardGrid": true,
-    "keepBrowseOpenWhenPlaying": true,
-    "quickPlaylistAddChangesPlayback": false
+  "security": {
+    "passwordStoredClientSide": false,
+    "credentialsInRepository": false,
+    "loginRateLimit": {
+      "windowMinutes": 10,
+      "maxFailures": 5,
+      "blockMinutes": 15
+    }
   },
-  "lyricsTopLineFix": {
-    "resetScrollOnRender": true,
-    "topMaskRemoved": true,
-    "internalScrollOnly": true
-  },
-  "playlistDialogFix": {
-    "undefinedEscapeHtmlRemoved": true,
-    "safeDomTextRendering": true,
-    "quickAddKeepsPlayback": true
-  },
-  "lyricsFirstLineFix": {
-    "resetAfterRenderFrames": true,
-    "blockOldVideoTimeDuringSwitch": true,
-    "resetWhenBeforeFirstTimestamp": true,
-    "recoverFirstActiveLine": true,
-    "topMaskFade": false
-  },
-  "lyricsNormalModeLayoutFix": {
-    "headerSticky": false,
-    "headerTopOffset": 0,
-    "scrollChildMinHeightZero": true,
-    "firstLineCoveredByHeader": false
-  },
-  "syncInterludeMarker": {
-    "enabled": true,
-    "markerText": "♪",
-    "usesCurrentVideoTime": true,
-    "versionSpecific": true,
-    "undoable": true,
-    "deletable": true,
-    "preserveAfterLyricsEdit": true
-  },
-  "lyricsSearchV26": {
-    "identifiedLrclibClient": true,
-    "timeoutSeconds": 30,
-    "retryServerErrors": 1,
-    "honorRateLimit": true,
-    "sequentialThrottleMs": 350,
-    "resultCacheMinutes": 10,
-    "savedLrclibIdFirst": true,
-    "coverSingerArtistSeparation": true
-  },
-  "v27RegressionFix": {
-    "restoredGoogleLyricsHelpers": true,
-    "restoredYoutubePlayerMetadataFallback": true,
-    "criticalDialogCloseFallback": true,
-    "coreBootstrapBeforeOptionalEvents": true,
-    "readyMarker": "data-lyric-tube-ready=v27"
-  },
-  "deployment": {
-    "mode": "github-pages-static",
-    "serverRequired": false,
-    "githubPagesCompatible": true,
-    "lrclibDirectBrowser": true,
-    "youtubeDataApiSearch": false,
-    "youtubeMetadataViaIframePlayer": true,
-    "storage": "localStorage"
-  },
-  "v29BrandAndHelp": {
-    "brandLogo": true,
-    "favicon": true,
-    "officialUiRefresh": true,
-    "helpDialog": true,
-    "helpTopics": [
-      "overview",
-      "player",
-      "lyrics",
-      "sync",
-      "settings"
-    ],
-    "powerToysOcrGuide": true,
-    "syncStampShortcut": "Shift+T"
-  },
-  "v29Settings": {
-    "startupPage": true,
-    "compactMode": true,
-    "showArtwork": true,
-    "glassEffect": true,
-    "reduceMotion": true,
-    "helpTips": true,
-    "lyricsFontSize": true,
-    "autoScroll": true,
-    "bottomPlayer": true,
-    "spotlight": true
-  },
-  "v30Fixes": {
-    "sidebarScroll": true,
-    "lyricsSizeButtons": true,
-    "roundHelpIcons": true,
-    "themeAccentConsistency": true,
-    "lightThemeReadability": true
-  },
-  "duplicateVideoProtection": {
-    "enabled": true,
-    "scope": "all-songs-and-versions",
-    "compareBy": "youtubeVideoId",
-    "blockNewDuplicate": true,
-    "blockEditToExistingVideo": true,
-    "preserveExistingDuplicates": true
-  },
-  "v31MobileAccess": {
-    "mobileBreakpoint": 900,
-    "drawerSidebar": true,
-    "singleColumnPlayer": true,
-    "mobileDialogs": true,
-    "safeArea": true,
-    "simplePasswordConfig": "data/site-config.json",
-    "sharedLibrarySeed": "data/library.json",
-    "sharedSeedWhenLocalStorageEmpty": true,
-    "sharedReloadButton": true,
-    "serverRequired": false
-  }
+  "notes": [
+    "現行仕様はREADME.mdとdocs配下を正とする。",
+    "端末のMP3/MP4本体はGitHubやSupabaseへ保存しない。",
+    "旧v29〜v36の開発番号・簡易パスワード設定は現行仕様ではない。"
+  ]
 }
