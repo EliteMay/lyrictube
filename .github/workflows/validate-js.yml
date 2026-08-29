@@ -1,29 +1,48 @@
-name: Validate LyricTube JavaScript
+name: Validate LyricTube
 
 on:
   push:
     paths:
-      - 'app.js'
-      - 'site-shell.js'
-      - 'profile-data.js'
-      - 'cloud-sync.js'
-      - 'local-audio.js'
+      - '**.js'
+      - '**.json'
+      - '**.html'
+      - '**.css'
+      - 'tools/**'
       - '.github/workflows/validate-js.yml'
+  pull_request:
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  syntax:
+  static-validation:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Check JavaScript syntax
+
+      - name: Check every JavaScript file
+        shell: bash
         run: |
-          # Keep the main browser scripts syntax-valid before treating an update as complete.
-          node --check app.js
-          node --check site-shell.js
-          node --check profile-data.js
-          node --check cloud-sync.js
-          node --check local-audio.js
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            echo "node --check $file"
+            node --check "$file"
+          done < <(find . -type f -name '*.js' -not -path './.git/*' -print0)
+
+      - name: Check Python maintenance tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile tools/*.py
+
+      - name: Validate JSON and local asset links
+        run: python tools/validate_static.py
+
+      - name: Guard against legacy runtime layers
+        shell: bash
+        run: |
+          set -euo pipefail
+          ! grep -q 'local-audio.js' index.html
+          ! grep -q 'local-audio.css' index.html
+          ! grep -q 'data:image/' index.html
