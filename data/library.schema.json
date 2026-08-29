@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://elitemay.github.io/lyrictube/data/library.schema.json",
+  "title": "LyricTube Library",
+  "type": "object",
+  "required": ["version", "songs", "playlists", "settings"],
+  "properties": {
+    "version": { "type": "integer", "minimum": 3 },
+    "songs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "versions"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "title": { "type": "string" },
+          "artist": { "type": "string" },
+          "plainLyrics": { "type": "string" },
+          "syncedLyrics": { "type": "string" },
+          "lyricsProvider": { "type": "string" },
+          "lyricsProviderId": { "type": "string" },
+          "tagIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+          "versions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["id", "type"],
+              "properties": {
+                "id": { "type": "string", "minLength": 1 },
+                "type": { "type": "string" },
+                "source": { "enum": ["localmedia", null] },
+                "youtubeUrl": { "type": "string" },
+                "videoId": { "type": "string" },
+                "localMediaKind": { "enum": ["audio", "video", ""] },
+                "localFileName": { "type": "string" },
+                "startTime": { "type": "number", "minimum": 0 },
+                "endTime": { "type": ["number", "null"] },
+                "skipSegments": { "type": "array" },
+                "lyricsOffset": { "type": "number" }
+              },
+              "additionalProperties": true
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "playlists": { "type": "array" },
+    "settings": {
+      "type": "object",
+      "properties": {
+        "dataSchemaVersion": { "type": "integer", "minimum": 4 },
+        "tags": { "type": "array" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}
