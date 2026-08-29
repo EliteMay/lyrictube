@@ -29,13 +29,24 @@ jobs:
             git apply --unidiff-zero "$patch"
           done
 
-      - name: Run queued maintenance refactor
+      - name: Run queued maintenance
         shell: bash
         run: |
           set -euo pipefail
-          if [ -f tools/refactor_v0100.py ]; then
+          if grep -q 'LyricTube GitHub v35' index.html && [ -f tools/refactor_v0100.py ]; then
             python tools/refactor_v0100.py
           fi
+          if [ -f tools/fix_v0100.py ]; then
+            python tools/fix_v0100.py
+          fi
+
+      - name: Validate maintenance result
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do node --check "$file"; done < <(find . -type f -name '*.js' -not -path './.git/*' -print0)
+          python -m py_compile tools/*.py
+          python tools/validate_static.py
 
       - name: Remove queue marker
         shell: bash
@@ -52,5 +63,5 @@ jobs:
             echo "No maintenance changes to commit."
             exit 0
           fi
-          git commit -m "Refactor LyricTube foundation for v0.10.0"
+          git commit -m "Maintain LyricTube v0.10.0 foundation"
           git push
