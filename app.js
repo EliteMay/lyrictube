@@ -1,4 +1,4 @@
-const APP_VERSION = "v35";
+const APP_VERSION = window.LyricTubeVersion?.version || "v0.10.0";
 const STORAGE_KEY = "lyrictube.library.v3";
 const LEGACY_KEY = "lyrictube.songs.v1";
 const LIB_VERSION = 3;
@@ -1610,7 +1610,7 @@ function openSettingsDialog(){
   if(els.settingsGlass)els.settingsGlass.checked=library.settings.glassEffect!==false;
   if(els.settingsReduceMotion)els.settingsReduceMotion.checked=!!library.settings.reduceMotion;
   if(els.settingsHelpTips)els.settingsHelpTips.checked=library.settings.helpTips!==false;
-  els.settingsAppVersion.textContent=`GH ${APP_VERSION}`;
+  els.settingsAppVersion.textContent=APP_VERSION;
   if(!els.settingsDialog.open)els.settingsDialog.showModal();
 }
 function closeSettingsDialog(){
@@ -3122,3 +3122,20 @@ function bootstrapCore(){
 
   document.documentElement.dataset.lyricTubeReady="v29";
 }
+
+
+// Stable façade for feature modules. Existing functions remain compatible, while
+// new modules no longer need to reach into raw global state for common operations.
+window.LyricTubeCore = Object.freeze({
+  getLibrary: () => library,
+  getSong: () => getSong(),
+  getVersion: song => getVersion(song),
+  persist: () => persistLibrary(),
+  render: () => renderAll(),
+  toast: message => showToast(message),
+  versionName: version => versionDisplayName(version),
+  currentTime: () => currentPlayerTime(),
+  duration: () => getPlayerDuration(),
+});
+document.dispatchEvent(new CustomEvent("lyrictube:app-ready"));
+document.dispatchEvent(new CustomEvent("lyrictube:ui-ready"));

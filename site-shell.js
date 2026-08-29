@@ -8,7 +8,7 @@
   const CONFIG_URL = "data/site-config.json";
   const GUEST_LIBRARY_URL = "data/library.json";
   const API_URL = "https://ctktkyxuzkrsigwoswoc.supabase.co/functions/v1/lyrictube-api";
-  const VERSION = "35";
+  const VERSION = window.LyricTubeVersion?.build || "20260829-10";
 
   const qs = (selector, root = document) => root.querySelector(selector);
   const qsa = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -18,6 +18,42 @@
     if (text) el.textContent = text;
     return el;
   };
+
+  const LAST_ACCOUNT_KEY = "lyrictube.lastCloudAccount.v1";
+  function readRememberedAccount() {
+    try { return String(localStorage.getItem(LAST_ACCOUNT_KEY) || "").trim(); } catch { return ""; }
+  }
+  function rememberAccount(username) {
+    const value = String(username || "").trim();
+    if (!value) return;
+    try { localStorage.setItem(LAST_ACCOUNT_KEY, value); } catch {}
+  }
+  function forgetRememberedAccount() {
+    try { localStorage.removeItem(LAST_ACCOUNT_KEY); } catch {}
+  }
+  function applyRememberedAccount(gate, usernameInput, passwordInput) {
+    const accountRow = qs(".access-account-row", gate);
+    const intro = qs(".access-copy", gate);
+    const remembered = readRememberedAccount();
+    if (!accountRow || !remembered) return false;
+    usernameInput.value = remembered;
+    accountRow.hidden = true;
+    const row = make("div", "remembered-account-row");
+    row.innerHTML = '<div class="remembered-account-copy"><span>ACCOUNT</span><strong></strong></div><button type="button" class="remembered-account-change">変更</button>';
+    qs("strong", row).textContent = remembered;
+    qs(".remembered-account-change", row).addEventListener("click", () => {
+      forgetRememberedAccount();
+      row.remove();
+      accountRow.hidden = false;
+      usernameInput.value = "";
+      if (intro) intro.textContent = "アカウント名とパスワードでログインします。";
+      usernameInput.focus();
+    });
+    accountRow.insertAdjacentElement("afterend", row);
+    if (intro) intro.textContent = "前回のアカウントを使います。パスワードだけ入力してください。";
+    passwordInput.focus();
+    return true;
+  }
 
   function profiles() {
     return window.LyricTubeProfiles || null;
@@ -50,7 +86,7 @@
   }
 
   function prepareAssets() {
-    document.title = "LyricTube GitHub v35";
+    document.title = "LyricTube";
     const mobile = qs('link[href^="mobile.css"]');
     if (mobile) mobile.href = `mobile.css?v=${VERSION}`;
     if (!qs('link[data-guest-style]')) {
@@ -206,7 +242,7 @@
       submit.disabled = false;
       guest.disabled = false;
       status.textContent = "";
-      passwordInput.focus();
+      if (!applyRememberedAccount(gate, usernameInput, passwordInput)) passwordInput.focus();
 
       form.addEventListener("submit", async event => {
         event.preventDefault();
@@ -220,6 +256,7 @@
         status.textContent = "ログイン中…";
         try {
           const data = await api("login", { username, password });
+          rememberAccount(data?.account?.username || username);
           const session = { token: data.token, account: data.account };
           setCloudSession(session);
           sessionStorage.setItem(ACCESS_SESSION_KEY, "cloud");
@@ -269,37 +306,11 @@
   }
 
   function initCloudSync(role, session) {
-    if (role !== "cloud" || !session?.token) return;
-    let timer = null;
-    let saving = false;
-    let pending = false;
-
-    const save = async () => {
-      if (saving) { pending = true; return; }
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return;
-      let library;
-      try { library = JSON.parse(raw); } catch { return; }
-      if (!libraryLooksUsable(library)) return;
-      saving = true;
-      document.documentElement.dataset.cloudSync = "saving";
-      try {
-        await api("save_library", { token: session.token, library });
-        document.documentElement.dataset.cloudSync = "saved";
-      } catch (error) {
-        console.error("[LyricTube] cloud save failed", error);
-        document.documentElement.dataset.cloudSync = "error";
-      } finally {
-        saving = false;
-        if (pending) { pending = false; setTimeout(save, 250); }
-      }
-    };
-
-    document.addEventListener("lyrictube:cloud-library-changed", () => {
-      clearTimeout(timer);
-      timer = setTimeout(save, 900);
-    });
-    window.addEventListener("pagehide", () => { clearTimeout(timer); save(); });
+    // cloud-sync.js is the single writer. site-shell only announces that a valid
+    // cloud session is ready; this prevents full-library and delta writers racing.
+    if (role === "cloud" && session?.token) {
+      document.dispatchEvent(new CustomEvent("lyrictube:cloud-session-ready"));
+    }
   }
 
   function closeMobileSidebar() {

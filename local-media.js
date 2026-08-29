@@ -2,6 +2,7 @@
   "use strict";
 
   const DB_NAME = "lyrictube.localMedia.v1";
+  const LEGACY_DB_NAME = "lyrictube.localAudio.v1";
   const DB_VERSION = 1;
   const STORE_NAME = "tracks";
   const MAX_FILE_BYTES = 1024 * 1024 * 1024;
@@ -18,6 +19,7 @@
   let songSourceMode = "youtube";
   let versionSourceMode = "youtube";
   let patched = false;
+  let lastUiTick = 0;
 
   let originalLoadSelectedVideo = null;
   let originalCurrentPlayerTime = null;
@@ -135,6 +137,116 @@
       transaction.onerror = () => reject(transaction.error || new Error("端末ファイルの保存に失敗しました。"));
       transaction.onabort = () => reject(transaction.error || new Error("端末ファイルの保存が中断されました。"));
     });
+  }
+
+
+  async function readLegacyAudioRows() {
+    if (!window.indexedDB) return [];
+    try {
+      if (typeof indexedDB.databases === "function") {
+        const dbs = await indexedDB.databases();
+        if (!dbs.some(item => item?.name === LEGACY_DB_NAME)) return [];
+      }
+    } catch {}
+
+    return await new Promise(resolve => {
+      let created = false;
+      const request = indexedDB.open(LEGACY_DB_NAME, 1);
+      request.onupgradeneeded = () => { created = true; };
+      request.onerror = () => resolve([]);
+      request.onsuccess = () => {
+        const legacy = request.result;
+        if (created || !legacy.objectStoreNames.contains("tracks")) {
+          legacy.close();
+          if (created) indexedDB.deleteDatabase(LEGACY_DB_NAME);
+          resolve([]);
+          return;
+        }
+        const txLegacy = legacy.transaction("tracks", "readonly");
+        const getAll = txLegacy.objectStore("tracks").getAll();
+        getAll.onerror = () => { legacy.close(); resolve([]); };
+        getAll.onsuccess = () => { const rows = getAll.result || []; legacy.close(); resolve(rows); };
+      };
+    });
+  }
+
+  async function migrateLegacyAudio() {
+    const rows = await readLegacyAudioRows();
+    if (!rows.length) return 0;
+    let copied = 0;
+    for (const row of rows) {
+      if (!row?.key || !(row.blob instanceof Blob)) continue;
+      const migrated = {
+        ...row,
+        kind: "audio",
+        fileName: row.fileName || "audio.mp3",
+        mime: row.mime || "audio/mpeg",
+        updatedAt: row.updatedAt || new Date().toISOString(),
+      };
+      await tx("readwrite", store => store.put(migrated));
+      copied += 1;
+    }
+
+    let changed = false;
+    try {
+      for (const song of library?.songs || []) {
+        for (const version of song.versions || []) {
+          if (version.type !== "local" || version.source === "localmedia") continue;
+          const row = rows.find(item => String(item?.versionId || "") === String(version.id));
+          if (!row) continue;
+          version.type = "other";
+          version.source = "localmedia";
+          version.localMediaKind = "audio";
+          version.localFileName = row.fileName || "audio.mp3";
+          version.youtubeUrl = "";
+          version.videoId = "";
+          changed = true;
+        }
+      }
+      if (changed) persistLibrary();
+    } catch (error) {
+      console.warn("[LyricTube LocalMedia] legacy metadata migration failed", error);
+    }
+
+    try { indexedDB.deleteDatabase(LEGACY_DB_NAME); } catch {}
+    console.info(`[LyricTube] migrated ${copied} legacy local-audio file(s)`);
+    return copied;
+  }
+
+  function formatBytes(bytes) {
+    const value = Math.max(0, Number(bytes) || 0);
+    if (value < 1024) return `${value} B`;
+    const units = ["KB", "MB", "GB", "TB"];
+    let n = value / 1024;
+    let index = 0;
+    while (n >= 1024 && index < units.length - 1) { n /= 1024; index += 1; }
+    return `${n >= 10 ? n.toFixed(1) : n.toFixed(2)} ${units[index]}`;
+  }
+
+  async function updateStorageSummary() {
+    const el = $("localMediaStorageSummary");
+    if (!el) return;
+    const localBytes = [...records.values()].reduce((sum, row) => sum + (Number(row?.size) || 0), 0);
+    let suffix = "";
+    try {
+      const estimate = await navigator.storage?.estimate?.();
+      if (estimate?.quota) suffix = ` · ブラウザ使用 ${formatBytes(estimate.usage || 0)} / ${formatBytes(estimate.quota)}`;
+    } catch {}
+    el.textContent = `このアカウントの端末ファイル: ${formatBytes(localBytes)}${suffix}`;
+  }
+
+  function createStorageSettingsUi() {
+    const dialog = $("settingsDialog");
+    if (!dialog || $("localMediaStorageSetting")) return;
+    const anchor = dialog.querySelector(".version-info");
+    if (!anchor) return;
+    const row = document.createElement("div");
+    row.id = "localMediaStorageSetting";
+    row.className = "local-media-storage-setting";
+    row.innerHTML = '<div><strong>端末ファイル保存</strong><span id="localMediaStorageSummary">容量を確認中…</span></div><button id="localMediaStorageRefresh" class="ghost-btn" type="button">更新</button>';
+    anchor.insertAdjacentElement("beforebegin", row);
+    $("localMediaStorageRefresh")?.addEventListener("click", updateStorageSummary);
+    updateStorageSummary();
   }
 
   async function loadRecords() {
@@ -412,6 +524,7 @@
       .local-media-card{display:grid;gap:12px;justify-items:center;max-width:520px}.local-media-card .icon{width:92px;aspect-ratio:1;border-radius:24px;display:grid;place-items:center;font-size:34px;background:var(--accentSoft);border:1px solid var(--border)}.local-media-card strong{font-size:22px}.local-media-card span{font-size:12px;color:var(--muted);overflow-wrap:anywhere}.local-media-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}.local-media-play{width:54px;height:54px;border:0;border-radius:50%;background:var(--accent);color:#fff;font-size:19px;cursor:pointer}.local-media-play:disabled{opacity:.4}
       #localMediaAudio{position:fixed;width:1px;height:1px;opacity:.001;pointer-events:none;left:-10px;bottom:-10px}
       .local-media-source-btn{display:none}.local-media-source-btn.visible{display:inline-flex}
+      .local-media-storage-setting{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:14px 0;padding:12px 13px;border:1px solid var(--border);border-radius:12px;background:var(--panel2)}.local-media-storage-setting>div{display:grid;gap:3px}.local-media-storage-setting strong{font-size:12px}.local-media-storage-setting span{font-size:10px;color:var(--muted);line-height:1.45}
       @media(max-width:700px){.source-switch{display:grid;grid-template-columns:1fr 1fr}.local-media-card strong{font-size:18px}#localMediaStage{padding:18px}}
     `;
     document.head.appendChild(style);
@@ -758,7 +871,11 @@
       });
       el.addEventListener("timeupdate", () => {
         applyPlaybackRules();
-        try { updateBottomPlayer?.(); } catch {}
+        const now = performance.now();
+        if (now - lastUiTick >= 125) {
+          lastUiTick = now;
+          try { updateBottomPlayer?.(); } catch {}
+        }
       });
       el.addEventListener("ended", () => {
         try { handleTrackEnd?.("media-ended"); } catch {}
@@ -790,23 +907,36 @@
     }
   }
 
+  window.LyricTubeLocalMedia = Object.freeze({
+    status(song = currentSong(), version = currentVersion(song)) {
+      if (!isLocalMediaVersion(version)) return { local: false, linked: false };
+      const row = records.get(keyFor(song, version)) || null;
+      return { local: true, linked: !!row, kind: row?.kind || version?.localMediaKind || "", fileName: row?.fileName || version?.localFileName || "" };
+    },
+    refreshStorage: updateStorageSummary,
+    relinkCurrent: relinkCurrentFile,
+  });
+
   async function init() {
     styleUi();
     createPlayerUi();
     createSongSourceUi();
     createVersionSourceUi();
+    createStorageSettingsUi();
     patchPlayback();
     installHandlers();
     try {
       db = await openDb();
+      await migrateLegacyAudio();
       await loadRecords();
       await cleanupOrphans();
+      await updateStorageSummary();
     } catch (error) {
       console.warn("[LyricTube LocalMedia] IndexedDB unavailable", error);
       toast("端末ファイル保存を初期化できませんでした。ブラウザのサイトデータ設定を確認してください。");
     }
     updateSourceButton();
-    document.documentElement.dataset.localMedia = "v36";
+    document.documentElement.dataset.localMedia = "v0.10.0";
     console.info("[LyricTube] local media enabled: MP3 + MP4/WebM");
   }
 
@@ -817,7 +947,6 @@
       typeof makeVersion === "function" &&
       $("songForm") && $("versionForm") &&
       document.querySelector(".player-card") &&
-      document.documentElement.dataset.localAudio
     ) {
       clearInterval(timer);
       init();
