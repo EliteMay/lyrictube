@@ -1,4 +1,4 @@
-name: Apply ChatGPT patch
+name: Apply ChatGPT maintenance
 
 on:
   push:
@@ -16,27 +16,41 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
       - name: Apply queued patches
         shell: bash
         run: |
           set -euo pipefail
           shopt -s nullglob
-          patches=(.patches/v29-*.patch)
-          if [ ${#patches[@]} -eq 0 ]; then
-            echo "No queued patch files found."
-            exit 1
-          fi
+          patches=(.patches/*.patch)
           for patch in "${patches[@]}"; do
             echo "Applying $patch"
             git apply --check --unidiff-zero "$patch"
             git apply --unidiff-zero "$patch"
           done
-          rm -rf .patches
+
+      - name: Run queued maintenance refactor
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -f tools/refactor_v0100.py ]; then
+            python tools/refactor_v0100.py
+          fi
+
+      - name: Remove queue marker
+        shell: bash
+        run: rm -rf .patches
+
       - name: Commit changes
         shell: bash
         run: |
+          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "Apply queued LyricTube update"
+          if git diff --cached --quiet; then
+            echo "No maintenance changes to commit."
+            exit 0
+          fi
+          git commit -m "Refactor LyricTube foundation for v0.10.0"
           git push
