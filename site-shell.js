@@ -89,13 +89,6 @@
     document.title = "LyricTube";
     const mobile = qs('link[href^="mobile.css"]');
     if (mobile) mobile.href = `mobile.css?v=${VERSION}`;
-    if (!qs('link[data-guest-style]')) {
-      const link = document.createElement("link");
-      link.rel = "stylesheet";
-      link.href = `guest.css?v=${VERSION}`;
-      link.dataset.guestStyle = "true";
-      document.head.appendChild(link);
-    }
     if (!qs("#cloudAccountStyle")) {
       const style = document.createElement("style");
       style.id = "cloudAccountStyle";
@@ -477,15 +470,6 @@
     }
   }
 
-  function keepVersionLabels() {
-    const apply = () => {
-      if (qs("#settingsAppVersion")) qs("#settingsAppVersion").textContent = "GH v35";
-      if (qs(".version-badge")) qs(".version-badge").textContent = "GH v35";
-    };
-    apply();
-    document.addEventListener("click", e => { if (e.target.closest("#settingsBtn")) setTimeout(apply, 0); });
-  }
-
   async function start() {
     prepareAssets();
     const config = await readConfig();
@@ -498,7 +482,8 @@
     applyGuestMode(access.role);
     addCloudBadge(access.role, access.session);
     initCloudSettings(access.role, access.session);
-    keepVersionLabels();
+    window.LyricTubeVersion?.applyUi?.();
+    document.dispatchEvent(new CustomEvent("lyrictube:app-ready"));
   }
 
   start();

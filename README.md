@@ -1,7 +1,7 @@
 # LyricTube
 
-**Current version: v0.11.0**  
-**Build: 20260830-3**
+**Current version: v0.12.0**  
+**Build: 20260830-4**
 
 YouTube動画、端末のMP3/MP4、通常歌詞、同期歌詞を1つのライブラリで管理する個人用Webアプリです。
 
@@ -50,8 +50,8 @@ index.html
 
 ユーザー向けのバージョンとキャッシュ用Buildを分離しています。
 
-- 表示: `v0.11.0`
-- Build: `20260830-3`
+- 表示: `v0.12.0`
+- Build: `20260830-4`
 - データSchema: `4`
 
 正本は `version.js` です。旧 `v35 / v36` の番号は現行UIのバージョンとして使用しません。
@@ -221,3 +221,13 @@ index.html
 `app.js` は旧バージョンから機能を積み重ねてきたため、まだ大きな単一ファイルです。v0.10.2では重複ランタイムとデータ・同期の土台を先に整理しました。今後は動作を維持したままPlayer / Lyrics / Library / UI単位に段階分割します。
 
 詳細は `docs/KNOWN_ISSUES.md` を参照してください。
+
+
+## v0.12.0 安定性修正
+
+- ログインを30秒以上放置してもLocal Media / Tagsが確実に初期化されるよう、Pollingから`lyrictube:app-ready`イベントへ変更。
+- MP3 / MP4でも同期歌詞追従、歌詞クリックシーク、Space / ← / →操作が同じ再生経路を使うよう修正。
+- `GH v35`を再表示する旧処理と`lyrictube_v14_`書き出し名を撤去。
+- 破損したlocalStorage JSONは上書き前に復旧用コピーへ退避。
+- Sidebar下部4操作をPC / モバイルとも4列で固定。
+- Schema検査と回帰テストを強化。

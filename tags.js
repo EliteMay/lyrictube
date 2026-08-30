@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const TAG_VERSION = window.LyricTubeVersion?.version || "v0.10.1";
+  const TAG_VERSION = window.LyricTubeVersion?.version || "v0.12.0";
   const COLOR_PRESETS = [
     { id: "violet", label: "紫" },
     { id: "blue", label: "青" },
@@ -894,20 +894,21 @@
     document.documentElement.dataset.tags = TAG_VERSION;
   }
 
-  const timer = setInterval(() => {
-    if (
-      typeof library !== "undefined" &&
+  function appCoreReady() {
+    return typeof library !== "undefined" &&
       typeof viewSongs === "function" &&
       typeof renderBrowse === "function" &&
       typeof renderAll === "function" &&
       typeof renderSelectedSong === "function" &&
       typeof renderMainPage === "function" &&
       typeof persistLibrary === "function" &&
-      $("browsePage") && $("browsePageBtn")
-    ) {
-      clearInterval(timer);
-      init();
-    }
-  }, 50);
-  setTimeout(() => clearInterval(timer), 30000);
+      $("browsePage") && $("browsePageBtn");
+  }
+
+  function startWhenReady() {
+    if (appCoreReady()) init();
+  }
+
+  document.addEventListener("lyrictube:app-ready", startWhenReady);
+  queueMicrotask(startWhenReady);
 })();

@@ -1,6 +1,8 @@
-const APP_VERSION = window.LyricTubeVersion?.version || "v0.11.0";
+const APP_VERSION = window.LyricTubeVersion?.version || "v0.12.0";
 const STORAGE_KEY = "lyrictube.library.v3";
 const LEGACY_KEY = "lyrictube.songs.v1";
+const RECOVERY_KEY_PREFIX = "lyrictube.library.recovery.";
+let recoveryBackupKey = "";
 const LIB_VERSION = 3;
 
 let library = defaultLibrary();
@@ -288,7 +290,37 @@ function hasLrc(text=""){return /\[\d{1,3}:\d{2}(?:[.:]\d{1,3})?\]/.test(text)}
 function makeVersion({youtubeUrl="",videoId="",type="original",performer="",label="",rawYoutubeTitle="",rawYoutubeAuthor=""}={}){return{id:uid(),youtubeUrl,videoId,type,performer,label,rawYoutubeTitle,rawYoutubeAuthor,startTime:0,endTime:null,lyricsOffset:0,skipSegments:[],autoSkip:true,customSyncedLyrics:"",createdAt:nowIso(),updatedAt:nowIso()}}
 function migrateLegacy(raw){const out=defaultLibrary();if(!Array.isArray(raw))return out;out.songs=raw.map(s=>{const v=makeVersion({youtubeUrl:s.youtubeUrl||"",videoId:s.videoId||"",type:"original",performer:s.artist||""});v.lyricsOffset=-(Number(s.lyricsOffset)||0);return{id:s.id||uid(),title:s.title||"無題",artist:s.artist||"",plainLyrics:s.plainLyrics||"",syncedLyrics:s.syncedLyrics||"",lyricsSource:s.lyricsSource||"",lrclibId:s.lrclibId||"",favorite:false,playCount:0,lastPlayedAt:null,versions:[v],createdAt:s.createdAt||nowIso(),updatedAt:s.updatedAt||nowIso()}});return out}
 function normalizeLibrary(data){const base=defaultLibrary();if(!data||typeof data!=="object")return base;base.settings={...base.settings,...(data.settings||{})};if(!base.settings.theme)base.settings.theme="dark";if(!base.settings.lyricsFontSize)base.settings.lyricsFontSize=18;if(base.settings.showBottomPlayer===undefined)base.settings.showBottomPlayer=true;if(base.settings.spotlight===undefined)base.settings.spotlight=true;if(base.settings.compactMode===undefined)base.settings.compactMode=false;if(base.settings.showArtwork===undefined)base.settings.showArtwork=true;if(base.settings.glassEffect===undefined)base.settings.glassEffect=true;if(base.settings.reduceMotion===undefined)base.settings.reduceMotion=false;if(base.settings.helpTips===undefined)base.settings.helpTips=true;if(!["player","browse"].includes(base.settings.mainPage))base.settings.mainPage="player";if(!["player","browse"].includes(base.settings.startupPage))base.settings.startupPage=base.settings.mainPage||"player";base.playlists=Array.isArray(data.playlists)?data.playlists.filter(p=>p&&p.id&&p.name).map(p=>({...p,songIds:Array.isArray(p.songIds)?p.songIds:[]})):[];base.songs=Array.isArray(data.songs)?data.songs.filter(Boolean).map(s=>({...s,id:s.id||uid(),title:s.title||"無題",artist:s.artist||"",plainLyrics:s.plainLyrics||"",syncedLyrics:s.syncedLyrics||"",favorite:Boolean(s.favorite),playCount:Number(s.playCount)||0,lastPlayedAt:s.lastPlayedAt||null,versions:(Array.isArray(s.versions)?s.versions:[]).map(v=>({...makeVersion(),...v,id:v.id||uid(),startTime:Number(v.startTime)||0,endTime:v.endTime===null||v.endTime===undefined?null:Number(v.endTime),lyricsOffset:Number(v.lyricsOffset)||0,skipSegments:Array.isArray(v.skipSegments)?v.skipSegments:[],autoSkip:v.autoSkip!==false,customSyncedLyrics:v.customSyncedLyrics||""}))})):[];base.version=LIB_VERSION;return base}
-function loadLibrary(){try{const v3=localStorage.getItem(STORAGE_KEY);if(v3){library=normalizeLibrary(JSON.parse(v3));return}const legacy=localStorage.getItem(LEGACY_KEY);if(legacy){library=migrateLegacy(JSON.parse(legacy));persistLibrary();showToast("以前の曲データを新しい形式へ移行しました。");return}}catch(e){console.warn(e)}library=defaultLibrary()}
+function backupCorruptLibrary(raw,error){
+  if(!raw)return "";
+  const key=`${RECOVERY_KEY_PREFIX}${Date.now()}`;
+  try{localStorage.setItem(key,raw);recoveryBackupKey=key}catch{}
+  console.error("[LyricTube] library parse failed; recovery copy saved",error);
+  return key;
+}
+function loadLibrary(){
+  const v3=localStorage.getItem(STORAGE_KEY);
+  if(v3){
+    try{
+      const parsed=JSON.parse(v3);
+      const migrated=window.LyricTubeLibrarySchema?.migrate?.(parsed)||parsed;
+      library=normalizeLibrary(migrated);
+      const validation=window.LyricTubeLibrarySchema?.validate?.(library);
+      if(validation&&!validation.ok)console.warn("[LyricTube] library validation warnings",validation.errors);
+      return;
+    }catch(error){
+      backupCorruptLibrary(v3,error);
+      library=defaultLibrary();
+      return;
+    }
+  }
+  try{
+    const legacy=localStorage.getItem(LEGACY_KEY);
+    if(legacy){library=migrateLegacy(JSON.parse(legacy));persistLibrary();showToast("以前の曲データを新しい形式へ移行しました。");return}
+  }catch(error){
+    console.warn(error);
+  }
+  library=defaultLibrary();
+}
 function persistLibrary(){localStorage.setItem(STORAGE_KEY,JSON.stringify(library))}
 
 function showToast(message){
@@ -648,6 +680,7 @@ function beginLyricVideoSwitch(){
   resetLyricsViewport();
 }
 function lyricPlayerReadyForSelectedVideo(v){
+  if(v?.source==="localmedia")return Boolean(selectedLocalMediaStatus(getSong(),v)?.linked);
   if(!v?.videoId||!ytPlayer)return false;
 
   const playerId=playerVideoIdSafe();
@@ -702,6 +735,30 @@ function loadSelectedVideo(autoplay=false){
   }
 }
 
+
+function selectedLocalMediaStatus(song=getSong(),v=getVersion(song)){
+  try{return window.LyricTubeLocalMedia?.status?.(song,v)||null}catch{return null}
+}
+function playMainPlayback(){
+  const status=selectedLocalMediaStatus();
+  if(status?.local)return Boolean(window.LyricTubeLocalMedia?.playCurrent?.());
+  try{ytPlayer?.playVideo?.();return true}catch{return false}
+}
+function pauseMainPlayback(){
+  const status=selectedLocalMediaStatus();
+  if(status?.local)return Boolean(window.LyricTubeLocalMedia?.pauseCurrent?.());
+  try{ytPlayer?.pauseVideo?.();return true}catch{return false}
+}
+function seekMainPlayback(target,{autoplay=false}={}){
+  const value=Math.max(0,Number(target)||0);
+  const status=selectedLocalMediaStatus();
+  let ok=false;
+  if(status?.local)ok=Boolean(window.LyricTubeLocalMedia?.seekCurrent?.(value));
+  else try{ytPlayer?.seekTo?.(value,true);ok=true}catch{}
+  if(ok&&autoplay)playMainPlayback();
+  return ok;
+}
+
 function renderLyrics(song=getSong(),v=getVersion()){
   els.lyricsView.innerHTML="";
   activeLyricIndex=-1;
@@ -722,17 +779,17 @@ function renderLyrics(song=getSong(),v=getVersion()){
       const d=document.createElement("div");
       d.className="lyric-line";
       d.dataset.index=index;
+      d.dataset.time=String(line.time);
       d.textContent=line.text;
       d.title=`曲開始から ${formatTime(line.time)}`;
       d.addEventListener("click",()=>{
         const vv=getVersion();
-        if(!vv||!ytPlayer?.seekTo)return;
+        if(!vv)return;
         lyricVideoSwitchPending=false;
-        ytPlayer.seekTo(
+        seekMainPlayback(
           Math.max(0,Number(vv.startTime||0)+line.time+Number(vv.lyricsOffset||0)),
-          true
+          {autoplay:true}
         );
-        ytPlayer.playVideo?.();
       });
       els.lyricsView.appendChild(d);
     });
@@ -753,7 +810,9 @@ function renderLyrics(song=getSong(),v=getVersion()){
 }
 function updateLyricHighlight(){
   const song=getSong(),v=getVersion(song);
-  if(!song||!v||!ytPlayer?.getCurrentTime)return;
+  if(!song||!v)return;
+  const localStatus=selectedLocalMediaStatus(song,v);
+  if(localStatus?.local){if(!localStatus.linked)return}else if(!ytPlayer?.getCurrentTime)return;
 
   const lines=parseLrc(effectiveLrc(song,v));
   if(!lines.length)return;
@@ -828,9 +887,9 @@ function playbackTick(){
     if(label)label.textContent=playerStateSafe()===1?"再生中":"選択中";
   }
 }
-function handleTrackEnd(reason="ended"){if(handlingEnd)return;handlingEnd=true;setTimeout(()=>handlingEnd=false,700);if(library.settings.repeat==="one"){restartCurrent(true);return}const queue=queueSongs();if(queue.length<=1&&library.settings.repeat!=="all"){try{ytPlayer.pauseVideo?.()}catch{}return}playAdjacent(1,true,true)}
-function playAdjacent(direction=1,autoplay=true,fromEnd=false){const queue=queueSongs();if(!queue.length)return;let idx=queue.findIndex(s=>s.id===selectedSongId);if(library.settings.shuffle&&queue.length>1){let choices=queue.filter(s=>s.id!==selectedSongId);const next=choices[Math.floor(Math.random()*choices.length)];selectSong(next.id,autoplay);return}if(idx<0)idx=0;let next=idx+direction;if(next<0||next>=queue.length){if(library.settings.repeat==="all"||!fromEnd)next=(next+queue.length)%queue.length;else{try{ytPlayer.pauseVideo?.()}catch{}return}}selectSong(queue[next].id,autoplay)}
-function restartCurrent(autoplay=true){const v=getVersion();if(!v||!ytPlayer)return;ytPlayer.seekTo(Number(v.startTime)||0,true);if(autoplay)ytPlayer.playVideo?.()}
+function handleTrackEnd(reason="ended"){if(handlingEnd)return;handlingEnd=true;setTimeout(()=>handlingEnd=false,700);if(library.settings.repeat==="one"){restartCurrent(true);return}const queue=queueSongs();if(queue.length<=1&&library.settings.repeat!=="all"){pauseMainPlayback();return}playAdjacent(1,true,true)}
+function playAdjacent(direction=1,autoplay=true,fromEnd=false){const queue=queueSongs();if(!queue.length)return;let idx=queue.findIndex(s=>s.id===selectedSongId);if(library.settings.shuffle&&queue.length>1){let choices=queue.filter(s=>s.id!==selectedSongId);const next=choices[Math.floor(Math.random()*choices.length)];selectSong(next.id,autoplay);return}if(idx<0)idx=0;let next=idx+direction;if(next<0||next>=queue.length){if(library.settings.repeat==="all"||!fromEnd)next=(next+queue.length)%queue.length;else{pauseMainPlayback();return}}selectSong(queue[next].id,autoplay)}
+function restartCurrent(autoplay=true){const v=getVersion();if(!v)return;seekMainPlayback(Number(v.startTime)||0,{autoplay})}
 function pauseAutoScrollForManualScroll(){
   if(!library.settings.autoScroll)return;
   autoScrollManualPaused=true;
@@ -904,8 +963,8 @@ function toggleSpotlight(){
 }
 const HELP_TOPICS={
   overview:{title:"LyricTubeの使い方",html:[
-    "<section class=\"help-block\"><h4>まずやること</h4><ol><li>「＋ 曲を追加」からYouTube URLを登録</li><li>歌詞を貼るか、自動歌詞検索を使う</li><li>必要なら「この動画専用に歌詞時間を合わせる」で同期</li></ol></section>",
-    "<section class=\"help-block\"><h4>保存について</h4><p>曲・歌詞・プレイリスト・設定は、このブラウザの localStorage に保存されます。別のPCや別ブラウザでは自動共有されないので、必要なら書き出しを使ってください。</p></section>",
+    "<section class=\"help-block\"><h4>まずやること</h4><ol><li>「＋ 曲を追加」からYouTubeまたは端末のMP3 / MP4を登録</li><li>歌詞を貼るか、自動歌詞検索を使う</li><li>必要なら「この動画専用に歌詞時間を合わせる」で同期</li></ol></section>",
+    "<section class=\"help-block\"><h4>保存について</h4><p>ゲストはこのブラウザ内に保存されます。クラウドアカウントは曲・歌詞・プレイリスト・設定をSupabaseへ同期します。MP3 / MP4本体だけは端末内保存なので、別端末では再登録が必要です。</p></section>",
     "<section class=\"help-block\"><h4>おすすめの使い方</h4><p>原曲を1つ作って、Cover・Live・FIRST TAKE を別バージョンで追加すると管理しやすいです。</p></section>"
   ].join("")},
   player:{title:"再生画面ヘルプ",html:[
@@ -919,6 +978,7 @@ const HELP_TOPICS={
   ].join("")},
   sync:{title:"歌詞時間合わせヘルプ",html:[
     "<section class=\"help-block\"><h4>基本</h4><p>各行の「今の時間」でその行に現在の再生位置を入れられます。シークバーで何度でも戻れるので、ミスしてもやり直せます。</p></section>",
+    "<section class=\"help-block\"><h4>ざっくり自動合わせ</h4><p>2〜5か所程度だけ「今の時間（基準点）」を設定して「基準点の間を自動補間」を押すと、その間をまとめて合わせられます。</p></section>",
     "<section class=\"help-block\"><h4>便利操作</h4><ul><li>行をクリックして選択</li><li><strong>Shift + T</strong> で選択中の行に現在時間を打刻</li><li>各行の <strong>-0.5 / -0.1 / +0.1 / +0.5</strong> は、その1行の保存時間だけを微調整（動画は動かない）</li><li>上部の±0.1 / ±0.5秒は全行を一括補正</li><li>「♪ 間奏を追加」で音符行を追加</li></ul></section>"
   ].join("")},
   settings:{title:"設定ヘルプ",html:[
@@ -2299,7 +2359,7 @@ function validateImportedLibrary(incoming){
   return incoming;
 }
 
-function exportLibrary(){const blob=new Blob([JSON.stringify({...library,exportedAt:nowIso()},null,2)],{type:"application/json"});const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=`lyrictube_v14_${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(url)}
+function exportLibrary(){const blob=new Blob([JSON.stringify({...library,exportedAt:nowIso()},null,2)],{type:"application/json"});const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=`lyrictube_${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(url)}
 async function importLibrary(file){
   try{
     const rawText=stripJsonBom(await file.text());
@@ -2966,6 +3026,7 @@ function useSharedSync(){
 // Events
 try{
   bootstrapCore();
+  if(recoveryBackupKey)showToast("保存データを読み込めなかったため、復旧用コピーを端末に退避しました。新しい空データで上書きする前に書き出し・復旧を確認してください。");
 }catch(err){
   console.error("[LyricTube] core bootstrap failed:",err);
   document.documentElement.dataset.lyricTubeReady="error";
@@ -3140,7 +3201,28 @@ els.bottomVolume.addEventListener("change",persistLibrary);
 
 window.addEventListener("focus",focusLyricsAfterGoogle);
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")focusLyricsAfterGoogle()});
-window.addEventListener("keydown",e=>{if(els.syncDialog?.open&&e.shiftKey&&e.key.toLowerCase()==="t"){e.preventDefault();stampSyncLine(syncSelectedIndex);return}if(["INPUT","TEXTAREA","SELECT"].includes(document.activeElement?.tagName))return;if(e.code==="Space"){e.preventDefault();try{ytPlayer?.getPlayerState?.()===1?ytPlayer.pauseVideo():ytPlayer.playVideo()}catch{}}else if(e.key==="ArrowRight"&&!e.ctrlKey){try{ytPlayer.seekTo(currentPlayerTime()+5,true)}catch{}}else if(e.key==="ArrowLeft"&&!e.ctrlKey){try{ytPlayer.seekTo(Math.max(0,currentPlayerTime()-5),true)}catch{}}else if(e.ctrlKey&&e.key==="ArrowRight"){e.preventDefault();playAdjacent(1,true,false)}else if(e.ctrlKey&&e.key==="ArrowLeft"){e.preventDefault();playAdjacent(-1,true,false)}else if(e.key.toLowerCase()==="f"){toggleFavorite()}else if(e.key==="?"||e.key==="/"){e.preventDefault();els.shortcutDialog.showModal()}});
+window.addEventListener("keydown",e=>{
+  if(els.syncDialog?.open&&e.shiftKey&&e.key.toLowerCase()==="t"){
+    e.preventDefault();stampSyncLine(syncSelectedIndex);return;
+  }
+  if(["INPUT","TEXTAREA","SELECT"].includes(document.activeElement?.tagName))return;
+  if(e.code==="Space"){
+    e.preventDefault();
+    playerStateSafe()===1?pauseMainPlayback():playMainPlayback();
+  }else if(e.key==="ArrowRight"&&!e.ctrlKey){
+    e.preventDefault();seekMainPlayback(currentPlayerTime()+5);
+  }else if(e.key==="ArrowLeft"&&!e.ctrlKey){
+    e.preventDefault();seekMainPlayback(Math.max(0,currentPlayerTime()-5));
+  }else if(e.ctrlKey&&e.key==="ArrowRight"){
+    e.preventDefault();playAdjacent(1,true,false);
+  }else if(e.ctrlKey&&e.key==="ArrowLeft"){
+    e.preventDefault();playAdjacent(-1,true,false);
+  }else if(e.key.toLowerCase()==="f"){
+    toggleFavorite();
+  }else if(e.key==="?"||e.key==="/"){
+    e.preventDefault();els.shortcutDialog.showModal();
+  }
+});
 
 let miniPlayerActive=false;
 function toggleMiniPlayer(){

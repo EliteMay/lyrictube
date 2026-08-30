@@ -212,7 +212,7 @@
   .bottom-progress{grid-template-columns:34px minmax(0,1fr) 34px!important;gap:5px!important}
 
   .song-list{max-height:none!important;min-height:100px!important}
-  .sidebar-tools{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  .sidebar-tools{grid-template-columns:minmax(0,1fr) 38px minmax(0,1fr) minmax(0,1fr)!important}
   .sidebar-tools .ghost-btn,.sidebar-tools .file-label{min-height:40px}
 }
 

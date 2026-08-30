@@ -20,6 +20,7 @@
   let versionSourceMode = "youtube";
   let patched = false;
   let lastUiTick = 0;
+  let initialized = false;
 
   let originalLoadSelectedVideo = null;
   let originalCurrentPlayerTime = null;
@@ -913,11 +914,29 @@
       const row = records.get(keyFor(song, version)) || null;
       return { local: true, linked: !!row, kind: row?.kind || version?.localMediaKind || "", fileName: row?.fileName || version?.localFileName || "" };
     },
+    playCurrent() {
+      const el = currentMedia();
+      if (!el) return false;
+      el.play().catch(() => toast("再生できませんでした。ファイル形式を確認してください。"));
+      return true;
+    },
+    pauseCurrent() {
+      const el = currentMedia();
+      if (!el) return false;
+      el.pause();
+      return true;
+    },
+    seekCurrent(target) { return seekLocal(target); },
+    currentTime() { const el = currentMedia(); return el ? Number(el.currentTime) || 0 : 0; },
+    duration() { const el = currentMedia(); return el ? Number(el.duration) || 0 : 0; },
+    state() { const el = currentMedia(); return el ? (el.paused ? 2 : 1) : -1; },
     refreshStorage: updateStorageSummary,
     relinkCurrent: relinkCurrentFile,
   });
 
   async function init() {
+    if (initialized) return;
+    initialized = true;
     styleUi();
     createPlayerUi();
     createSongSourceUi();
@@ -936,21 +955,22 @@
       toast("端末ファイル保存を初期化できませんでした。ブラウザのサイトデータ設定を確認してください。");
     }
     updateSourceButton();
-    document.documentElement.dataset.localMedia = "v0.10.1";
+    document.documentElement.dataset.localMedia = window.LyricTubeVersion?.version || "v0.12.0";
     console.info("[LyricTube] local media enabled: MP3 + MP4/WebM");
   }
 
-  const timer = setInterval(() => {
-    if (
-      typeof getSong === "function" &&
+  function appCoreReady() {
+    return typeof getSong === "function" &&
       typeof loadSelectedVideo === "function" &&
       typeof makeVersion === "function" &&
       $("songForm") && $("versionForm") &&
-      document.querySelector(".player-card")
-    ) {
-      clearInterval(timer);
-      init();
-    }
-  }, 60);
-  setTimeout(() => clearInterval(timer), 30000);
+      document.querySelector(".player-card");
+  }
+
+  function startWhenReady() {
+    if (appCoreReady()) init();
+  }
+
+  document.addEventListener("lyrictube:app-ready", startWhenReady);
+  queueMicrotask(startWhenReady);
 })();
