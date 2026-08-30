@@ -8,6 +8,7 @@ on:
       - '**.html'
       - '**.css'
       - 'tools/**'
+      - 'tests/**'
       - '.github/workflows/validate-js.yml'
   pull_request:
   workflow_dispatch:
@@ -35,6 +36,16 @@ jobs:
         run: |
           set -euo pipefail
           python -m py_compile tools/*.py
+
+      - name: Run LyricTube logic tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in tests/*.test.js; do
+            [ -e "$file" ] || continue
+            echo "node $file"
+            node "$file"
+          done
 
       - name: Validate JSON and local asset links
         run: python tools/validate_static.py
