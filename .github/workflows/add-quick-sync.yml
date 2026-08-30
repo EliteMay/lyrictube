@@ -1,0 +1,55 @@
+name: Add LyricTube quick sync
+
+on:
+  push:
+    paths:
+      - '.add-quick-sync'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply quick sync feature
+        run: python tools/add_quick_sync.py
+
+      - name: Validate JavaScript
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do node --check "$file"; done < <(find . -type f -name '*.js' -not -path './.git/*' -print0)
+
+      - name: Run logic tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in tests/*.test.js; do
+            [ -e "$file" ] || continue
+            node "$file"
+          done
+
+      - name: Validate static files
+        run: python tools/validate_static.py
+
+      - name: Remove one-shot maintenance files
+        shell: bash
+        run: |
+          rm -f .add-quick-sync
+          rm -f tools/add_quick_sync.py
+          rm -f .github/workflows/add-quick-sync.yml
+
+      - name: Commit quick sync
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "feat: add quick lyric sync interpolation"
+          git push
