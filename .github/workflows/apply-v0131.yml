@@ -22,6 +22,13 @@ jobs:
           from pathlib import Path
           path = Path('tools/apply_v0131_player.py')
           text = path.read_text(encoding='utf-8')
+
+          old_helper = '''    brace = text.find("{", start)\n    if brace < 0:\n        raise RuntimeError(f"opening brace not found: {name}")\n    depth = 0\n    quote = None\n    escape = False\n    i = brace'''
+          new_helper = '''    paren = text.find("(", start)\n    if paren < 0:\n        raise RuntimeError(f"opening parenthesis not found: {name}")\n    pdepth = 0\n    quote = None\n    escape = False\n    i = paren\n    while i < len(text):\n        ch = text[i]\n        if quote:\n            if escape:\n                escape = False\n            elif ch == "\\\\":\n                escape = True\n            elif ch == quote:\n                quote = None\n        else:\n            if ch in ('\\"', "'", '`'):\n                quote = ch\n            elif ch == "(":\n                pdepth += 1\n            elif ch == ")":\n                pdepth -= 1\n                if pdepth == 0:\n                    break\n        i += 1\n    if pdepth != 0:\n        raise RuntimeError(f"closing parenthesis not found: {name}")\n    brace = text.find("{", i + 1)\n    if brace < 0:\n        raise RuntimeError(f"opening brace not found: {name}")\n    depth = 0\n    quote = None\n    escape = False\n    i = brace'''
+          if old_helper not in text:
+              raise SystemExit('replace_function helper shape not found')
+          text = text.replace(old_helper, new_helper, 1)
+
           old = '''if old_playing_state not in app:\n    raise RuntimeError("playing state block not found")\napp = app.replace(old_playing_state, new_playing_state, 1)'''
           new = '''if old_playing_state in app:\n    app = app.replace(old_playing_state, new_playing_state, 1)\nelif "const playing=playerStateSafe()===1;" not in app and "document.body.classList.toggle('is-playing',playerStateSafe()===1);" not in app:\n    raise RuntimeError("playing state block not found")'''
           if old in text:
