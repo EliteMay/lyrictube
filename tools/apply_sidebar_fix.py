@@ -17,7 +17,7 @@ if 'href="sidebar.css?' not in text:
     if marker not in text:
         raise SystemExit("tags stylesheet marker not found")
     text = text.replace(marker, marker + f'\n  <link rel="stylesheet" href="sidebar.css?v={BUILD}">', 1)
-text = text.replace('src="version.js?v=20260830-7"', f'src="version.js?v={BUILD}"')
+text = text.replace('?v=20260830-7', f'?v={BUILD}')
 p.write_text(text, encoding="utf-8")
 
 # Canonical sidebar component CSS loaded last.
