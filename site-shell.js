@@ -8,7 +8,7 @@
   const CONFIG_URL = "data/site-config.json";
   const GUEST_LIBRARY_URL = "data/library.json";
   const API_URL = "https://ctktkyxuzkrsigwoswoc.supabase.co/functions/v1/lyrictube-api";
-  const VERSION = window.LyricTubeVersion?.build || "20260830-1";
+  const VERSION = window.LyricTubeVersion?.build || "20260830-4";
 
   const qs = (selector, root = document) => root.querySelector(selector);
   const qsa = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -483,7 +483,6 @@
     addCloudBadge(access.role, access.session);
     initCloudSettings(access.role, access.session);
     window.LyricTubeVersion?.applyUi?.();
-    document.dispatchEvent(new CustomEvent("lyrictube:app-ready"));
   }
 
   start();

@@ -895,7 +895,8 @@
   }
 
   function appCoreReady() {
-    return typeof library !== "undefined" &&
+    return document.documentElement.dataset.lyricTubeReady !== "error" &&
+      typeof library !== "undefined" &&
       typeof viewSongs === "function" &&
       typeof renderBrowse === "function" &&
       typeof renderAll === "function" &&

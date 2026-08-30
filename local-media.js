@@ -942,6 +942,7 @@
       await loadRecords();
       await cleanupOrphans();
       await updateStorageSummary();
+      if (isLocalMediaVersion(currentVersion())) await activateLocalMedia(false);
     } catch (error) {
       console.warn("[LyricTube LocalMedia] IndexedDB unavailable", error);
       toast("端末ファイル保存を初期化できませんでした。ブラウザのサイトデータ設定を確認してください。");
@@ -952,7 +953,8 @@
   }
 
   function appCoreReady() {
-    return typeof getSong === "function" &&
+    return document.documentElement.dataset.lyricTubeReady !== "error" &&
+      typeof getSong === "function" &&
       typeof loadSelectedVideo === "function" &&
       typeof makeVersion === "function" &&
       $("songForm") && $("versionForm") &&

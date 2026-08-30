@@ -19,5 +19,8 @@ assert(app.includes("selectedLocalMediaStatus"), "app must understand local play
 assert(local.includes("playCurrent()"), "Local Media must expose playback contract");
 assert(!local.includes("closest?.(\".lyric-line\")"), "Local Media must not install a second lyric click seeker");
 assert(mobile.includes("38px minmax(0,1fr) minmax(0,1fr)!important"), "mobile sidebar tools must fit four controls");
+assert(!app.includes('dataset.lyricTubeReady="v29"'), "legacy internal ready version must not return");
+assert(app.includes("play: () => playMainPlayback()"), "core facade must expose generic playback");
+assert(local.includes("await activateLocalMedia(false)"), "selected Local Media must activate after IndexedDB loads");
 assert(version.includes('version: "v0.12.0"'), "expected v0.12.0");
 console.log("runtime regression guards passed");

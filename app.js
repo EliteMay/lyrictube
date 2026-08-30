@@ -3252,7 +3252,7 @@ els.fontSizeDownBtn?.addEventListener('click',()=>changeLyricsFontSize(-2));
 // Visualizer: is-playing state
 function updatePlayingState(){
   try{
-    const playing=ytPlayer?.getPlayerState?.()===1;
+    const playing=playerStateSafe()===1;
     document.body.classList.toggle('is-playing',!!playing);
   }catch{}
 }
@@ -3292,7 +3292,7 @@ function bootstrapCore(){
   syncTimer=setInterval(playbackTick,180);
   loadYoutubeApi();
 
-  document.documentElement.dataset.lyricTubeReady="v29";
+  document.documentElement.dataset.lyricTubeReady=APP_VERSION;
 }
 
 
@@ -3308,6 +3308,12 @@ window.LyricTubeCore = Object.freeze({
   versionName: version => versionDisplayName(version),
   currentTime: () => currentPlayerTime(),
   duration: () => getPlayerDuration(),
+  state: () => playerStateSafe(),
+  play: () => playMainPlayback(),
+  pause: () => pauseMainPlayback(),
+  seek: (target, autoplay = false) => seekMainPlayback(target, { autoplay }),
 });
-document.dispatchEvent(new CustomEvent("lyrictube:app-ready"));
-document.dispatchEvent(new CustomEvent("lyrictube:ui-ready"));
+if(document.documentElement.dataset.lyricTubeReady!=="error"){
+  document.dispatchEvent(new CustomEvent("lyrictube:app-ready"));
+  document.dispatchEvent(new CustomEvent("lyrictube:ui-ready"));
+}
