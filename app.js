@@ -1,4 +1,4 @@
-const APP_VERSION = window.LyricTubeVersion?.version || "v0.10.2";
+const APP_VERSION = window.LyricTubeVersion?.version || "v0.11.0";
 const STORAGE_KEY = "lyrictube.library.v3";
 const LEGACY_KEY = "lyrictube.songs.v1";
 const LIB_VERSION = 3;
@@ -29,6 +29,8 @@ let lyricVideoSwitchStartedAt = 0;
 let lyricViewportResetToken = 0;
 let mainPage = "player";
 let syncSelectedIndex = 0;
+let syncAnchorIndices = new Set();
+let syncBaseTimes = [];
 
 const $ = id => document.getElementById(id);
 const els = Object.fromEntries([
@@ -40,7 +42,7 @@ const els = Object.fromEntries([
   "lyricsView","syncStatus","versionSyncStatus","offsetInput","offsetMinus","offsetPlus","openSyncEditorBtn","toggleAutoScrollBtn","fullscreenLyricsBtn","toast",
   "songDialog","songForm","songDialogTitle","closeSongDialog","cancelSongBtn","editingSongId","initialVideoSection","youtubeUrl","fetchYoutubeInfoBtn","initialVersionType","initialPerformer","trackTitle","artistName","searchLyricsBtn","googleLyricsBtn","pasteLyricsBtn","lyricsInput","lyricsInputHint",
   "versionDialog","versionForm","versionDialogTitle","closeVersionDialog","cancelVersionBtn","deleteVersionBtn","editingVersionId","versionYoutubeUrl","fetchVersionInfoBtn","versionType","versionLabel","versionPerformer",
-  "settingsDialog","closeSettingsDialog","lyricsSearchDialog","closeLyricsSearchDialog","lyricsSearchProgress","lyricsSearchResults","syncDialog","closeSyncDialog","syncEditorList","syncVideoTime","syncVideoDuration","syncRelativeTime","syncSeekBar","syncGoStartBtn","syncBack5Btn","syncBack1Btn","syncPlayPauseBtn","syncForward1Btn","syncForward5Btn","syncAddInterludeBtn","syncUndoBtn","resetSyncBtn","saveSyncBtn","useSharedSyncBtn",
+  "settingsDialog","closeSettingsDialog","lyricsSearchDialog","closeLyricsSearchDialog","lyricsSearchProgress","lyricsSearchResults","syncDialog","closeSyncDialog","syncEditorList","syncAssistApplyBtn","syncAssistClearBtn","syncAssistStatus","syncVideoTime","syncVideoDuration","syncRelativeTime","syncSeekBar","syncGoStartBtn","syncBack5Btn","syncBack1Btn","syncPlayPauseBtn","syncForward1Btn","syncForward5Btn","syncAddInterludeBtn","syncUndoBtn","resetSyncBtn","saveSyncBtn","useSharedSyncBtn",
   "helpBtn","lyricsHelpBtn","syncHelpBtn","helpDialog","closeHelpDialog","helpDialogTitle","helpDialogBody","topHelpBtn","openHelpFromSettingsBtn",
   "playlistDialog","closePlaylistDialog","newPlaylistName","createPlaylistBtn","playlistDialogHint","playlistManageList",
   "miniPlayerBtn","shortcutDialog","closeShortcutDialog",
@@ -2592,11 +2594,76 @@ function updateSyncTransport(){
   els.syncPlayPauseBtn.textContent=state===1?"一時停止":"再生";
 }
 function pushSyncUndo(entry){
+  entry.prevAnchors=[...syncAnchorIndices];
+  entry.prevBaseTimes=[...syncBaseTimes];
   syncUndoStack.push(entry);
   if(syncUndoStack.length>200)syncUndoStack.shift();
   updateSyncUndoButton();
 }
 function updateSyncUndoButton(){els.syncUndoBtn.disabled=!syncUndoStack.length}
+function syncAnchorList(){
+  return [...syncAnchorIndices]
+    .filter(index=>Number.isInteger(index)&&index>=0&&index<syncDraft.length)
+    .sort((a,b)=>a-b);
+}
+function updateSyncAssistStatus(){
+  const anchors=syncAnchorList();
+  if(els.syncAssistStatus){
+    els.syncAssistStatus.textContent=anchors.length>=2
+      ? `基準点 ${anchors.length}個 · ${anchors.length-1}区間を補間できます`
+      : `基準点 ${anchors.length}個 · あと${2-anchors.length}個必要`;
+    els.syncAssistStatus.classList.toggle("ready",anchors.length>=2);
+  }
+  if(els.syncAssistApplyBtn)els.syncAssistApplyBtn.disabled=anchors.length<2;
+  if(els.syncAssistClearBtn)els.syncAssistClearBtn.disabled=!anchors.length;
+}
+function markSyncAnchor(index){
+  if(!syncDraft[index])return;
+  syncAnchorIndices.add(index);
+  updateSyncAssistStatus();
+  els.syncEditorList
+    ?.querySelector(`.sync-editor-row[data-index="${index}"]`)
+    ?.classList.add("sync-anchor");
+}
+function reindexSyncAnchorsForInsert(index){
+  syncAnchorIndices=new Set([...syncAnchorIndices].map(value=>value>=index?value+1:value));
+}
+function reindexSyncAnchorsForRemove(index){
+  syncAnchorIndices=new Set([...syncAnchorIndices]
+    .filter(value=>value!==index)
+    .map(value=>value>index?value-1:value));
+}
+function clearSyncAnchors(){
+  if(!syncAnchorIndices.size)return;
+  syncAnchorIndices.clear();
+  renderSyncEditor();
+  showToast("基準点だけクリアしました。歌詞時間はそのままです。");
+}
+function applySyncAnchorInterpolation(){
+  const engine=window.LyricTubeSyncInterpolation;
+  const anchors=syncAnchorList();
+  if(!engine?.interpolateTimes){
+    showToast("自動補間エンジンを読み込めませんでした。");
+    return;
+  }
+  if(anchors.length<2){
+    showToast("「今の時間（基準点）」を2か所以上で設定してください。");
+    return;
+  }
+  try{
+    const currentTimes=syncDraft.map(line=>Number(line.time)||0);
+    const result=engine.interpolateTimes(syncBaseTimes,currentTimes,anchors);
+    pushSyncUndo({type:"all",prevTimes:currentTimes});
+    result.times.forEach((time,index)=>{if(syncDraft[index])syncDraft[index].time=time});
+    renderSyncEditor();
+    const fallback=result.equalSpacingSegments
+      ? `（${result.equalSpacingSegments}区間は元時間が無いため均等補間）`
+      : "";
+    showToast(`基準点の間を${result.segmentCount}区間、自動で合わせました。${fallback}`);
+  }catch(error){
+    showToast(error?.message||"自動補間できませんでした。");
+  }
+}
 function undoSyncChange(){
   const last=syncUndoStack.pop();
   if(!last)return;
@@ -2611,6 +2678,8 @@ function undoSyncChange(){
     syncDraft[last.index].time=last.prevTime;
   }
 
+  if(Array.isArray(last.prevAnchors))syncAnchorIndices=new Set(last.prevAnchors);
+  if(Array.isArray(last.prevBaseTimes))syncBaseTimes=[...last.prevBaseTimes];
   renderSyncEditor();
   updateSyncUndoButton();
   showToast("直前の変更を戻しました。");
@@ -2654,6 +2723,7 @@ function stampSyncLine(index){
   if(!line)return;
   pushSyncUndo({type:"line",index,prevTime:line.time});
   line.time=syncRelativeSeconds(currentPlayerTime());
+  syncAnchorIndices.add(index);
   renderSyncEditor();
   setSelectedSyncLine(index,{scroll:true});
   showToast(`${index+1}行目を ${formatTime(line.time)} に設定しました。`);
@@ -2664,6 +2734,7 @@ function nudgeSyncLine(index,deltaSec){
   const scrollTop=els.syncEditorList.scrollTop;
   pushSyncUndo({type:"line",index,prevTime:Number(line.time)||0});
   line.time=Math.max(0,(Number(line.time)||0)+deltaSec);
+  syncAnchorIndices.add(index);
   syncSelectedIndex=index;
   renderSyncEditor();
   requestAnimationFrame(()=>{
@@ -2701,7 +2772,10 @@ function addInterludeMarker(){
 
   const index=findInterludeInsertIndex(at);
   pushSyncUndo({type:"insert",index});
+  reindexSyncAnchorsForInsert(index);
+  syncBaseTimes.splice(index,0,at);
   syncDraft.splice(index,0,{time:at,text:"♪"});
+  syncAnchorIndices.add(index);
   renderSyncEditor();
 
   requestAnimationFrame(()=>{
@@ -2716,7 +2790,9 @@ function removeInterludeMarker(index){
   const line=syncDraft[index];
   if(!line||!isSyncMarkerText(line.text))return;
   pushSyncUndo({type:"remove",index,line:{...line}});
+  reindexSyncAnchorsForRemove(index);
   syncDraft.splice(index,1);
+  syncBaseTimes.splice(index,1);
   renderSyncEditor();
   showToast("♪ を削除しました。");
 }
@@ -2726,7 +2802,7 @@ function renderSyncEditor(){
   syncDraft.forEach((line,index)=>{
     const marker=isSyncMarkerText(line.text);
     const row=document.createElement("div");
-    row.className=`sync-editor-row${marker?" interlude":""}${index===syncSelectedIndex?" selected":""}`;
+    row.className=`sync-editor-row${marker?" interlude":""}${syncAnchorIndices.has(index)?" sync-anchor":""}${index===syncSelectedIndex?" selected":""}`;
     row.dataset.index=index;
     row.addEventListener("click",()=>setSelectedSyncLine(index));
 
@@ -2739,14 +2815,24 @@ function renderSyncEditor(){
       const next=parseTimecode(timeInput.value);
       pushSyncUndo({type:"line",index,prevTime:line.time});
       line.time=next;
+      syncAnchorIndices.add(index);
       timeInput.value=formatTime(next);
-      row.classList.add("changed");
+      row.classList.add("changed","sync-anchor");
+      updateSyncAssistStatus();
       setSelectedSyncLine(index);
     });
 
     const text=document.createElement("div");
     text.className="sync-editor-text";
-    text.textContent=line.text;
+    const lyricCopy=document.createElement("span");
+    lyricCopy.textContent=line.text;
+    text.appendChild(lyricCopy);
+    if(syncAnchorIndices.has(index)){
+      const anchorBadge=document.createElement("span");
+      anchorBadge.className="sync-anchor-badge";
+      anchorBadge.textContent="基準点";
+      text.appendChild(anchorBadge);
+    }
 
     const actions=document.createElement("div");
     actions.className="sync-row-actions";
@@ -2754,7 +2840,7 @@ function renderSyncEditor(){
     const stamp=document.createElement("button");
     stamp.type="button";
     stamp.className="stamp-btn";
-    stamp.textContent=index===syncSelectedIndex?"今の時間を入れる（選択中）":"今の時間";
+    stamp.textContent=syncAnchorIndices.has(index)?"基準点を更新":"今の時間（基準点）";
     stamp.title=marker
       ?"動画の現在位置をこの ♪ の時間に設定"
       :"動画の現在位置をこの行の時間に設定（押し直せば上書き）";
@@ -2805,6 +2891,7 @@ function renderSyncEditor(){
     row.append(timeInput,text,actions);
     els.syncEditorList.appendChild(row);
   });
+  updateSyncAssistStatus();
 }
 function nudgeAllSyncTimes(deltaSec){
   if(!syncDraft.length)return;
@@ -2832,6 +2919,8 @@ function openSyncEditor(){
     return;
   }
   syncDraft=source.map(line=>({time:Number(line.time)||0,text:line.text}));
+  syncBaseTimes=syncDraft.map(line=>Number(line.time)||0);
+  syncAnchorIndices=new Set();
   syncUndoStack=[];
   syncSelectedIndex=0;
   renderSyncEditor();
@@ -2846,6 +2935,7 @@ function resetSyncDraft(){
   if(!confirm("全行の時間を0にしますか？\n「直前の変更を戻す」で元に戻せます。"))return;
   pushSyncUndo({type:"all",prevTimes:syncDraft.map(l=>l.time)});
   syncDraft.forEach(line=>line.time=0);
+  syncAnchorIndices.clear();
   renderSyncEditor();
   showToast("全行の時間を0にしました。");
 }
@@ -2989,7 +3079,7 @@ els.exportBtn.addEventListener("click",exportLibrary);els.importInput.addEventLi
 els.closeSongDialog.addEventListener("click",()=>els.songDialog.close());els.cancelSongBtn.addEventListener("click",()=>els.songDialog.close());els.songForm.addEventListener("submit",e=>{e.preventDefault();saveSongForm()});els.fetchYoutubeInfoBtn.addEventListener("click",()=>fetchOembed(els.youtubeUrl.value,"song"));els.searchLyricsBtn.addEventListener("click",searchLyrics);els.googleLyricsBtn.addEventListener("click",openGoogleLyricsSearch);els.pasteLyricsBtn.addEventListener("click",pasteLyricsFromClipboard);els.closeLyricsSearchDialog.addEventListener("click",closeLyricsResultsAndReturn);els.lyricsSearchDialog.addEventListener("cancel",e=>{e.preventDefault();closeLyricsResultsAndReturn()});
 els.addVersionBtn.addEventListener("click",()=>openVersionDialog());els.editVersionBtn.addEventListener("click",()=>openVersionDialog(getVersion()));els.closeVersionDialog.addEventListener("click",()=>els.versionDialog.close());els.cancelVersionBtn.addEventListener("click",()=>els.versionDialog.close());els.versionForm.addEventListener("submit",e=>{e.preventDefault();saveVersionForm()});els.fetchVersionInfoBtn.addEventListener("click",()=>fetchOembed(els.versionYoutubeUrl.value,"version"));els.deleteVersionBtn.addEventListener("click",deleteVersion);
 els.setStartBtn.addEventListener("click",()=>setRange("start"));els.setEndBtn.addEventListener("click",()=>setRange("end"));els.resetRangeBtn.addEventListener("click",resetRange);els.autoSkipToggle.addEventListener("change",()=>{const v=getVersion();if(v){v.autoSkip=els.autoSkipToggle.checked;persistLibrary()}});els.markSkipStartBtn.addEventListener("click",markSkipStart);els.markSkipEndBtn.addEventListener("click",markSkipEnd);
-els.offsetMinus.addEventListener("click",()=>updateOffset(-.5));els.offsetPlus.addEventListener("click",()=>updateOffset(.5));els.offsetInput.addEventListener("change",()=>updateOffset(null));els.openSyncEditorBtn.addEventListener("click",openSyncEditor);els.closeSyncDialog.addEventListener("click",()=>els.syncDialog.close());els.resetSyncBtn.addEventListener("click",resetSyncDraft);els.saveSyncBtn.addEventListener("click",saveSyncDraft);els.useSharedSyncBtn.addEventListener("click",useSharedSync);
+els.offsetMinus.addEventListener("click",()=>updateOffset(-.5));els.offsetPlus.addEventListener("click",()=>updateOffset(.5));els.offsetInput.addEventListener("change",()=>updateOffset(null));els.openSyncEditorBtn.addEventListener("click",openSyncEditor);els.closeSyncDialog.addEventListener("click",()=>els.syncDialog.close());els.resetSyncBtn.addEventListener("click",resetSyncDraft);els.saveSyncBtn.addEventListener("click",saveSyncDraft);els.useSharedSyncBtn.addEventListener("click",useSharedSync);els.syncAssistApplyBtn?.addEventListener("click",applySyncAnchorInterpolation);els.syncAssistClearBtn?.addEventListener("click",clearSyncAnchors);
 els.syncGoStartBtn.addEventListener("click",()=>{const v=getVersion();if(v)seekSyncPlayer(Number(v.startTime)||0)});
 els.syncBack5Btn.addEventListener("click",()=>nudgeSyncPlayer(-5));
 els.syncBack1Btn.addEventListener("click",()=>nudgeSyncPlayer(-1));

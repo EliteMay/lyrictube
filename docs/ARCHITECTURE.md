@@ -1,18 +1,19 @@
 # Architecture
 
-LyricTube v0.10.0 の現行構成です。
+LyricTube v0.11.0 の現行構成です。
 
 ## 起動順
 
 1. `version.js`
 2. `library-schema.js`
-3. `profile-data.js`
-4. `cloud-sync.js`
-5. `site-shell.js`
-6. `lyrics-providers.js`
-7. `local-media.js`
-8. `tags.js`
-9. ログイン / ゲスト確定後に `site-shell.js` が `app.js` を読み込む
+3. `sync-interpolation.js`
+4. `profile-data.js`
+5. `cloud-sync.js`
+6. `site-shell.js`
+7. `lyrics-providers.js`
+8. `local-media.js`
+9. `tags.js`
+10. ログイン / ゲスト確定後に `site-shell.js` が `app.js` を読み込む
 
 ## 責務
 
@@ -28,6 +29,13 @@ LyricTube v0.10.0 の現行構成です。
 - 保存データの正規化
 - 旧形式から現行形式への安全な補完
 - Validation API
+
+### sync-interpolation.js
+
+- 同期エディタの基準点間を区間ごとに線形補間
+- 元LRCの時間間隔を使ったテンポ伸縮
+- 元時間が無い区間の均等補間フォールバック
+- DOMに依存しないPure utilityとしてNodeテスト可能
 
 ### profile-data.js
 

@@ -2506,3 +2506,10 @@ body.theme-synthwave .main,
 body.theme-dark .main{
   background:transparent;
 }
+
+
+/* v0.11 quick-sync assist */
+.sync-assist-panel{margin:0 22px 14px;padding:14px 15px;border:1px solid rgba(139,92,246,.24);border-radius:14px;background:linear-gradient(135deg,rgba(139,92,246,.10),rgba(139,92,246,.035))}
+.sync-assist-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}.sync-assist-head>div{min-width:0}.sync-assist-head strong{display:block;font-size:15px;margin-bottom:4px}.sync-anchor-status{flex:0 0 auto;border:1px solid var(--border);border-radius:999px;padding:6px 9px;color:var(--muted);background:#0d1014;font-size:11px;font-weight:800;white-space:nowrap}.sync-anchor-status.ready{color:#d8cdff;border-color:rgba(139,92,246,.34);background:var(--accentSoft)}
+.sync-assist-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px}.sync-assist-note{margin-top:9px}.sync-editor-row.sync-anchor{border-color:rgba(139,92,246,.42);box-shadow:inset 3px 0 0 var(--accent)}.sync-editor-text{min-width:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap}.sync-editor-text>span:first-child{min-width:0;overflow-wrap:anywhere}.sync-anchor-badge{display:inline-flex;align-items:center;border-radius:999px;padding:3px 6px;background:var(--accentSoft);color:#d8cdff;font-size:9px;font-weight:900;letter-spacing:.04em;white-space:nowrap}
+@media(max-width:640px){.sync-assist-head{flex-direction:column;gap:9px}.sync-anchor-status{white-space:normal}.sync-assist-actions>*{flex:1 1 180px}.sync-editor-row.sync-anchor{box-shadow:inset 2px 0 0 var(--accent)}}

@@ -1,7 +1,7 @@
 # LyricTube
 
-**Current version: v0.10.2**  
-**Build: 20260830-2**
+**Current version: v0.11.0**  
+**Build: 20260830-3**
 
 YouTube動画、端末のMP3/MP4、通常歌詞、同期歌詞を1つのライブラリで管理する個人用Webアプリです。
 
@@ -34,6 +34,7 @@ YouTube動画、端末のMP3/MP4、通常歌詞、同期歌詞を1つのライ�
 index.html
 ├─ version.js                 表示バージョン / Build / Schema番号
 ├─ library-schema.js          ライブラリ正規化・移行
+├─ sync-interpolation.js      基準点間の歌詞時間自動補間
 ├─ profile-data.js            アカウント別localStorageルーティング
 ├─ cloud-sync.js              Supabase差分同期（唯一の同期Writer）
 ├─ site-shell.js              ログイン / ゲスト / スマホ外枠
@@ -49,8 +50,8 @@ index.html
 
 ユーザー向けのバージョンとキャッシュ用Buildを分離しています。
 
-- 表示: `v0.10.2`
-- Build: `20260830-2`
+- 表示: `v0.11.0`
+- Build: `20260830-3`
 - データSchema: `4`
 
 正本は `version.js` です。旧 `v35 / v36` の番号は現行UIのバージョンとして使用しません。
@@ -91,6 +92,15 @@ YouTube IFrame Player APIを使用します。YouTube Data APIキーは不要で
 3. lyrics.ovh（通常歌詞の補完）
 
 結果は重複除去し、取得元を表示します。保存時は `lyricsProvider` / `lyricsProviderId` を記録します。旧 `lrclibId` も互換性のため維持します。
+
+### ざっくり自動合わせ
+
+同期エディタでは、全行を手作業で打刻せずに数か所だけ基準点を設定できます。2個以上の基準点を置いて「基準点の間を自動補間」を押すと、基準点の間を区間ごとに自動調整します。
+
+- 元の同期歌詞がある場合: 元の歌詞間隔を保ったまま時間軸を一定倍率で伸縮
+- 元の同期時間が無い区間: 行数ベースで均等補間
+- 補間後: 気になる行だけ従来の `±0.1 / ±0.5秒` で修正可能
+- 基準点情報は編集セッション専用で、保存データ形式は変更しません
 
 ## クラウド同期
 
@@ -151,6 +161,7 @@ APIキー・パスワード・秘密情報をリポジトリへ追加しない�
 GitHub Actions `Validate LyricTube` で以下を確認します。
 
 - 全 `.js` の `node --check`
+- `tests/*.test.js` の同期補間ロジックテスト
 - 全 `.json` のJSON構文
 - `index.html` のローカル参照切れ
 - 廃止したLocal Audio runtimeの再混入
@@ -161,7 +172,7 @@ GitHub Actions `Validate LyricTube` で以下を確認します。
 
 ```text
 assets/
-  lyrictube-icon.svg
+  lyrictube-icon.webp
 
 data/
   defaults.json
@@ -182,6 +193,7 @@ docs/
 app.js
 version.js
 library-schema.js
+sync-interpolation.js
 profile-data.js
 cloud-sync.js
 site-shell.js

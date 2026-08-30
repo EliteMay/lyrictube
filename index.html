@@ -6,11 +6,11 @@
   <title>LyricTube</title>
   <link rel="icon" type="image/webp" href="assets/lyrictube-icon.webp">
   <link rel="apple-touch-icon" href="assets/lyrictube-icon.webp">
-  <link rel="stylesheet" href="styles.css?v=20260830-2">
-  <link rel="stylesheet" href="mobile.css?v=20260830-2">
-  <link rel="stylesheet" href="guest.css?v=20260830-2">
-  <link rel="stylesheet" href="auth-ui.css?v=20260830-2">
-  <link rel="stylesheet" href="tags.css?v=20260830-2">
+  <link rel="stylesheet" href="styles.css?v=20260830-3">
+  <link rel="stylesheet" href="mobile.css?v=20260830-3">
+  <link rel="stylesheet" href="guest.css?v=20260830-3">
+  <link rel="stylesheet" href="auth-ui.css?v=20260830-3">
+  <link rel="stylesheet" href="tags.css?v=20260830-3">
 </head>
 <body>
   <div class="app-shell">
@@ -19,7 +19,7 @@
         <div class="brand-lockup">
           <img src="assets/lyrictube-icon.webp" class="brand-logo" alt="LyricTube">
           <div>
-            <p class="eyebrow">MY MUSIC · <span data-app-version>v0.10.2</span></p>
+            <p class="eyebrow">MY MUSIC · <span data-app-version>v0.11.0</span></p>
             <div class="brand-title-line"><h1>LyricTube</h1></div>
             <p class="brand-subtitle">YouTube & Local Media · Synced Lyrics</p>
           </div>
@@ -404,7 +404,7 @@
       <p class="muted small shortcut-note">※ GitHub Pagesのサイトでは Windows 全体の <strong>Win + Shift + T</strong> のようなグローバルショートカットは取得できません。代わりに、歌詞時間調整ダイアログでは <strong>Shift + T</strong> で選択中の行へ現在時間を打刻できます。</p>
       <div class="version-info">
         <span>LyricTube</span>
-        <span id="settingsAppVersion">v0.10.1</span>
+        <span id="settingsAppVersion">v0.11.0</span>
       </div>
     </section>
   </dialog>
@@ -454,6 +454,22 @@
       </div>
       <p class="muted small sync-transport-note">同期編集中は「曲終了」と「自動スキップ」を一時停止するので、動画全体を自由に確認できます。</p>
     </div>
+
+    <section class="sync-assist-panel" aria-labelledby="syncAssistTitle">
+      <div class="sync-assist-head">
+        <div>
+          <p class="eyebrow">QUICK SYNC</p>
+          <strong id="syncAssistTitle">ざっくり自動合わせ</strong>
+          <p class="muted small">序盤・中盤・終盤など数か所だけ合わせて、その間を自動で伸縮します。</p>
+        </div>
+        <span id="syncAssistStatus" class="sync-anchor-status">基準点 0個 · あと2個必要</span>
+      </div>
+      <div class="sync-assist-actions">
+        <button id="syncAssistApplyBtn" class="primary-soft" type="button" disabled>基準点の間を自動補間</button>
+        <button id="syncAssistClearBtn" class="ghost-btn" type="button" disabled>基準点をクリア</button>
+      </div>
+      <p class="muted small sync-assist-note">使い方：2〜5か所の歌詞行で「今の時間（基準点）」を押す → 「基準点の間を自動補間」。元の同期歌詞がある場合は、その自然な歌詞間隔を保って速度だけ調整します。</p>
+    </section>
 
     <div id="syncEditorList" class="sync-editor-list"></div>
     <div class="dialog-actions sticky-actions"><button id="useSharedSyncBtn" class="ghost-btn" type="button">原曲の時間に戻す</button><button id="resetSyncBtn" class="ghost-btn" type="button">時間を0にする</button><button id="saveSyncBtn" class="primary-btn" type="button">この動画用に保存</button></div>
@@ -530,13 +546,14 @@
   </footer>
 
   <div id="toast" class="toast" aria-live="polite"></div>
-  <script src="version.js?v=20260830-2"></script>
-  <script src="library-schema.js?v=20260830-2"></script>
-  <script src="profile-data.js?v=20260830-2"></script>
-  <script src="cloud-sync.js?v=20260830-2"></script>
-  <script src="site-shell.js?v=20260830-2"></script>
-  <script src="lyrics-providers.js?v=20260830-2"></script>
-  <script src="local-media.js?v=20260830-2"></script>
-  <script src="tags.js?v=20260830-2"></script>
+  <script src="version.js?v=20260830-3"></script>
+  <script src="library-schema.js?v=20260830-3"></script>
+  <script src="sync-interpolation.js?v=20260830-3"></script>
+  <script src="profile-data.js?v=20260830-3"></script>
+  <script src="cloud-sync.js?v=20260830-3"></script>
+  <script src="site-shell.js?v=20260830-3"></script>
+  <script src="lyrics-providers.js?v=20260830-3"></script>
+  <script src="local-media.js?v=20260830-3"></script>
+  <script src="tags.js?v=20260830-3"></script>
 </body>
 </html>

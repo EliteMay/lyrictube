@@ -2,8 +2,8 @@
   "use strict";
 
   const meta = Object.freeze({
-    version: "v0.10.2",
-    build: "20260830-2",
+    version: "v0.11.0",
+    build: "20260830-3",
     dataSchema: 4,
     product: "LyricTube"
   });
