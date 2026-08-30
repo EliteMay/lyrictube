@@ -6,11 +6,12 @@
   <title>LyricTube</title>
   <link rel="icon" type="image/webp" href="assets/lyrictube-icon.webp">
   <link rel="apple-touch-icon" href="assets/lyrictube-icon.webp">
-  <link rel="stylesheet" href="styles.css?v=20260830-7">
-  <link rel="stylesheet" href="mobile.css?v=20260830-7">
-  <link rel="stylesheet" href="guest.css?v=20260830-7">
-  <link rel="stylesheet" href="auth-ui.css?v=20260830-7">
-  <link rel="stylesheet" href="tags.css?v=20260830-7">
+  <link rel="stylesheet" href="styles.css?v=20260830-8">
+  <link rel="stylesheet" href="mobile.css?v=20260830-8">
+  <link rel="stylesheet" href="guest.css?v=20260830-8">
+  <link rel="stylesheet" href="auth-ui.css?v=20260830-8">
+  <link rel="stylesheet" href="tags.css?v=20260830-8">
+  <link rel="stylesheet" href="sidebar.css?v=20260830-8">
 </head>
 <body>
   <div class="app-shell">
@@ -27,7 +28,8 @@
         <button id="addSongBtn" class="icon-btn" type="button" title="曲を追加">＋</button>
       </div>
 
-      <label class="search-box"><span>⌕</span><input id="librarySearch" type="search" placeholder="曲名・アーティストを検索"></label>
+      <div class="sidebar-scroll" aria-label="ライブラリと分類">
+        <label class="search-box"><span>⌕</span><input id="librarySearch" type="search" placeholder="曲名・アーティストを検索"></label>
 
       <div class="page-switch" aria-label="メイン画面">
         <button id="playerPageBtn" class="page-switch-btn active" type="button"><span>▶</span><span>再生画面</span></button>
@@ -52,6 +54,7 @@
 
       <div class="library-head"><span id="libraryLabel">ライブラリ</span><span id="songCount">0曲</span></div>
       <div id="songList" class="song-list"></div>
+      </div>
 
       <div class="sidebar-tools">
         <button id="settingsBtn" class="ghost-btn" type="button">設定</button>
@@ -546,17 +549,17 @@
   </footer>
 
   <div id="toast" class="toast" aria-live="polite"></div>
-  <script src="version.js?v=20260830-7"></script>
-  <script src="core/app-utils.js?v=20260830-7"></script>
-  <script src="core/runtime-hooks.js?v=20260830-7"></script>
-  <script src="core/player-controller.js?v=20260830-7"></script>
-  <script src="library-schema.js?v=20260830-7"></script>
-  <script src="sync-interpolation.js?v=20260830-7"></script>
-  <script src="profile-data.js?v=20260830-7"></script>
-  <script src="cloud-sync.js?v=20260830-7"></script>
-  <script src="site-shell.js?v=20260830-7"></script>
-  <script src="lyrics-providers.js?v=20260830-7"></script>
-  <script src="local-media.js?v=20260830-7"></script>
-  <script src="tags.js?v=20260830-7"></script>
+  <script src="version.js?v=20260830-8"></script>
+  <script src="core/app-utils.js?v=20260830-8"></script>
+  <script src="core/runtime-hooks.js?v=20260830-8"></script>
+  <script src="core/player-controller.js?v=20260830-8"></script>
+  <script src="library-schema.js?v=20260830-8"></script>
+  <script src="sync-interpolation.js?v=20260830-8"></script>
+  <script src="profile-data.js?v=20260830-8"></script>
+  <script src="cloud-sync.js?v=20260830-8"></script>
+  <script src="site-shell.js?v=20260830-8"></script>
+  <script src="lyrics-providers.js?v=20260830-8"></script>
+  <script src="local-media.js?v=20260830-8"></script>
+  <script src="tags.js?v=20260830-8"></script>
 </body>
 </html>

@@ -1,0 +1,65 @@
+/* Canonical sidebar layout: persistent header/tools + one scroll region. */
+.sidebar{
+  display:grid!important;
+  grid-template-rows:auto minmax(0,1fr) auto!important;
+  min-height:0!important;
+  overflow:hidden!important;
+}
+.sidebar-scroll{
+  min-height:0;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  scrollbar-gutter:stable;
+  padding-right:3px;
+}
+.sidebar-scroll .search-box{margin-top:16px}
+.sidebar-scroll .song-list{
+  overflow:visible!important;
+  flex:none!important;
+  max-height:none!important;
+  min-height:0!important;
+  padding-right:0;
+}
+.sidebar-scroll .playlist-nav,
+.sidebar-scroll .tag-sidebar-nav{
+  max-height:none!important;
+  overflow:visible!important;
+}
+.sidebar-tools{
+  min-width:0;
+  margin-top:8px!important;
+  padding-top:10px;
+  border-top:1px solid var(--border);
+  position:relative;
+  z-index:2;
+}
+.sidebar-tools .ghost-btn,
+.sidebar-tools .file-label{
+  min-width:0;
+  min-height:42px;
+  padding-left:7px;
+  padding-right:7px;
+  white-space:nowrap;
+}
+.playlist-head,
+.library-head,
+.tag-sidebar-head{
+  color:var(--text)!important;
+  font-weight:700;
+}
+.tag-sidebar-head{letter-spacing:.06em}
+
+@media(max-width:900px){
+  .sidebar-scroll{overflow-y:auto!important}
+  .sidebar-tools{padding-top:8px}
+}
+
+@media(max-width:900px) and (max-height:640px){
+  .sidebar{padding-top:10px!important;padding-bottom:10px!important}
+  .brand-subtitle{display:none!important}
+  .sidebar-scroll .search-box{margin-top:10px}
+  .sidebar-scroll .view-nav{margin:8px 0}
+  .sidebar-scroll .view-btn{padding-top:7px;padding-bottom:7px}
+  .sidebar-scroll .tag-sidebar-head{margin-top:10px}
+  .sidebar-tools{margin-top:6px!important;padding-top:6px}
+}

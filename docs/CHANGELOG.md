@@ -1,3 +1,11 @@
+## v0.13.2 Sidebar安定化 / build 20260830-8（2026-08-30）
+
+- Sidebarをブランド / 独立Scroll / 操作ツールの3領域へ整理。
+- 低い画面やモバイルで設定・ヘルプ・書き出し・読み込みが消える問題を修正。
+- Sidebar見出しの視認性を改善。
+- Sidebar LayoutのRegression Guardを追加。
+- 保存Schema変更なし。
+
 ## v0.13.2 Player Controller仕上げ（2026-08-30）
 
 - 下部シークバーに残っていたYouTube直接シークを共通Player Controller経路へ変更。

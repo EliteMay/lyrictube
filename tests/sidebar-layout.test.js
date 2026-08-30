@@ -1,0 +1,11 @@
+const fs=require("fs");
+const assert=require("assert");
+const index=fs.readFileSync("index.html","utf8");
+const css=fs.readFileSync("sidebar.css","utf8");
+assert(index.includes('class="sidebar-scroll"'),"sidebar scroll region missing");
+assert(index.includes('class="sidebar-tools"'),"sidebar tools missing");
+assert(/class="sidebar-scroll"[\s\S]*id="songList"[\s\S]*<\/div>[\s\S]*class="sidebar-tools"/.test(index),"tools must be outside scroll region");
+assert(css.includes('grid-template-rows:auto minmax(0,1fr) auto'),"sidebar grid rows missing");
+assert(css.includes('overflow-y:auto'),"sidebar middle area must scroll");
+assert(css.includes('@media(max-width:900px) and (max-height:640px)'),"low-height guard missing");
+console.log("sidebar layout regression guards passed");
