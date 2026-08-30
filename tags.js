@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const TAG_VERSION = window.LyricTubeVersion?.version || "v0.12.0";
+  const TAG_VERSION = window.LyricTubeVersion?.version || "v0.13.0";
   const COLOR_PRESETS = [
     { id: "violet", label: "紫" },
     { id: "blue", label: "青" },
@@ -340,24 +340,6 @@
     renderTagManagerPage();
     document.body.classList.remove("mobile-sidebar-open");
     $("mobileMenuBtn")?.setAttribute("aria-expanded", "false");
-  }
-
-  function renderMainPagePatch(original) {
-    return function() {
-      const tagsPage = $("tagsPage");
-      if (tagPageOpen && tagsPage) {
-        $("browsePage")?.classList.add("page-hidden");
-        $("playerWorkspace")?.classList.add("page-hidden");
-        tagsPage.classList.remove("page-hidden");
-        $("playerPageBtn")?.classList.remove("active");
-        $("browsePageBtn")?.classList.remove("active");
-        $("tagsPageBtn")?.classList.add("active");
-        return;
-      }
-      original();
-      tagsPage?.classList.add("page-hidden");
-      $("tagsPageBtn")?.classList.remove("active");
-    };
   }
 
   function renderTagSidebar() {
@@ -831,46 +813,48 @@
     safeShowToast("曲のタグを保存しました。");
   }
 
-  function installFunctionPatches() {
-    const originalViewSongs = viewSongs;
-    viewSongs = function() {
-      let result = originalViewSongs();
-      if (activeTagIds.size) {
-        const required = [...activeTagIds];
-        result = result.filter(song => {
-          const set = new Set(songTagIds(song));
-          return required.every(id => set.has(id));
-        });
-      }
-      return result;
-    };
+  function installHooks() {
+    const hooks=window.LyricTubeHooks;
+    if(!hooks)throw new Error("core/runtime-hooks.js is required before tags.js");
 
-    const originalRenderBrowse = renderBrowse;
-    renderBrowse = function() {
-      originalRenderBrowse();
+    hooks.addFilter("songs:view", result => {
+      if(!activeTagIds.size)return result;
+      const required=[...activeTagIds];
+      return result.filter(song => {
+        const set=new Set(songTagIds(song));
+        return required.every(id => set.has(id));
+      });
+    });
+
+    hooks.on("render:browse", () => {
       ensureBrowseTagFilter();
       renderTagFilter();
       augmentBrowseCards();
-    };
+    });
 
-    const originalRenderAll = renderAll;
-    renderAll = function() {
-      originalRenderAll();
+    hooks.on("render:all", () => {
       ensureUi();
       renderTagSidebar();
       renderTagFilter();
       updateTopTagButton();
-      if (tagPageOpen) renderTagManagerPage();
-    };
+      if(tagPageOpen)renderTagManagerPage();
+    });
 
-    const originalRenderSelectedSong = renderSelectedSong;
-    renderSelectedSong = function() {
-      originalRenderSelectedSong();
-      updateTopTagButton();
-    };
-
-    const originalRenderMainPage = renderMainPage;
-    renderMainPage = renderMainPagePatch(originalRenderMainPage);
+    hooks.handle("render:main-page", () => {
+      const tagsPage=$("tagsPage");
+      if(tagPageOpen&&tagsPage){
+        $("browsePage")?.classList.add("page-hidden");
+        $("playerWorkspace")?.classList.add("page-hidden");
+        tagsPage.classList.remove("page-hidden");
+        $("playerPageBtn")?.classList.remove("active");
+        $("browsePageBtn")?.classList.remove("active");
+        $("tagsPageBtn")?.classList.add("active");
+        return true;
+      }
+      tagsPage?.classList.add("page-hidden");
+      $("tagsPageBtn")?.classList.remove("active");
+      return false;
+    });
   }
 
   function installEvents() {
@@ -888,7 +872,7 @@
     const changed = normalizeTagData();
     if (changed) persistLibrary();
     ensureUi();
-    installFunctionPatches();
+    installHooks();
     installEvents();
     renderAll();
     document.documentElement.dataset.tags = TAG_VERSION;

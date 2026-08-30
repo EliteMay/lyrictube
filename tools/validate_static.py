@@ -39,6 +39,8 @@ for ref in refs:
 
 required = [
     "version.js",
+    "core/app-utils.js",
+    "core/runtime-hooks.js",
     "library-schema.js",
     "sync-interpolation.js",
     "profile-data.js",

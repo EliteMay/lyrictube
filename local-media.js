@@ -948,7 +948,7 @@
       toast("端末ファイル保存を初期化できませんでした。ブラウザのサイトデータ設定を確認してください。");
     }
     updateSourceButton();
-    document.documentElement.dataset.localMedia = window.LyricTubeVersion?.version || "v0.12.0";
+    document.documentElement.dataset.localMedia = window.LyricTubeVersion?.version || "v0.13.0";
     console.info("[LyricTube] local media enabled: MP3 + MP4/WebM");
   }
 

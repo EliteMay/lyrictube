@@ -22,5 +22,16 @@ assert(mobile.includes("38px minmax(0,1fr) minmax(0,1fr)!important"), "mobile si
 assert(!app.includes('dataset.lyricTubeReady="v29"'), "legacy internal ready version must not return");
 assert(app.includes("play: () => playMainPlayback()"), "core facade must expose generic playback");
 assert(local.includes("await activateLocalMedia(false)"), "selected Local Media must activate after IndexedDB loads");
-assert(version.includes('version: "v0.12.0"'), "expected v0.12.0");
+assert(version.includes('version: "v0.13.0"'), "expected v0.13.0");
+
+assert(app.includes("window.LyricTubeAppUtils"), "app must consume extracted pure utilities");
+assert(app.includes('applyFilters?.("songs:view"'), "viewSongs must expose the song filter hook");
+assert(!tags.includes("originalViewSongs"), "Tags must not monkey-patch viewSongs");
+assert(!tags.includes("originalRenderAll"), "Tags must not monkey-patch renderAll");
+assert(tags.includes('hooks.addFilter("songs:view"'), "Tags must use the song filter hook");
+assert(tags.includes('hooks.handle("render:main-page"'), "Tags page must use the page render hook");
+const index = read("index.html");
+assert(index.includes("core/app-utils.js"), "index must load app utilities");
+assert(index.includes("core/runtime-hooks.js"), "index must load runtime hooks");
+
 console.log("runtime regression guards passed");

@@ -1,7 +1,7 @@
 # LyricTube
 
-**Current version: v0.12.0**  
-**Build: 20260830-4**
+**Current version: v0.13.0**  
+**Build: 20260830-5**
 
 YouTube動画、端末のMP3/MP4、通常歌詞、同期歌詞を1つのライブラリで管理する個人用Webアプリです。
 
@@ -33,6 +33,8 @@ YouTube動画、端末のMP3/MP4、通常歌詞、同期歌詞を1つのライ�
 ```text
 index.html
 ├─ version.js                 表示バージョン / Build / Schema番号
+├─ core/app-utils.js         LRC / 時刻 / 文字列などPure utility
+├─ core/runtime-hooks.js     拡張機能用Hook / Filter基盤
 ├─ library-schema.js          ライブラリ正規化・移行
 ├─ sync-interpolation.js      基準点間の歌詞時間自動補間
 ├─ profile-data.js            アカウント別localStorageルーティング
@@ -44,14 +46,14 @@ index.html
 └─ app.js                     既存コアUI / 再生 / 同期編集
 ```
 
-`app.js` はまだ大きいため、v0.10系では互換性を壊さない範囲で公開Facadeを追加し、今後段階的に分割します。機能を一気に移動して既存ライブラリや再生を壊す変更は行いません。
+`app.js` はまだ大きいですが、v0.13.0でPure utilityを `core/app-utils.js` へ分離し、タグ機能の本体関数上書きをHook方式へ移行しました。今後も同じ手順でPlayer / UIを段階分割します。機能を一気に移動して既存ライブラリや再生を壊す変更は行いません。
 
 ## バージョン管理
 
 ユーザー向けのバージョンとキャッシュ用Buildを分離しています。
 
-- 表示: `v0.12.0`
-- Build: `20260830-4`
+- 表示: `v0.13.0`
+- Build: `20260830-5`
 - データSchema: `4`
 
 正本は `version.js` です。旧 `v35 / v36` の番号は現行UIのバージョンとして使用しません。

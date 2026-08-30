@@ -1,19 +1,21 @@
 # Architecture
 
-LyricTube v0.11.0 の現行構成です。
+LyricTube v0.13.0 の現行構成です。
 
 ## 起動順
 
 1. `version.js`
-2. `library-schema.js`
-3. `sync-interpolation.js`
-4. `profile-data.js`
-5. `cloud-sync.js`
-6. `site-shell.js`
-7. `lyrics-providers.js`
-8. `local-media.js`
-9. `tags.js`
-10. ログイン / ゲスト確定後に `site-shell.js` が `app.js` を読み込む
+2. `core/app-utils.js`
+3. `core/runtime-hooks.js`
+4. `library-schema.js`
+5. `sync-interpolation.js`
+6. `profile-data.js`
+7. `cloud-sync.js`
+8. `site-shell.js`
+9. `lyrics-providers.js`
+10. `local-media.js`
+11. `tags.js`
+12. ログイン / ゲスト確定後に `site-shell.js` が `app.js` を読み込む
 
 ## 責務
 
@@ -23,6 +25,20 @@ LyricTube v0.11.0 の現行構成です。
 - Build revision
 - Data Schema番号
 - バージョン表示
+
+### core/app-utils.js
+
+- LRC parse / format
+- 時刻変換
+- YouTube ID抽出
+- 歌詞編集時の同期時刻保持
+- DOMに依存しないPure utility
+
+### core/runtime-hooks.js
+
+- 拡張機能向けEvent / Filter / handled hook
+- 本体関数の代入上書きを減らすための正式な拡張口
+- `tags.js` はv0.13.0からこのHookを利用
 
 ### library-schema.js
 
@@ -81,7 +97,7 @@ Cloudの保存処理は持ちません。
 
 ### tags.js
 
-タグ作成、付与、絞り込み、管理画面。
+タグ作成、付与、絞り込み、管理画面。v0.13.0から `viewSongs / renderAll / renderBrowse / renderMainPage` の直接上書きを廃止し、`core/runtime-hooks.js` 経由で接続します。
 
 ### app.js
 
@@ -91,7 +107,7 @@ Cloudの保存処理は持ちません。
 
 機能を壊さないため、一括Rewriteではなく以下の順に分離します。
 
-1. Pure utility
+1. ~~Pure utility~~ — v0.13.0で第一段階完了
 2. Library model
 3. Lyrics parser / sync editor
 4. Player controller

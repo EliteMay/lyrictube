@@ -1,4 +1,4 @@
-const APP_VERSION = window.LyricTubeVersion?.version || "v0.12.0";
+const APP_VERSION = window.LyricTubeVersion?.version || "v0.13.0";
 const STORAGE_KEY = "lyrictube.library.v3";
 const LEGACY_KEY = "lyrictube.songs.v1";
 const RECOVERY_KEY_PREFIX = "lyrictube.library.recovery.";
@@ -99,166 +99,15 @@ document.addEventListener("click",handleCriticalDialogClose,true);
 function defaultLibrary(){return{version:LIB_VERSION,songs:[],playlists:[],settings:{theme:"dark",lyricsFontSize:18,showBottomPlayer:true,spotlight:true,shuffle:false,repeat:"off",autoScroll:true,volume:80,mainPage:"player",startupPage:"player",compactMode:false,showArtwork:true,glassEffect:true,reduceMotion:false,helpTips:true}}}
 function uid(){return crypto.randomUUID?crypto.randomUUID():`${Date.now()}-${Math.random().toString(16).slice(2)}`}
 function nowIso(){return new Date().toISOString()}
-function normalizeText(v=""){return v.toLowerCase().normalize("NFKC").replace(/\s+/g," ").trim()}
-function clamp(n,min,max){return Math.max(min,Math.min(max,n))}
-function escText(v=""){return String(v)}
+const appUtils=window.LyricTubeAppUtils;
+if(!appUtils)throw new Error("core/app-utils.js is required before app.js");
+const {
+  normalizeText,clamp,escText,typeName,versionDisplayName,formatTime,parseTimecode,
+  extractVideoId,thumbnailUrl,parseLrc,plainFromLrc,lyricTextLines,lyricLineKey,
+  lcsLineMapping,interpolateTimeForInsertedLine,isSyncMarkerText,
+  mergePreservedSyncMarkers,rebaseLrcTextKeepingTimes
+}=appUtils;
 
-function typeName(type){return({original:"原曲 / MV",cover:"歌ってみた",firsttake:"FIRST TAKE",live:"Live",acoustic:"Acoustic",other:"その他"})[type]||"その他"}
-function versionDisplayName(v){return v.label?.trim() || (v.type === "cover" && v.performer ? `Cover · ${v.performer}` : v.type === "live" && v.performer ? `Live · ${v.performer}` : typeName(v.type))}
-function formatTime(sec,{allowEmpty=false}={}){if(allowEmpty&&(sec===null||sec===undefined||sec===""))return"未設定";const n=Math.max(0,Number(sec)||0),m=Math.floor(n/60),s=Math.floor(n%60),cs=Math.floor((n-Math.floor(n))*100);return`${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}.${String(cs).padStart(2,"0")}`}
-function parseTimecode(v){const m=String(v).trim().match(/^(\d{1,3}):(\d{1,2})(?:[.:](\d{1,3}))?$/);if(!m)return 0;const f=m[3]?Number(`0.${m[3].padEnd(2,"0").slice(0,2)}`):0;return Number(m[1])*60+Number(m[2])+f}
-function extractVideoId(input){try{const u=new URL(input.trim());if(u.hostname.includes("youtu.be"))return u.pathname.split("/").filter(Boolean)[0]||"";if(u.pathname.startsWith("/shorts/")||u.pathname.startsWith("/embed/"))return u.pathname.split("/")[2]||"";return u.searchParams.get("v")||""}catch{const m=String(input).match(/(?:v=|youtu\.be\/|shorts\/|embed\/)([\w-]{11})/);return m?m[1]:""}}
-function thumbnailUrl(videoId){return videoId?`https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`:""}
-function parseLrc(text=""){const lines=[];for(const raw of text.split(/\r?\n/)){const stamps=[...raw.matchAll(/\[(\d{1,3}):(\d{2})(?:[.:](\d{1,3}))?\]/g)];if(!stamps.length)continue;const t=raw.replace(/\[[^\]]+\]/g,"").trim();for(const st of stamps){const f=st[3]?Number(`0.${st[3].padEnd(2,"0").slice(0,2)}`):0;lines.push({time:Number(st[1])*60+Number(st[2])+f,text:t||"♪"})}}return lines.sort((a,b)=>a.time-b.time)}
-function plainFromLrc(text=""){return parseLrc(text).map(x=>x.text).join("\n")}
-
-function lyricTextLines(text=""){
-  return String(text)
-    .split(/\r?\n/)
-    .map(x=>x.trim())
-    .filter(Boolean);
-}
-function lyricLineKey(text=""){
-  return String(text)
-    .normalize("NFKC")
-    .toLowerCase()
-    .replace(/\s+/g,"")
-    .replace(/[、。！？!?.,・…「」『』（）()【】[\]'"`~〜ー\-–—]/g,"")
-    .trim();
-}
-function lcsLineMapping(oldLines,newLines){
-  const a=oldLines.map(lyricLineKey);
-  const b=newLines.map(lyricLineKey);
-  const n=a.length,m=b.length;
-  const dp=Array.from({length:n+1},()=>new Uint16Array(m+1));
-
-  for(let i=n-1;i>=0;i--){
-    for(let j=m-1;j>=0;j--){
-      dp[i][j]=(a[i]&&a[i]===b[j])
-        ? dp[i+1][j+1]+1
-        : Math.max(dp[i+1][j],dp[i][j+1]);
-    }
-  }
-
-  const map=new Map();
-  let i=0,j=0;
-  while(i<n&&j<m){
-    if(a[i]&&a[i]===b[j]){
-      map.set(j,i);
-      i++;j++;
-    }else if(dp[i+1][j]>=dp[i][j+1]){
-      i++;
-    }else{
-      j++;
-    }
-  }
-  return map;
-}
-function interpolateTimeForInsertedLine(newIndex,newCount,mapping,timedLines){
-  let prevNew=-1,prevOld=-1,nextNew=-1,nextOld=-1;
-
-  for(const [nidx,oidx] of mapping){
-    if(nidx<newIndex && nidx>prevNew){
-      prevNew=nidx;prevOld=oidx;
-    }
-    if(nidx>newIndex && (nextNew<0||nidx<nextNew)){
-      nextNew=nidx;nextOld=oidx;
-    }
-  }
-
-  const prevTime=prevOld>=0&&timedLines[prevOld] ? Number(timedLines[prevOld].time)||0 : null;
-  const nextTime=nextOld>=0&&timedLines[nextOld] ? Number(timedLines[nextOld].time)||0 : null;
-
-  if(prevTime!==null&&nextTime!==null&&nextNew>prevNew){
-    const ratio=(newIndex-prevNew)/(nextNew-prevNew);
-    return Math.max(0,prevTime+(nextTime-prevTime)*ratio);
-  }
-  if(prevTime!==null){
-    return Math.max(0,prevTime+2*Math.max(1,newIndex-prevNew));
-  }
-  if(nextTime!==null){
-    return Math.max(0,nextTime-2*Math.max(1,nextNew-newIndex));
-  }
-
-  if(timedLines.length){
-    const ratio=newCount<=1?0:newIndex/(newCount-1);
-    const last=Number(timedLines[timedLines.length-1]?.time)||0;
-    return Math.max(0,last*ratio);
-  }
-  return 0;
-}
-function isSyncMarkerText(text=""){
-  const t=String(text).normalize("NFKC").trim();
-  return /^(?:♪|♫|♬|♩)(?:\s*間奏)?$/.test(t);
-}
-function mergePreservedSyncMarkers(lrcText,markers=[]){
-  if(!markers.length)return lrcText||"";
-  const lyricLines=parseLrc(lrcText||"").map((line,index)=>({...line,_kind:1,_order:index}));
-  const markerLines=markers.map((line,index)=>({...line,_kind:0,_order:index}));
-  return [...lyricLines,...markerLines]
-    .sort((a,b)=>(a.time-b.time)||(a._kind-b._kind)||(a._order-b._order))
-    .map(line=>`[${formatTime(Math.max(0,Number(line.time)||0))}]${line.text}`)
-    .join("\n");
-}
-function rebaseLrcTextKeepingTimes(lrcText,oldPlainText,newPlainText){
-  const allTimed=parseLrc(lrcText||"");
-  const preservedMarkers=allTimed.filter(line=>isSyncMarkerText(line.text));
-  const timed=allTimed.filter(line=>!isSyncMarkerText(line.text));
-  const oldLines=lyricTextLines(oldPlainText);
-  const newLines=lyricTextLines(newPlainText);
-
-  if(!timed.length || !newLines.length)return lrcText||"";
-
-  const finish=body=>mergePreservedSyncMarkers(body,preservedMarkers);
-
-  // Most common case: typo correction / wording correction only.
-  // Preserve every lyric timestamp exactly; musical-note markers are version-only
-  // and are merged back at their original timestamps.
-  if(timed.length===newLines.length){
-    return finish(
-      timed.map((line,index)=>`[${formatTime(line.time)}]${newLines[index]}`).join("\n")
-    );
-  }
-
-  // If the old plain text and timed lyric lines have matching counts,
-  // use unchanged surrounding lines to retain their exact timestamps.
-  if(oldLines.length===timed.length){
-    const mapping=lcsLineMapping(oldLines,newLines);
-    const mappedTimes=new Array(newLines.length).fill(null);
-
-    for(const [newIndex,oldIndex] of mapping){
-      if(timed[oldIndex])mappedTimes[newIndex]=Number(timed[oldIndex].time)||0;
-    }
-
-    for(let i=0;i<newLines.length;i++){
-      if(mappedTimes[i]===null){
-        mappedTimes[i]=interpolateTimeForInsertedLine(i,newLines.length,mapping,timed);
-      }
-    }
-
-    for(let i=1;i<mappedTimes.length;i++){
-      if(mappedTimes[i]<mappedTimes[i-1])mappedTimes[i]=mappedTimes[i-1];
-    }
-
-    return finish(
-      newLines.map((text,index)=>`[${formatTime(mappedTimes[index])}]${text}`).join("\n")
-    );
-  }
-
-  // Fallback: keep as much lyric timing as possible by index.
-  const out=[];
-  for(let i=0;i<newLines.length;i++){
-    let timeValue;
-    if(i<timed.length){
-      timeValue=Number(timed[i].time)||0;
-    }else{
-      const last=Number(timed[timed.length-1]?.time)||0;
-      timeValue=last+2*(i-timed.length+1);
-    }
-    out.push(`[${formatTime(timeValue)}]${newLines[i]}`);
-  }
-  return finish(out.join("\n"));
-}
 function applyEditedLyricsToExistingSync(song,oldPlain,newPlain){
   if(!song||!newPlain)return{shared:false,versions:0};
 
@@ -363,6 +212,7 @@ function viewSongs(){
   }
   const q=normalizeText(els.librarySearch.value);
   if(q)arr=arr.filter(s=>normalizeText(`${s.title} ${s.artist} ${s.versions.map(v=>`${v.performer} ${v.label}`).join(" ")}`).includes(q));
+  arr=window.LyricTubeHooks?.applyFilters?.("songs:view",arr,{currentView,query:q,library})||arr;
   return arr
 }
 function queueSongs(){const q=els.librarySearch.value;els.librarySearch.value="";const list=viewSongs();els.librarySearch.value=q;return list.length?list:[...library.songs]}
@@ -388,11 +238,13 @@ function setMainPage(mode,{persist=true}={}){
   renderMainPage();
 }
 function renderMainPage(){
+  if(window.LyricTubeHooks?.dispatchHandled?.("render:main-page",{mainPage,library,currentView}))return;
   const browse=mainPage==="browse";
   els.browsePage.classList.toggle("page-hidden",!browse);
   els.playerWorkspace.classList.toggle("page-hidden",browse);
   els.playerPageBtn.classList.toggle("active",!browse);
   els.browsePageBtn.classList.toggle("active",browse);
+  window.LyricTubeHooks?.emit?.("render:main-page:done",{mainPage,library,currentView});
 }
 function makeBrowseMini(text,good=false){
   const span=document.createElement("span");
@@ -431,6 +283,7 @@ function renderBrowse(){
     wrap.append(strong,span);
     empty.appendChild(wrap);
     els.browseGrid.appendChild(empty);
+    window.LyricTubeHooks?.emit?.("render:browse",{songs,empty:true});
     return;
   }
 
@@ -509,8 +362,21 @@ function renderBrowse(){
     card.append(actions,cover,body);
     els.browseGrid.appendChild(card);
   }
+  window.LyricTubeHooks?.emit?.("render:browse",{songs,empty:false});
 }
-function renderAll(){ensureSelection();applyUiSettings();renderViewNav();renderPlaylists();renderLibrary();renderBrowse();renderSelectedSong();renderBottomPlayer();updateVisualTheme();renderMainPage()}
+function renderAll(){
+  ensureSelection();
+  applyUiSettings();
+  renderViewNav();
+  renderPlaylists();
+  renderLibrary();
+  renderBrowse();
+  renderSelectedSong();
+  renderBottomPlayer();
+  updateVisualTheme();
+  renderMainPage();
+  window.LyricTubeHooks?.emit?.("render:all",{library,currentView,mainPage});
+}
 function renderViewNav(){
   document.querySelectorAll(".view-btn").forEach(btn=>btn.classList.toggle("active",btn.dataset.view===currentView.type));
   els.allCount.textContent=library.songs.length;
@@ -3312,6 +3178,7 @@ window.LyricTubeCore = Object.freeze({
   play: () => playMainPlayback(),
   pause: () => pauseMainPlayback(),
   seek: (target, autoplay = false) => seekMainPlayback(target, { autoplay }),
+  hooks: window.LyricTubeHooks,
 });
 if(document.documentElement.dataset.lyricTubeReady!=="error"){
   document.dispatchEvent(new CustomEvent("lyrictube:app-ready"));
