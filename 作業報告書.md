@@ -1,3 +1,11 @@
+## v0.13.2 Player Controller仕上げ（2026-08-30）
+
+- 下部シークバーに残っていたYouTube直接シークを共通Player Controller経路へ変更。
+- Local Media側の重複シークListenerを削除。
+- Player Controller移行後に不要になった旧 `restartLocal` shimを削除。
+- 再発防止Guardを追加。
+- 保存形式 `lyrictube.library.v3` / Schema 4は変更なし。
+
 ## v0.13.1 Player Controller移行（2026-08-30）
 
 - `core/player-controller.js` を追加。

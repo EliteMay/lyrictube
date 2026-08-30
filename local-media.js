@@ -402,15 +402,6 @@
     return true;
   }
 
-  function restartLocal(autoplay = true) {
-    const el = currentMedia();
-    const version = currentVersion();
-    if (!isLocalMediaVersion(version)) return originalRestartCurrent?.(autoplay);
-    if (!el) return;
-    try { el.currentTime = Math.max(0, Number(version.startTime) || 0); } catch {}
-    if (autoplay) el.play().catch(() => {});
-  }
-
   function seekLocal(target) {
     const el = currentMedia();
     if (!el) return false;
@@ -769,12 +760,6 @@
     $("versionForm")?.addEventListener("submit", saveLocalVersion, true);
     $("versionForm")?.addEventListener("submit", finishYoutubeConversionAfterSubmit);
 
-    $("bottomSeek")?.addEventListener("input", () => {
-      if (localMode()) seekLocal(Number($("bottomSeek").value) || 0);
-    });
-    $("bottomSeek")?.addEventListener("pointerup", () => {
-      if (localMode()) seekLocal(Number($("bottomSeek").value) || 0);
-    });
     $("bottomVolume")?.addEventListener("input", () => {
       const el = currentMedia();
       if (el) el.volume = Math.max(0, Math.min(1, Number($("bottomVolume").value || 0) / 100));
@@ -897,7 +882,7 @@
       toast("端末ファイル保存を初期化できませんでした。ブラウザのサイトデータ設定を確認してください。");
     }
     updateSourceButton();
-    document.documentElement.dataset.localMedia = window.LyricTubeVersion?.version || "v0.13.1";
+    document.documentElement.dataset.localMedia = window.LyricTubeVersion?.version || "v0.13.2";
     console.info("[LyricTube] local media enabled: MP3 + MP4/WebM");
   }
 

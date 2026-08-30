@@ -22,7 +22,7 @@ assert(mobile.includes("38px minmax(0,1fr) minmax(0,1fr)!important"), "mobile si
 assert(!app.includes('dataset.lyricTubeReady="v29"'), "legacy internal ready version must not return");
 assert(app.includes("play: () => playMainPlayback()"), "core facade must expose generic playback");
 assert(local.includes("await activateLocalMedia(false)"), "selected Local Media must activate after IndexedDB loads");
-assert(version.includes('version: "v0.13.1"'), "expected v0.13.1");
+assert(version.includes('version: "v0.13.2"'), "expected v0.13.2");
 
 assert(app.includes("window.LyricTubeAppUtils"), "app must consume extracted pure utilities");
 assert(app.includes('applyFilters?.("songs:view"'), "viewSongs must expose the song filter hook");
@@ -46,4 +46,7 @@ assert(!local.includes("function patchPlayback"), "legacy Local Media playback p
 const index2 = read("index.html");
 assert(index2.includes("core/player-controller.js"), "index must load player controller");
 
+assert(!app.includes('try{ytPlayer?.seekTo?.(Number(els.bottomSeek.value)||0,true)}catch{}'), "bottom seek must not bypass PlayerController");
+assert(!local.includes("function restartLocal"), "obsolete Local Media restart shim must be removed");
+assert(!local.includes('$("bottomSeek")?.addEventListener("pointerup"'), "Local Media must not install duplicate bottom seek listeners");
 console.log("runtime regression guards passed");

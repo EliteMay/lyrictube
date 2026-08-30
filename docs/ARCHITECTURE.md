@@ -1,6 +1,6 @@
 # Architecture
 
-LyricTube v0.13.1 の現行構成です。
+LyricTube v0.13.2 の現行構成です。
 
 ## 起動順
 

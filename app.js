@@ -1,4 +1,4 @@
-const APP_VERSION = window.LyricTubeVersion?.version || "v0.13.1";
+const APP_VERSION = window.LyricTubeVersion?.version || "v0.13.2";
 const STORAGE_KEY = "lyrictube.library.v3";
 const LEGACY_KEY = "lyrictube.songs.v1";
 const RECOVERY_KEY_PREFIX = "lyrictube.library.recovery.";
@@ -3092,12 +3092,12 @@ els.bottomSeek.addEventListener("input",()=>{
 });
 els.bottomSeek.addEventListener("change",()=>{
   bottomSeekDragging=false;
-  try{ytPlayer?.seekTo?.(Number(els.bottomSeek.value)||0,true)}catch{}
+  seekMainPlayback(Number(els.bottomSeek.value)||0);
   updateBottomPlayer();
 });
 els.bottomSeek.addEventListener("pointerup",()=>{
   bottomSeekDragging=false;
-  try{ytPlayer?.seekTo?.(Number(els.bottomSeek.value)||0,true)}catch{}
+  seekMainPlayback(Number(els.bottomSeek.value)||0);
 });
 
 els.bottomVolume.addEventListener("input",()=>{
