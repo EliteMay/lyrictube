@@ -16,7 +16,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Make refactor guard compatible with already-generic visualizer
+      - name: Normalize safe refactor guards
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -24,9 +24,10 @@ jobs:
           text = path.read_text(encoding='utf-8')
           old = '''if old_playing_state not in app:\n    raise RuntimeError("playing state block not found")\napp = app.replace(old_playing_state, new_playing_state, 1)'''
           new = '''if old_playing_state in app:\n    app = app.replace(old_playing_state, new_playing_state, 1)\nelif "const playing=playerStateSafe()===1;" not in app and "document.body.classList.toggle('is-playing',playerStateSafe()===1);" not in app:\n    raise RuntimeError("playing state block not found")'''
-          if old not in text:
-              raise SystemExit('player refactor guard block not found')
-          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          if old in text:
+              text = text.replace(old, new, 1)
+          text = text.replace('rule_end_marker = "  function togglePlayback() {"', 'rule_end_marker = "  function togglePlayback()"')
+          path.write_text(text, encoding='utf-8')
           PY
 
       - name: Apply player controller refactor
