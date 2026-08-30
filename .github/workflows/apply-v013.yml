@@ -1,0 +1,52 @@
+name: Apply LyricTube v0.13 refactor
+
+on:
+  push:
+    paths:
+      - '.apply-v013'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply staged refactor
+        run: python tools/apply_v013_refactor.py
+
+      - name: Check JavaScript
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do node --check "$file"; done < <(find . -type f -name '*.js' -not -path './.git/*' -print0)
+
+      - name: Run tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in tests/*.test.js; do
+            [ -e "$file" ] || continue
+            echo "node $file"
+            node "$file"
+          done
+
+      - name: Validate static files
+        run: python tools/validate_static.py
+
+      - name: Remove one-shot inputs
+        run: rm -f .apply-v013 tools/apply_v013_refactor.py
+
+      - name: Commit refactor
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "refactor: extract app utilities and runtime hooks"
+          git push
