@@ -22,7 +22,7 @@ assert(mobile.includes("38px minmax(0,1fr) minmax(0,1fr)!important"), "mobile si
 assert(!app.includes('dataset.lyricTubeReady="v29"'), "legacy internal ready version must not return");
 assert(app.includes("play: () => playMainPlayback()"), "core facade must expose generic playback");
 assert(local.includes("await activateLocalMedia(false)"), "selected Local Media must activate after IndexedDB loads");
-assert(version.includes('version: "v0.13.0"'), "expected v0.13.0");
+assert(version.includes('version: "v0.13.1"'), "expected v0.13.1");
 
 assert(app.includes("window.LyricTubeAppUtils"), "app must consume extracted pure utilities");
 assert(app.includes('applyFilters?.("songs:view"'), "viewSongs must expose the song filter hook");
@@ -33,5 +33,17 @@ assert(tags.includes('hooks.handle("render:main-page"'), "Tags page must use the
 const index = read("index.html");
 assert(index.includes("core/app-utils.js"), "index must load app utilities");
 assert(index.includes("core/runtime-hooks.js"), "index must load runtime hooks");
+
+
+assert(app.includes("window.LyricTubePlayer"), "app must use the player controller");
+assert(app.includes('playerController.register("youtube"'), "YouTube must register as a player adapter");
+assert(local.includes('player.register("localmedia"'), "Local Media must register as a player adapter");
+assert(!local.includes("originalCurrentPlayerTime"), "Local Media must not patch currentPlayerTime");
+assert(!local.includes("originalPlayerDurationSafe"), "Local Media must not patch player duration");
+assert(!local.includes("originalToggleMainPlayback"), "Local Media must not patch main playback");
+assert(!local.includes("originalEnforcePlaybackRules"), "Local Media must not patch playback rules");
+assert(!local.includes("function patchPlayback"), "legacy Local Media playback patch must be removed");
+const index2 = read("index.html");
+assert(index2.includes("core/player-controller.js"), "index must load player controller");
 
 console.log("runtime regression guards passed");

@@ -18,21 +18,9 @@
   let activeElement = null;
   let songSourceMode = "youtube";
   let versionSourceMode = "youtube";
-  let patched = false;
+  let dialogsPatched = false;
   let lastUiTick = 0;
   let initialized = false;
-
-  let originalLoadSelectedVideo = null;
-  let originalCurrentPlayerTime = null;
-  let originalPlayerDurationSafe = null;
-  let originalPlayerStateSafe = null;
-  let originalGetPlayerDuration = null;
-  let originalToggleMainPlayback = null;
-  let originalSeekSyncPlayer = null;
-  let originalToggleSyncPlayback = null;
-  let originalEnforcePlaybackRules = null;
-  let originalRestartCurrent = null;
-  let originalRenderBottomPlayer = null;
   let originalOpenSongDialog = null;
   let originalOpenVersionDialog = null;
 
@@ -367,6 +355,7 @@
     const song = currentSong();
     const version = currentVersion(song);
     if (!song || !isLocalMediaVersion(version)) return false;
+    window.LyricTubePlayer?.activate?.("localmedia");
 
     const row = currentRow(song, version);
     if (!row) {
@@ -404,29 +393,13 @@
     return true;
   }
 
-  function applyPlaybackRules() {
-    const el = currentMedia();
-    const version = currentVersion();
-    if (!el || !version || el.paused) return;
-    const t = Number(el.currentTime) || 0;
-    if (version.autoSkip !== false) {
-      const seg = (version.skipSegments || []).find(item => item.enabled !== false && t >= Number(item.start) && t < Number(item.end) - 0.08);
-      if (seg) {
-        try { el.currentTime = Number(seg.end) + 0.02; } catch {}
-        return;
-      }
-    }
-    if (version.endTime !== null && Number(version.endTime) > Number(version.startTime || 0) && t >= Number(version.endTime) - 0.08) {
-      try { handleTrackEnd?.("range"); } catch {}
-    }
-  }
-
-  function togglePlayback() {
-    const el = currentMedia();
-    if (!isLocalMediaVersion(currentVersion())) return originalToggleMainPlayback?.();
-    if (!el) return toast("この端末にMP3 / MP4を登録してください。");
-    if (el.paused) el.play().catch(() => toast("再生できませんでした。ファイル形式を確認してください。"));
+  function togglePlayback(){
+    const el=currentMedia();
+    if(!isLocalMediaVersion(currentVersion()))return window.LyricTubePlayer?.toggle?.();
+    if(!el){toast("この端末にMP3 / MP4を登録してください。");return false}
+    if(el.paused)el.play().catch(()=>toast("再生できませんでした。ファイル形式を確認してください。"));
     else el.pause();
+    return true;
   }
 
   function restartLocal(autoplay = true) {
@@ -445,69 +418,24 @@
     return true;
   }
 
-  function patchPlayback() {
-    if (patched) return;
-    patched = true;
-    originalLoadSelectedVideo = loadSelectedVideo;
-    originalCurrentPlayerTime = currentPlayerTime;
-    originalPlayerDurationSafe = playerDurationSafe;
-    originalPlayerStateSafe = playerStateSafe;
-    originalGetPlayerDuration = getPlayerDuration;
-    originalToggleMainPlayback = toggleMainPlayback;
-    originalSeekSyncPlayer = seekSyncPlayer;
-    originalToggleSyncPlayback = toggleSyncPlayback;
-    originalEnforcePlaybackRules = enforcePlaybackRules;
-    originalRestartCurrent = restartCurrent;
-    originalRenderBottomPlayer = renderBottomPlayer;
-    originalOpenSongDialog = openSongDialog;
-    originalOpenVersionDialog = openVersionDialog;
+  function patchDialogs(){
+    if(dialogsPatched)return;
+    dialogsPatched=true;
+    originalOpenSongDialog=openSongDialog;
+    originalOpenVersionDialog=openVersionDialog;
 
-    loadSelectedVideo = function(autoplay = false) {
-      const version = currentVersion();
-      if (!isLocalMediaVersion(version)) {
-        stopLocalMedia();
-        const result = originalLoadSelectedVideo?.(autoplay);
-        updateSourceButton();
-        return result;
-      }
-      originalLoadSelectedVideo?.(false);
-      return activateLocalMedia(autoplay);
-    };
-    currentPlayerTime = () => currentMedia() ? (Number(currentMedia().currentTime) || 0) : originalCurrentPlayerTime();
-    playerDurationSafe = () => currentMedia() ? (Number(currentMedia().duration) || 0) : originalPlayerDurationSafe();
-    playerStateSafe = () => currentMedia() ? (currentMedia().paused ? 2 : 1) : originalPlayerStateSafe();
-    getPlayerDuration = () => currentMedia() ? (Number(currentMedia().duration) || 0) : originalGetPlayerDuration();
-    toggleMainPlayback = togglePlayback;
-    seekSyncPlayer = target => isLocalMediaVersion(currentVersion()) ? seekLocal(target) : originalSeekSyncPlayer(target);
-    toggleSyncPlayback = () => isLocalMediaVersion(currentVersion()) ? togglePlayback() : originalToggleSyncPlayback();
-    enforcePlaybackRules = () => isLocalMediaVersion(currentVersion()) ? applyPlaybackRules() : originalEnforcePlaybackRules();
-    restartCurrent = restartLocal;
-    renderBottomPlayer = function() {
-      const result = originalRenderBottomPlayer();
-      const version = currentVersion();
-      if (isLocalMediaVersion(version)) {
-        const row = currentRow();
-        if ($("bottomSeek")) $("bottomSeek").disabled = !row;
-        if ($("bottomArtist") && row) {
-          const artist = currentSong()?.artist || "";
-          $("bottomArtist").textContent = `${artist}${artist ? " · " : ""}${row.kind === "video" ? "端末動画" : "端末音源"}`;
-        }
-      }
+    openSongDialog=function(song=null){
+      const result=originalOpenSongDialog(song);
+      if(!song)switchSongSource("youtube",true);
       return result;
     };
-
-    openSongDialog = function(song = null) {
-      const result = originalOpenSongDialog(song);
-      if (!song) switchSongSource("youtube", true);
-      return result;
-    };
-    openVersionDialog = function(version = null) {
-      const result = originalOpenVersionDialog(version);
-      switchVersionSource(version?.source === "localmedia" ? "local" : "youtube", true);
-      if (version?.source === "localmedia") {
-        const row = records.get(keyFor(currentSong(), version));
-        const status = $("versionLocalMediaStatus");
-        if (status) status.textContent = row ? `登録済み: ${row.fileName}` : "この端末にはファイルがありません。必要なら再登録してください。";
+    openVersionDialog=function(version=null){
+      const result=originalOpenVersionDialog(version);
+      switchVersionSource(version?.source==="localmedia"?"local":"youtube",true);
+      if(version?.source==="localmedia"){
+        const row=records.get(keyFor(currentSong(),version));
+        const status=$("versionLocalMediaStatus");
+        if(status)status.textContent=row?`登録済み: ${row.fileName}`:"この端末にはファイルがありません。必要なら再登録してください。";
       }
       return result;
     };
@@ -863,7 +791,6 @@
         try { updateBottomPlayer?.(); } catch {}
       });
       el.addEventListener("timeupdate", () => {
-        applyPlaybackRules();
         const now = performance.now();
         if (now - lastUiTick >= 125) {
           lastUiTick = now;
@@ -900,6 +827,26 @@
     }
   }
 
+  function registerPlayerAdapter(){
+    const player=window.LyricTubePlayer;
+    if(!player||player.has("localmedia"))return;
+    player.register("localmedia",{
+      available:()=>Boolean(currentMedia()),
+      play:()=>{
+        const el=currentMedia();
+        if(!el){toast("この端末にMP3 / MP4を登録してください。");return false}
+        el.play().catch(()=>toast("再生できませんでした。ファイル形式を確認してください。"));
+        return true;
+      },
+      pause:()=>{const el=currentMedia();if(!el)return false;el.pause();return true},
+      seek:target=>seekLocal(target),
+      currentTime:()=>{const el=currentMedia();return el?Number(el.currentTime)||0:0},
+      duration:()=>{const el=currentMedia();return el?Number(el.duration)||0:0},
+      state:()=>{const el=currentMedia();return el?(el.paused?2:1):-1}
+    });
+  }
+  registerPlayerAdapter();
+
   window.LyricTubeLocalMedia = Object.freeze({
     status(song = currentSong(), version = currentVersion(song)) {
       if (!isLocalMediaVersion(version)) return { local: false, linked: false };
@@ -922,6 +869,8 @@
     currentTime() { const el = currentMedia(); return el ? Number(el.currentTime) || 0 : 0; },
     duration() { const el = currentMedia(); return el ? Number(el.duration) || 0 : 0; },
     state() { const el = currentMedia(); return el ? (el.paused ? 2 : 1) : -1; },
+    activateCurrent: activateLocalMedia,
+    deactivate: stopLocalMedia,
     refreshStorage: updateStorageSummary,
     relinkCurrent: relinkCurrentFile,
   });
@@ -934,7 +883,7 @@
     createSongSourceUi();
     createVersionSourceUi();
     createStorageSettingsUi();
-    patchPlayback();
+    patchDialogs();
     installHandlers();
     try {
       db = await openDb();
@@ -948,7 +897,7 @@
       toast("端末ファイル保存を初期化できませんでした。ブラウザのサイトデータ設定を確認してください。");
     }
     updateSourceButton();
-    document.documentElement.dataset.localMedia = window.LyricTubeVersion?.version || "v0.13.0";
+    document.documentElement.dataset.localMedia = window.LyricTubeVersion?.version || "v0.13.1";
     console.info("[LyricTube] local media enabled: MP3 + MP4/WebM");
   }
 

@@ -1,3 +1,13 @@
+## v0.13.1 Player Controller移行（2026-08-30）
+
+- `core/player-controller.js` を追加。
+- YouTube / Local Mediaを同じ再生契約へ統合。
+- Local Mediaが `currentPlayerTime / duration / state / toggle / seek / restart / playback rules / bottom player` を後から上書きする構造を撤去。
+- Local Media側に残す互換Patchは曲追加・バージョン編集Dialogの2か所だけに縮小。
+- 開始/終了、スキップ、同期エディタ、キーボード操作を共通Player経路へ統一。
+- `player-controller.test.js` と回帰Guardを追加。
+- 保存形式 `lyrictube.library.v3` / Schema 4は変更なし。
+
 ## v0.13.0 段階リファクタ Phase 1（2026-08-30）
 
 - `core/app-utils.js` を追加し、LRC・時刻・文字列・同期保持のPure utilityを `app.js` から分離。

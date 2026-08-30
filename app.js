@@ -1,4 +1,4 @@
-const APP_VERSION = window.LyricTubeVersion?.version || "v0.13.0";
+const APP_VERSION = window.LyricTubeVersion?.version || "v0.13.1";
 const STORAGE_KEY = "lyrictube.library.v3";
 const LEGACY_KEY = "lyrictube.songs.v1";
 const RECOVERY_KEY_PREFIX = "lyrictube.library.recovery.";
@@ -193,7 +193,30 @@ function getSong(){return library.songs.find(s=>s.id===selectedSongId)||null}
 function getVersion(song=getSong()){if(!song)return null;return song.versions.find(v=>v.id===selectedVersionId)||song.versions[0]||null}
 function ensureSelection(){const song=getSong()||library.songs[0]||null;if(!song){selectedSongId=null;selectedVersionId=null;return}selectedSongId=song.id;if(!song.versions.some(v=>v.id===selectedVersionId))selectedVersionId=song.versions[0]?.id||null}
 function effectiveLrc(song=getSong(),version=getVersion()){return version?.customSyncedLyrics||song?.syncedLyrics||""}
-function currentPlayerTime(){try{return Number(ytPlayer?.getCurrentTime?.())||0}catch{return 0}}
+const playerController=window.LyricTubePlayer;
+if(!playerController)throw new Error("core/player-controller.js is required before app.js");
+function ensureYoutubePlayerAdapter(){
+  if(playerController.has("youtube"))return;
+  playerController.register("youtube",{
+    available:()=>Boolean(ytPlayer?.getCurrentTime),
+    play:()=>{if(!ytPlayer?.playVideo)return false;try{ytPlayer.playVideo();return true}catch{return false}},
+    pause:()=>{if(!ytPlayer?.pauseVideo)return false;try{ytPlayer.pauseVideo();return true}catch{return false}},
+    seek:target=>{if(!ytPlayer?.seekTo)return false;try{ytPlayer.seekTo(Math.max(0,Number(target)||0),true);return true}catch{return false}},
+    currentTime:()=>{try{return Number(ytPlayer?.getCurrentTime?.())||0}catch{return 0}},
+    duration:()=>{try{return Number(ytPlayer?.getDuration?.())||0}catch{return 0}},
+    state:()=>{try{return Number(ytPlayer?.getPlayerState?.())}catch{return -1}}
+  });
+}
+function syncPlayerAdapter(v=getVersion()){
+  ensureYoutubePlayerAdapter();
+  const wanted=v?.source==="localmedia"?"localmedia":"youtube";
+  if(playerController.has(wanted))playerController.activate(wanted);
+  else playerController.activate("youtube");
+  return playerController;
+}
+function mainPlayerAvailable(){return Boolean(syncPlayerAdapter().available())}
+function currentPlayerTime(){return syncPlayerAdapter().currentTime()}
+ensureYoutubePlayerAdapter();
 
 function songHasLyrics(song){return Boolean(song?.plainLyrics?.trim()||song?.syncedLyrics?.trim())}
 function songHasSync(song){return Boolean(song?.syncedLyrics?.trim()||(song?.versions||[]).some(v=>v.customSyncedLyrics?.trim()))}
@@ -585,6 +608,24 @@ function selectVersion(id,autoplay=false){selectedVersionId=id;beginLyricVideoSw
 function loadSelectedVideo(autoplay=false){
   const v=getVersion();
   beginLyricVideoSwitch();
+  if(v?.source==="localmedia"){
+    syncPlayerAdapter(v);
+    try{ytPlayer?.pauseVideo?.()}catch{}
+    els.playerPlaceholder.classList.add("hidden");
+    resetLyricsViewport();
+    const result=window.LyricTubeLocalMedia?.activateCurrent?.(autoplay);
+    if(result?.then){
+      result.then(()=>{lyricVideoSwitchPending=false}).catch(error=>{
+        console.warn("[LyricTube] local media activation failed",error);
+        lyricVideoSwitchPending=false;
+      });
+    }else{
+      lyricVideoSwitchPending=false;
+    }
+    return result;
+  }
+  window.LyricTubeLocalMedia?.deactivate?.();
+  syncPlayerAdapter(v);
   if(!v?.videoId){
     els.playerPlaceholder.classList.remove("hidden");
     lyricVideoSwitchPending=false;
@@ -606,21 +647,13 @@ function selectedLocalMediaStatus(song=getSong(),v=getVersion(song)){
   try{return window.LyricTubeLocalMedia?.status?.(song,v)||null}catch{return null}
 }
 function playMainPlayback(){
-  const status=selectedLocalMediaStatus();
-  if(status?.local)return Boolean(window.LyricTubeLocalMedia?.playCurrent?.());
-  try{ytPlayer?.playVideo?.();return true}catch{return false}
+  return Boolean(syncPlayerAdapter().play());
 }
 function pauseMainPlayback(){
-  const status=selectedLocalMediaStatus();
-  if(status?.local)return Boolean(window.LyricTubeLocalMedia?.pauseCurrent?.());
-  try{ytPlayer?.pauseVideo?.();return true}catch{return false}
+  return Boolean(syncPlayerAdapter().pause());
 }
 function seekMainPlayback(target,{autoplay=false}={}){
-  const value=Math.max(0,Number(target)||0);
-  const status=selectedLocalMediaStatus();
-  let ok=false;
-  if(status?.local)ok=Boolean(window.LyricTubeLocalMedia?.seekCurrent?.(value));
-  else try{ytPlayer?.seekTo?.(value,true);ok=true}catch{}
+  const ok=Boolean(syncPlayerAdapter().seek(Math.max(0,Number(target)||0)));
   if(ok&&autoplay)playMainPlayback();
   return ok;
 }
@@ -742,7 +775,18 @@ function updateLyricHighlight(){
   }
 }
 
-function enforcePlaybackRules(){const v=getVersion();if(!v||!ytPlayer?.getPlayerState)return;let state;try{state=ytPlayer.getPlayerState()}catch{return}if(state!==1)return;const t=currentPlayerTime();if(v.autoSkip!==false){const seg=v.skipSegments.find(s=>s.enabled!==false&&t>=Number(s.start)&&t<Number(s.end)-.08);if(seg){ytPlayer.seekTo(Number(seg.end)+.02,true);return}}if(v.endTime!==null&&Number(v.endTime)>Number(v.startTime||0)&&t>=Number(v.endTime)-.08){handleTrackEnd("range")}}
+function enforcePlaybackRules(){
+  const v=getVersion();
+  if(!v||playerStateSafe()!==1)return;
+  const t=currentPlayerTime();
+  if(v.autoSkip!==false){
+    const seg=(v.skipSegments||[]).find(s=>s.enabled!==false&&t>=Number(s.start)&&t<Number(s.end)-.08);
+    if(seg){seekMainPlayback(Number(seg.end)+.02);return}
+  }
+  if(v.endTime!==null&&Number(v.endTime)>Number(v.startTime||0)&&t>=Number(v.endTime)-.08){
+    handleTrackEnd("range");
+  }
+}
 function playbackTick(){
   updateLyricHighlight();
   updateSyncTransport();
@@ -878,8 +922,8 @@ function closeHelpDialog(){
   else els.helpDialog.removeAttribute("open");
 }
 
-function playerDurationSafe(){try{return Math.max(0,Number(ytPlayer?.getDuration?.())||0)}catch{return 0}}
-function playerStateSafe(){try{return Number(ytPlayer?.getPlayerState?.())}catch{return -1}}
+function playerDurationSafe(){return syncPlayerAdapter().duration()}
+function playerStateSafe(){return syncPlayerAdapter().state()}
 function renderBottomPlayer(){
   const song=getSong(),v=getVersion(song);
   if(!song){
@@ -897,7 +941,12 @@ function renderBottomPlayer(){
   els.bottomTitle.textContent=song.title;
   els.bottomArtist.textContent=v?.performer?`${song.artist||"原曲未設定"} · ${v.performer}`:(song.artist||versionDisplayName(v||{}));
   setImageSource(els.bottomThumb,v?.videoId?thumbnailUrl(v.videoId):"");
-  els.bottomSeek.disabled=!v?.videoId;
+  const localStatus=selectedLocalMediaStatus(song,v);
+  els.bottomSeek.disabled=!(v?.videoId||(localStatus?.local&&localStatus.linked));
+  if(localStatus?.local&&localStatus.linked){
+    const label=localStatus.kind==="video"?"端末動画":"端末音源";
+    els.bottomArtist.textContent=`${song.artist||"原曲アーティスト未設定"} · ${label}`;
+  }
 }
 function updateBottomPlayer(){
   const song=getSong(),v=getVersion(song);
@@ -916,8 +965,7 @@ function updateBottomPlayer(){
   }
 }
 function toggleMainPlayback(){
-  if(!ytPlayer)return;
-  try{playerStateSafe()===1?ytPlayer.pauseVideo?.():ytPlayer.playVideo?.()}catch{}
+  syncPlayerAdapter().toggle();
   setTimeout(updateBottomPlayer,50);
 }
 function renderQueueDialog(){
@@ -2395,7 +2443,7 @@ function deleteVersion(){
     els.versionDialog.close();
     renderAll();
     if(selectedSongId)loadSelectedVideo(false);
-    else try{ytPlayer?.stopVideo?.()}catch{}
+    else pauseMainPlayback();
     showToast("曲を削除しました。");
     return;
   }
@@ -2415,7 +2463,7 @@ function deleteVersion(){
 function setRange(kind){
   const v=getVersion();
   if(!v)return;
-  if(!ytPlayer?.getCurrentTime)return showToast("動画を再生してから押してください。");
+  if(!mainPlayerAvailable())return showToast("再生できる動画・端末ファイルを選んでください。");
   const t=currentPlayerTime();
   if(kind==="start"){
     v.startTime=Math.max(0,t);
@@ -2443,7 +2491,7 @@ function resetRange(){
 function markSkipStart(){
   const v=getVersion();
   if(!v)return;
-  if(!ytPlayer?.getCurrentTime)return showToast("動画を再生してから押してください。");
+  if(!mainPlayerAvailable())return showToast("再生できる動画・端末ファイルを選んでください。");
   pendingSkipStart=currentPlayerTime();
   els.pendingSkipLabel.textContent=`開始 ${formatTime(pendingSkipStart)} を記録中 → 会話が終わった位置で「ここまでをスキップ」`;
   els.markSkipEndBtn.disabled=false;
@@ -2484,24 +2532,19 @@ function updateOffset(delta){
 }
 
 // ---- Sync editor (per-version lyric timing) ----
-function getPlayerDuration(){try{return Number(ytPlayer?.getDuration?.())||0}catch{return 0}}
+function getPlayerDuration(){return playerDurationSafe()}
 function syncRelativeSeconds(videoSec){
   const v=getVersion();
   return Math.max(0,Number(videoSec||0)-Number(v?.startTime||0)-Number(v?.lyricsOffset||0));
 }
 function seekSyncPlayer(sec){
-  if(!ytPlayer?.seekTo)return;
   const dur=getPlayerDuration();
   const target=dur>0?clamp(Number(sec)||0,0,dur):Math.max(0,Number(sec)||0);
-  try{ytPlayer.seekTo(target,true)}catch{}
+  seekMainPlayback(target);
 }
 function nudgeSyncPlayer(delta){seekSyncPlayer(currentPlayerTime()+delta)}
 function toggleSyncPlayback(){
-  if(!ytPlayer?.getPlayerState)return;
-  try{
-    if(ytPlayer.getPlayerState()===1)ytPlayer.pauseVideo();
-    else ytPlayer.playVideo();
-  }catch{}
+  playerStateSafe()===1?pauseMainPlayback():playMainPlayback();
   updateSyncTransport();
 }
 function updateSyncTransport(){
@@ -2515,8 +2558,7 @@ function updateSyncTransport(){
     els.syncSeekBar.max=dur;
     if(!syncSeekDragging)els.syncSeekBar.value=t;
   }
-  let state=-1;
-  try{state=ytPlayer?.getPlayerState?.()??-1}catch{}
+  const state=playerStateSafe();
   els.syncPlayPauseBtn.textContent=state===1?"一時停止":"再生";
 }
 function pushSyncUndo(entry){

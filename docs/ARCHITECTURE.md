@@ -1,21 +1,22 @@
 # Architecture
 
-LyricTube v0.13.0 の現行構成です。
+LyricTube v0.13.1 の現行構成です。
 
 ## 起動順
 
 1. `version.js`
 2. `core/app-utils.js`
 3. `core/runtime-hooks.js`
-4. `library-schema.js`
+4. `core/player-controller.js`
+5. `library-schema.js`
 5. `sync-interpolation.js`
 6. `profile-data.js`
-7. `cloud-sync.js`
-8. `site-shell.js`
-9. `lyrics-providers.js`
-10. `local-media.js`
-11. `tags.js`
-12. ログイン / ゲスト確定後に `site-shell.js` が `app.js` を読み込む
+8. `cloud-sync.js`
+9. `site-shell.js`
+10. `lyrics-providers.js`
+11. `local-media.js`
+12. `tags.js`
+13. ログイン / ゲスト確定後に `site-shell.js` が `app.js` を読み込む
 
 ## 責務
 
@@ -39,6 +40,12 @@ LyricTube v0.13.0 の現行構成です。
 - 拡張機能向けEvent / Filter / handled hook
 - 本体関数の代入上書きを減らすための正式な拡張口
 - `tags.js` はv0.13.0からこのHookを利用
+
+### core/player-controller.js
+
+- YouTube / Local Media共通の `play / pause / seek / currentTime / duration / state`
+- Source切替をAdapterとして管理
+- Local Mediaによる再生関数の大量上書きを廃止
 
 ### library-schema.js
 
@@ -110,7 +117,7 @@ Cloudの保存処理は持ちません。
 1. ~~Pure utility~~ — v0.13.0で第一段階完了
 2. Library model
 3. Lyrics parser / sync editor
-4. Player controller
+4. ~~Player controller~~ — v0.13.1で完了
 5. Dialog / UI renderer
 6. app bootstrap
 

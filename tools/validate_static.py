@@ -41,6 +41,7 @@ required = [
     "version.js",
     "core/app-utils.js",
     "core/runtime-hooks.js",
+    "core/player-controller.js",
     "library-schema.js",
     "sync-interpolation.js",
     "profile-data.js",
