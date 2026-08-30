@@ -42,7 +42,7 @@ jobs:
         run: |
           rm -f .add-quick-sync
           rm -f tools/add_quick_sync.py
-          rm -f .github/workflows/add-quick-sync.yml
+          git checkout -- .github/workflows/validate-js.yml
 
       - name: Commit quick sync
         shell: bash
