@@ -9,11 +9,12 @@ from urllib.parse import urlsplit
 ROOT = Path(__file__).resolve().parents[1]
 errors: list[str] = []
 
+json_documents: dict[Path, object] = {}
 for path in ROOT.rglob("*.json"):
     if ".git" in path.parts:
         continue
     try:
-        json.loads(path.read_text(encoding="utf-8"))
+        json_documents[path] = json.loads(path.read_text(encoding="utf-8"))
     except Exception as exc:
         errors.append(f"invalid JSON: {path.relative_to(ROOT)}: {exc}")
 
@@ -39,6 +40,7 @@ for ref in refs:
 required = [
     "version.js",
     "library-schema.js",
+    "sync-interpolation.js",
     "profile-data.js",
     "cloud-sync.js",
     "site-shell.js",
@@ -50,9 +52,35 @@ for filename in required:
     if filename not in index:
         errors.append(f"index.html does not load {filename}")
 
-version = (ROOT / "version.js").read_text(encoding="utf-8")
-if 'version: "v0.10.0"' not in version:
-    errors.append("version.js is not v0.10.0")
+version_text = (ROOT / "version.js").read_text(encoding="utf-8")
+version_match = re.search(r'version:\s*"([^"]+)"', version_text)
+build_match = re.search(r'build:\s*"([^"]+)"', version_text)
+if not version_match:
+    errors.append("version.js does not expose a semantic display version")
+if not build_match:
+    errors.append("version.js does not expose a build revision")
+
+version_value = version_match.group(1) if version_match else None
+build_value = build_match.group(1) if build_match else None
+defaults = json_documents.get(ROOT / "data" / "defaults.json")
+if isinstance(defaults, dict):
+    if version_value and defaults.get("appVersion") != version_value:
+        errors.append("data/defaults.json appVersion does not match version.js")
+    if build_value and defaults.get("buildRevision") != build_value:
+        errors.append("data/defaults.json buildRevision does not match version.js")
+
+if version_value and f'data-app-version>{version_value}<' not in index:
+    # The exact markup includes an attribute before the closing > in current HTML,
+    # so fall back to a direct visible-version check as well.
+    if version_value not in index:
+        errors.append("index.html visible version does not match version.js")
+
+if build_value:
+    local_refs = [ref for ref in refs if ref and not ref.startswith(("http://", "https://", "data:", "#", "mailto:", "javascript:"))]
+    runtime_refs = [ref for ref in local_refs if ref.endswith((".js", ".css")) or ".js?v=" in ref or ".css?v=" in ref]
+    stale = [ref for ref in runtime_refs if "?v=" in ref and f"?v={build_value}" not in ref]
+    if stale:
+        errors.append(f"runtime cache revisions do not match version.js build: {', '.join(stale[:5])}")
 
 if errors:
     print("Static validation failed:")
