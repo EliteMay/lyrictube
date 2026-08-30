@@ -17,6 +17,7 @@ assert(app.includes("d.dataset.time=String(line.time)"), "synced lyric DOM must 
 assert(app.includes("seekMainPlayback(currentPlayerTime()+5)"), "keyboard seeking must use generic player path");
 assert(app.includes("selectedLocalMediaStatus"), "app must understand local playback state");
 assert(local.includes("playCurrent()"), "Local Media must expose playback contract");
+assert(!local.includes("closest?.(\".lyric-line\")"), "Local Media must not install a second lyric click seeker");
 assert(mobile.includes("38px minmax(0,1fr) minmax(0,1fr)!important"), "mobile sidebar tools must fit four controls");
 assert(version.includes('version: "v0.12.0"'), "expected v0.12.0");
 console.log("runtime regression guards passed");

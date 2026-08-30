@@ -852,14 +852,6 @@
       if (el) el.volume = Math.max(0, Math.min(1, Number($("bottomVolume").value || 0) / 100));
     });
 
-    document.addEventListener("click", event => {
-      if (!localMode()) return;
-      const line = event.target?.closest?.(".lyric-line");
-      if (!line) return;
-      const time = Number(line.dataset.time);
-      if (Number.isFinite(time)) seekLocal(time + Number(currentVersion()?.lyricsOffset || 0));
-    });
-
     for (const el of [audio, video]) {
       el.addEventListener("play", () => {
         try { markPlayed?.(); } catch {}
