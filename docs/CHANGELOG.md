@@ -1,3 +1,16 @@
+## v0.13.2 Visual refresh（2026-08-31）
+
+- `web-project-guide` v1.5.0 の Visual Design Quality / AP-026〜AP-028を基準にMedia Workspace方向へ再設計。
+- `workspace.css` を追加し、Library → Player → Lyricsを主役にしたVisual compositionを定義。
+- Browseの巨大Hero / Brand artを縮小し、Marketing PageではなくLibrary viewとして整理。
+- Player設定群のGradient / Card / Shadowを減らし、Section / Divider中心へ変更。
+- Lyricsを独立したReading Surfaceとして整理し、Active lyricのGlowを撤去。
+- Sidebarを高密度なLibrary railとして再調整し、選択状態・見出し・曲リスト・常設ツールの階層を改善。
+- Tags画面のHero / Summary Card依存も抑制。
+- `prefers-reduced-motion` をVisual layerで尊重。
+- `tests/visual-workspace.test.js` を追加。
+- 保存形式 `lyrictube.library.v3` / Data Schema 4 / Runtime logicは変更なし。
+
 ## v0.13.2 Sidebar安定化 / build 20260830-8（2026-08-30）
 
 - Sidebarをブランド / 独立Scroll / 操作ツールの3領域へ整理。
@@ -77,7 +90,7 @@
 
 ### Cloud
 
-- Cloud writerを `cloud-sync.js` のみに統一
+- Cloud writerを `cloud-sync.js` のみに統合
 - `site-shell.js` の旧全体保存Writerを削除
 - 同期待ち差分をlocalStorageへ保持
 - online / session-ready / pagehide / visibilitychangeで再送
@@ -118,5 +131,3 @@
 ## Legacy v03〜v35
 
 初期の複数YouTubeバージョン、LRC同期、同期エディタ、プレイリスト、ゲスト、Supabaseアカウント、タグ、端末音源などを段階的に追加した世代です。
-
-詳細な旧作業記録はGit履歴を参照してください。現行仕様はREADMEと本docsを正とします。
