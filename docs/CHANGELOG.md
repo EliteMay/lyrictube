@@ -1,3 +1,17 @@
+## v0.13.2 Theme consistency follow-up（2026-08-31）
+
+- Media Workspace refresh後に発生した、SidebarとMainでTheme色が分裂する問題を修正。
+- `theme.css` をTheme Colorの正本として追加。
+- Dark / Light / Synthwave / Midnight / Sepiaの5ThemeをPage / Navigation / Surface / Text / Border / Accentの共通Token体系へ統一。
+- SidebarのDark固定色を撤去し、Theme-awareなNavigation Surfaceへ変更。
+- Light / Sepia等で旧CSSがMainだけを明るくし、SidebarだけDarkに残るSpecificity競合を解消。
+- Hover / Active controlが別ThemeのDark Surfaceへ変わる問題を正規化。
+- Active lyricに残っていた旧Gradient text / transparent text-fillをresetし、Accent marker + readable textへ統一。
+- Legacy Ambient / Aurora背景を現行Media Workspaceでは無効化。
+- `tests/theme-consistency.test.js` を追加。
+- `PROJECT_LEARNINGS.md` に `PL-F-004` として原因・修正・再発防止を記録。
+- Runtime / Storage / Data Schema変更なし。
+
 ## v0.13.2 Visual refresh（2026-08-31）
 
 - `web-project-guide` v1.5.0 の Visual Design Quality / AP-026〜AP-028を基準にMedia Workspace方向へ再設計。
