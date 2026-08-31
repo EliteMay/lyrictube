@@ -3,7 +3,7 @@
 
   const meta = Object.freeze({
     version: "v0.13.2",
-    build: "20260830-8",
+    build: "20260831-1",
     dataSchema: 4,
     product: "LyricTube"
   });
