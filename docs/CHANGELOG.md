@@ -1,3 +1,15 @@
+## v0.13.2 Fair Shuffle / build 20260831-1（2026-08-31）
+
+- Shuffleの次曲選択を、現在曲以外から毎回完全ランダムに引く方式から再生履歴を考慮する方式へ変更。
+- 既存 `lastPlayedAt` が無い未再生曲を最優先し、登録済みなのに一度も流れない曲を減らす。
+- 全候補に履歴がある場合は、最も長く聴いていない曲群からランダム選択する。
+- 昨日までの `lastPlayedAt` も既存ライブラリに保存されているため、日を跨いだ偏り抑制に利用する。
+- `core/fair-shuffle.js` をPure logicとして追加し、`tests/fair-shuffle.test.js` / `tests/fair-shuffle-integration.test.js` を追加。
+- 現在の表示・プレイリスト・タグ等から作られる既存Queue semanticsは変更しない。
+- 新しいShuffle専用Storageは追加せず、`lyrictube.library.v3` / Data Schema 4を維持。
+- ユーザー確認済みの現在Visualを `docs/VISUAL_BASELINE.md` にBaseline Commit `230fd87bf027a6d7351a3e41efa761800b945e43` として記録。今回のShuffle変更ではCSS / Visual hierarchyを変更しない。
+- Cache revisionを `20260831-1` へ更新。
+
 ## v0.13.2 Theme consistency follow-up（2026-08-31）
 
 - Media Workspace refresh後に発生した、SidebarとMainでTheme色が分裂する問題を修正。

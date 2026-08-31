@@ -8,7 +8,7 @@
   const CONFIG_URL = "data/site-config.json";
   const GUEST_LIBRARY_URL = "data/library.json";
   const API_URL = "https://ctktkyxuzkrsigwoswoc.supabase.co/functions/v1/lyrictube-api";
-  const VERSION = window.LyricTubeVersion?.build || "20260830-7";
+  const VERSION = window.LyricTubeVersion?.build || "20260831-1";
 
   const qs = (selector, root = document) => root.querySelector(selector);
   const qsa = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -287,15 +287,20 @@
     } catch {}
   }
 
-  function loadMainApp() {
+  function loadScript(src, label) {
     return new Promise((resolve, reject) => {
       const script = document.createElement("script");
-      script.src = `app.js?v=${VERSION}`;
+      script.src = src;
       script.async = false;
       script.onload = resolve;
-      script.onerror = () => reject(new Error("app.js load failed"));
+      script.onerror = () => reject(new Error(`${label} load failed`));
       document.body.appendChild(script);
     });
+  }
+
+  async function loadMainApp() {
+    await loadScript(`core/fair-shuffle.js?v=${VERSION}`, "fair shuffle");
+    await loadScript(`app.js?v=${VERSION}`, "app.js");
   }
 
   function initCloudSync(role, session) {

@@ -1,7 +1,7 @@
 # LyricTube
 
 **Current version: v0.13.2**  
-**Build: 20260830-8**
+**Build: 20260831-1**
 
 YouTube動画、端末のMP3/MP4、通常歌詞、同期歌詞を1つのライブラリで管理するWebアプリです。
 
@@ -42,6 +42,8 @@ LyricTubeは `MEDIA + TOOL` として、**Library → Player → Lyrics** の作
 
 Visual compositionは `workspace.css`、Sidebarの構造は `sidebar.css`、Theme Colorの正本は `theme.css` です。Legacy CSSにTheme指定が残っていても、現行UIの配色判断は `theme.css` のTokenを基準にします。
 
+現在の見た目はユーザー確認済みのVisual Referenceとして [`docs/VISUAL_BASELINE.md`](docs/VISUAL_BASELINE.md) に固定しています。今後のUI変更では、明確な改善理由がない限りこのHierarchy / Density / Theme consistencyを悪化させません。
+
 ## 現在の構成
 
 ```text
@@ -50,6 +52,7 @@ index.html
 ├─ core/app-utils.js          LRC / 時刻 / 文字列などPure utility
 ├─ core/runtime-hooks.js      拡張機能用Hook / Filter基盤
 ├─ core/player-controller.js  YouTube / Local Media共通再生API
+├─ core/fair-shuffle.js       再生履歴を考慮したShuffle候補選択
 ├─ library-schema.js          ライブラリ正規化・移行
 ├─ sync-interpolation.js      基準点間の歌詞時間自動補間
 ├─ profile-data.js            アカウント別localStorageルーティング
@@ -61,12 +64,12 @@ index.html
 └─ app.js                     既存コアUI / 再生 / 同期編集
 ```
 
-`app.js` はまだ大きいため、Pure utility、Hook、Player Controllerから段階分割しています。一括Rewriteは行わず、既存ライブラリ・再生・同期互換を維持しながら移行します。
+`app.js` はまだ大きいため、Pure utility、Hook、Player Controller、Fair Shuffleから段階分割しています。一括Rewriteは行わず、既存ライブラリ・再生・同期互換を維持しながら移行します。
 
 ## バージョン管理
 
 - 表示Version: `v0.13.2`
-- Build: `20260830-8`
+- Build: `20260831-1`
 - Data Schema: `4`
 
 正本は `version.js` です。旧 `v35 / v36` 等の開発番号は現行UIのVersionとして使用しません。
@@ -87,6 +90,18 @@ YouTube IFrame Player APIを使用します。YouTube Data APIキーは通常再
 ファイル本体はIndexedDB `lyrictube.localMedia.v1` に保存します。クラウドへは曲情報とファイル名などのメタデータだけを同期します。
 
 旧 `lyrictube.localAudio.v1` が残っている場合、Local Media初期化時に新ストレージへ移行を試みます。別端末ではファイル本体が無いため、再登録導線を表示します。
+
+### シャッフル
+
+シャッフルは現在の表示・プレイリスト・タグ等から作られる再生キューを対象にします。
+
+- 現在再生中の曲は次候補から除外
+- `lastPlayedAt` が無い未再生曲が残っている場合は、未再生曲を最優先
+- 全候補に再生履歴がある場合は、最も長く聴いていない曲群からランダム選択
+- `lastPlayedAt` は既存ライブラリへ保存済みの値を利用するため、ブラウザを閉じても昨日までの履歴を引き継ぐ
+- 新しいShuffle専用StorageやData Schemaは追加しない
+
+これにより、完全ランダムで一部の曲だけ何度も選ばれ、別の曲が長時間一度も流れない偏りを抑えます。
 
 ## 歌詞
 
@@ -151,7 +166,7 @@ GitHub Actions `Validate LyricTube` で以下を確認します。
 - Base64画像のHTML再埋め込み
 - Python保守ツールの構文
 
-Visual regression guardではMedia Workspace構造に加え、5テーマが共通Token体系を持ち、SidebarがDark固定へ戻らないことも確認します。
+Visual regression guardではMedia Workspace構造に加え、5テーマが共通Token体系を持ち、SidebarがDark固定へ戻らないことも確認します。Fair ShuffleはPure logic testとRuntime integration guardで、未再生優先と旧完全ランダム方式の再混入を確認します。
 
 ### web-project-guide 定期監査
 
@@ -176,6 +191,7 @@ core/
   app-utils.js
   runtime-hooks.js
   player-controller.js
+  fair-shuffle.js
 
 assets/
   lyrictube-icon.webp
@@ -194,6 +210,7 @@ docs/
   GUIDE_AUDIT.md
   LYRICS.md
   STORAGE.md
+  VISUAL_BASELINE.md
   CHANGELOG.md
   KNOWN_ISSUES.md
 
@@ -232,6 +249,7 @@ index.html
 - Supabaseへ同期するのは曲情報であり、MP3 / MP4本体ではありません。
 - `app.js` はまだ大きく、UI / Dialog / Library単位の段階分割が残っています。
 - Legacy `styles.css` には旧世代のVisual ruleが残っていますが、現行のLayout / Themeの正本は `workspace.css` / `sidebar.css` / `theme.css` です。段階的に整理します。
+- Fair Shuffleの長時間利用での体感は実運用で継続確認します。自動Testでは候補選択ルールを確認済みです。
 - Visual変更はStatic / Regressionで確認できますが、最終的な見た目は実ブラウザ・Zoom・小Viewportでも確認が必要です。
 
 変更履歴は `docs/CHANGELOG.md`、詳細な未完了事項は `docs/KNOWN_ISSUES.md` を参照してください。
