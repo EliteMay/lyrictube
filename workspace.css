@@ -1,0 +1,381 @@
+/*
+ * LyricTube canonical visual composition layer.
+ * Direction: media workspace — library rail -> player -> lyrics.
+ * Keep decorative effects secondary to hierarchy, spacing, and media content.
+ */
+
+:root{
+  --ui-bg:#090b0e;
+  --ui-surface:#0f1216;
+  --ui-surface-2:#14181d;
+  --ui-surface-3:#1a1f25;
+  --ui-line:rgba(255,255,255,.075);
+  --ui-line-strong:rgba(255,255,255,.12);
+  --ui-text:#f4f6f8;
+  --ui-text-2:#a7afb9;
+  --ui-text-3:#727b87;
+  --ui-radius-sm:8px;
+  --ui-radius-md:11px;
+  --ui-radius-lg:14px;
+  --ui-space-1:6px;
+  --ui-space-2:10px;
+  --ui-space-3:14px;
+  --ui-space-4:18px;
+  --ui-space-5:24px;
+}
+
+html,body{background:var(--ui-bg)}
+body{color:var(--ui-text)}
+.main{background:var(--ui-bg)}
+
+/* Typography: compact product UI, with hierarchy from weight + spacing first. */
+h1{font-size:21px;letter-spacing:-.025em}
+h2{letter-spacing:-.035em}
+h3{letter-spacing:-.025em}
+.eyebrow{
+  margin-bottom:4px;
+  color:var(--ui-text-3);
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:.14em;
+}
+.muted{color:var(--ui-text-2)}
+
+/* Buttons: fewer filled surfaces; accent is reserved for primary/selected states. */
+.icon-btn,.ghost-btn,.danger-ghost,.primary-btn,.primary-soft,.chip,
+.offset-controls button,.mode-btn,.transport-btn,.range-box button,.mini-icon{
+  border-radius:var(--ui-radius-sm);
+  transition:background-color .14s ease,border-color .14s ease,color .14s ease,transform .14s ease;
+}
+.ghost-btn,.mode-btn,.transport-btn,.chip,.range-box button,.mini-icon{
+  background:transparent;
+  border-color:var(--ui-line);
+}
+.ghost-btn:hover,.icon-btn:hover,.mode-btn:hover,.transport-btn:hover,.range-box button:hover,.chip:hover,.mini-icon:hover{
+  background:var(--ui-surface-3);
+  border-color:var(--ui-line-strong);
+}
+.primary-btn{box-shadow:none}
+.primary-soft{box-shadow:none}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{
+  outline:2px solid var(--accent);
+  outline-offset:2px;
+}
+
+/* Top context bar: compact, solid and task-oriented rather than decorative. */
+.topbar{
+  min-height:78px;
+  padding:11px 24px;
+  background:rgba(9,11,14,.96);
+  border-bottom:1px solid var(--ui-line);
+  backdrop-filter:none;
+  box-shadow:none;
+}
+.now-playing-summary{gap:11px}
+.now-cover{
+  width:52px;
+  height:52px;
+  flex-basis:52px;
+  border-radius:10px;
+  background:var(--ui-surface-2);
+  box-shadow:none;
+}
+.now-title h2{font-size:clamp(20px,2vw,28px);letter-spacing:-.035em}
+.now-title p{color:var(--ui-text-2)}
+.now-badge{
+  border-radius:5px;
+  padding:3px 6px;
+  background:var(--accentSoft);
+}
+.top-actions{gap:6px}
+.top-actions button{min-height:36px}
+
+/* Main player/lyrics workspace. The player and lyric surface are the visual signature. */
+.workspace{
+  grid-template-columns:minmax(500px,1.12fr) minmax(360px,.88fr);
+  gap:20px;
+  padding:18px 24px 28px;
+  min-height:calc(100vh - 78px);
+}
+.player-column{gap:0}
+.version-card,.transport-card,.range-card,.sync-card{
+  background:transparent;
+  border:0;
+  border-radius:0;
+  box-shadow:none;
+}
+.version-card{
+  padding:0 0 12px;
+}
+.version-card .section-line{align-items:flex-end}
+.version-tabs{margin-top:10px}
+.version-tab{
+  border-radius:7px;
+  border-color:var(--ui-line);
+  background:var(--ui-surface);
+  padding:7px 10px;
+}
+.version-tab.active{
+  box-shadow:inset 0 -2px 0 var(--accent);
+  background:var(--ui-surface-2);
+}
+.player-card{
+  border:1px solid var(--ui-line-strong);
+  border-radius:var(--ui-radius-lg);
+  background:#050607;
+  box-shadow:0 16px 38px rgba(0,0,0,.28);
+}
+.player-placeholder{
+  background:var(--ui-surface);
+}
+.placeholder-mark{
+  width:54px;
+  height:54px;
+  background:var(--ui-surface-3);
+  color:var(--ui-text-2);
+}
+.transport-card{
+  justify-content:flex-start;
+  padding:10px 0 14px;
+  gap:7px;
+}
+.transport-btn{min-width:44px}
+.transport-card .mode-btn{font-size:11px;color:var(--ui-text-2)}
+.range-card,.sync-card{
+  padding:16px 0;
+  border-top:1px solid var(--ui-line);
+}
+.range-card .section-line,.sync-card .sync-row{gap:18px}
+.range-grid{gap:8px;margin-top:12px}
+.range-box{
+  border-color:var(--ui-line);
+  border-radius:var(--ui-radius-sm);
+  background:var(--ui-surface);
+  padding:12px;
+}
+.range-box strong{font-size:18px}
+.skip-head{margin-top:15px;padding-top:14px;border-top-color:var(--ui-line)}
+.skip-row{
+  border-radius:var(--ui-radius-sm);
+  border-color:var(--ui-line);
+  background:var(--ui-surface);
+}
+.sync-row.second{border-top-color:var(--ui-line)}
+.offset-controls input{
+  border-radius:var(--ui-radius-sm);
+  background:var(--ui-surface);
+}
+.status-pill,.chip{border-radius:7px}
+
+/* Lyrics: a reading surface, not another decorative card. */
+.lyrics-panel{
+  min-height:590px;
+  border:1px solid var(--ui-line-strong);
+  border-radius:var(--ui-radius-lg);
+  background:var(--ui-surface);
+  box-shadow:none;
+}
+.lyrics-head{
+  padding:14px 17px;
+  background:var(--ui-surface);
+  border-bottom-color:var(--ui-line);
+  backdrop-filter:none;
+  box-shadow:none;
+}
+.lyrics-view{
+  padding-left:24px;
+  padding-right:24px;
+}
+.lyric-line{
+  color:#7c8590;
+  font-size:clamp(17px,1.8vw,22px);
+  font-weight:650;
+  line-height:1.58;
+  opacity:.7;
+}
+.lyric-line.past{color:#646d77;opacity:.42}
+.lyric-line.near{color:#a9b0b8;opacity:.86}
+.lyric-line.active{
+  color:var(--ui-text);
+  opacity:1;
+  transform:translateX(7px);
+  text-shadow:none;
+}
+.lyric-line.active::before{
+  left:-14px;
+  width:3px;
+  height:18px;
+  border-radius:2px;
+  box-shadow:none;
+}
+
+/* Browse is a library view, not a marketing landing page. */
+.browse-page{
+  padding:22px 24px 48px;
+}
+.browse-hero{
+  min-height:0;
+  align-items:flex-end;
+  padding:4px 0 18px;
+  border:0;
+  border-bottom:1px solid var(--ui-line);
+  border-radius:0;
+  background:none;
+  box-shadow:none;
+}
+.browse-hero h2{
+  font-size:clamp(27px,3vw,34px);
+  line-height:1.1;
+  letter-spacing:-.04em;
+}
+.browse-hero .muted{
+  max-width:620px;
+  margin-top:7px;
+  font-size:12px;
+  line-height:1.55;
+}
+.browse-brand-art{display:none}
+.browse-hero-actions{margin-top:12px}
+.browse-toolbar{
+  margin:16px 0 22px;
+  gap:12px;
+}
+.browse-search{
+  height:42px;
+  border-radius:var(--ui-radius-sm);
+  border-color:var(--ui-line);
+  background:var(--ui-surface);
+}
+.browse-chip{
+  border-radius:7px;
+  background:transparent;
+}
+.browse-chip.active{
+  box-shadow:inset 0 -2px 0 var(--accent);
+  background:var(--ui-surface-2);
+}
+.browse-section-head{margin-bottom:12px}
+.browse-section-head h3{font-size:20px}
+.browse-grid{gap:18px 14px}
+.browse-card{
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+}
+.browse-card:hover{
+  transform:translateY(-1px);
+  border-color:transparent;
+  background:transparent;
+  box-shadow:none;
+}
+.browse-card.active{box-shadow:none}
+.browse-cover{
+  border-radius:10px;
+  box-shadow:none;
+  outline:1px solid var(--ui-line);
+  outline-offset:-1px;
+}
+.browse-card.active .browse-cover{
+  outline:2px solid var(--accent);
+  outline-offset:2px;
+}
+.browse-play{
+  right:8px;
+  bottom:8px;
+  width:40px;
+  height:40px;
+  box-shadow:0 7px 18px rgba(0,0,0,.28);
+}
+.browse-card-actions{top:9px;right:9px}
+.browse-quick-add{
+  background:rgba(8,10,13,.86);
+  border-color:var(--ui-line-strong);
+  backdrop-filter:none;
+}
+.browse-now{left:9px;top:9px;border-radius:5px;backdrop-filter:none}
+.browse-body{padding:9px 1px 2px}
+.browse-title{font-size:14px;font-weight:750}
+.browse-artist{margin-top:4px;color:var(--ui-text-2)}
+.browse-status{margin-top:7px}
+.browse-mini{border-radius:5px;background:transparent}
+.browse-empty{
+  border-radius:var(--ui-radius-md);
+  background:var(--ui-surface);
+}
+
+/* Tags: use workspace panels and dividers rather than a second landing-page hero. */
+.tags-page{padding-top:22px}
+.tags-hero{
+  padding:4px 0 18px;
+  border:0;
+  border-bottom:1px solid var(--ui-line);
+  border-radius:0;
+  background:none;
+}
+.tags-hero h2{font-size:clamp(25px,2.7vw,32px)}
+.tags-summary{
+  gap:0;
+  margin:0 0 14px;
+  border-bottom:1px solid var(--ui-line);
+}
+.tags-summary>div{
+  padding:12px 14px;
+  border:0;
+  border-right:1px solid var(--ui-line);
+  border-radius:0;
+  background:transparent;
+}
+.tags-summary>div:last-child{border-right:0}
+.tag-manager-panel{
+  border-radius:var(--ui-radius-md);
+  border-color:var(--ui-line);
+  background:var(--ui-surface);
+}
+.tag-manager-item{border-radius:var(--ui-radius-sm);background:var(--ui-surface-2)}
+.tag-song-search,.tag-editor-field input,.tag-editor-preview,.song-tag-check-row,.song-tag-create input,.song-tag-create select{
+  border-radius:var(--ui-radius-sm);
+}
+
+/* Bottom transport: persistent context, visually quiet. */
+.bottom-player{
+  background:rgba(10,12,15,.98);
+  border-top-color:var(--ui-line-strong);
+  box-shadow:none;
+  backdrop-filter:none;
+}
+.bottom-thumb{border-radius:8px;box-shadow:none}
+.bottom-controls .bottom-play{box-shadow:none}
+.bottom-side button:hover,.bottom-controls button:hover{background:var(--ui-surface-3)}
+
+/* Reduced motion keeps state changes readable without decorative movement. */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}
+}
+
+@media(max-width:1180px){
+  .workspace{grid-template-columns:minmax(430px,1fr) minmax(330px,.85fr);padding-left:18px;padding-right:18px}
+}
+
+@media(max-width:900px){
+  .topbar{min-height:70px!important;background:rgba(9,11,14,.98)!important}
+  .workspace{display:flex!important;flex-direction:column!important;padding:10px 10px 24px!important}
+  .version-card{padding-bottom:10px!important}
+  .range-card,.sync-card{padding:14px 2px!important;border-radius:0!important}
+  .lyrics-panel{border-radius:11px!important}
+  .browse-page{padding:16px 12px 30px!important}
+  .browse-hero{padding:2px 0 14px!important;border-radius:0!important}
+  .browse-hero h2{font-size:28px!important}
+  .browse-hero .primary-btn{width:auto!important}
+  .tags-hero{padding:2px 0 14px!important;border-radius:0!important}
+  .tags-summary>div{padding:10px}
+}
+
+@media(max-width:560px){
+  .topbar{padding:9px 10px!important}
+  .browse-grid{gap:14px 9px!important}
+  .browse-card{padding:0!important}
+  .lyrics-view{padding-left:17px!important;padding-right:17px!important}
+  .tags-summary{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
