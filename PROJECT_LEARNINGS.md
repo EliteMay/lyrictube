@@ -58,7 +58,7 @@
 - Trigger / Reproduction: 低い縦解像度、Mobile、Zoom、Sidebar項目増加。
 - Root Cause: SidebarをBrand / Scroll Content / Toolsへ分離していなかった。
 - Final Fix: Sidebarを3領域化し、中央だけをScrollさせる構成へ変更した。
-- Affected files / systems: `index.html`, `styles.css`, `mobile.css`
+- Affected files / systems: `index.html`, `styles.css`, `mobile.css`, `sidebar.css`
 - Detection method: User screenshot + layout review
 - Regression Guard: `tests/sidebar-layout.test.js`
 - Prevention: fixed / sticky / overflowを含むLayout変更では低いViewportとZoomを確認する。
@@ -95,6 +95,19 @@
 - Related files / tests: `.github/workflows/validate-js.yml`
 - Guide candidate: yes
 - Guide note: web-project-guide S-020へ還元済み。
+
+### PL-S-003 Media Workspaceを構造で差別化する
+
+- Date: 2026-08-31
+- Goal / Problem: Gradient / Card / Glowを増やすのではなく、LyricTube固有の用途が一目で分かるVisual hierarchyへ改善する。
+- Adopted Pattern: `Library rail → Player → Lyrics` をSignatureとして固定し、Browse Heroを通常のLibrary headerへ縮小。編集設定は同じ強さのCard群からSection / Divider中心へ変更した。
+- Why it worked: Mediaを主役にしながら、選択・再生・歌詞・編集の優先度をPosition / Density / Spacingで表せる。
+- Trade-off: 派手な装飾は減るため、Artwork / Player / Lyricsの実Content品質がより目立つ。
+- Reuse when: 高頻度で使うMedia Tool、PlayerとLibraryを同時に扱うWorkspace。
+- Avoid when: Marketing Messageそのものを主役にするLanding Page。
+- Related files / tests: `workspace.css`, `sidebar.css`, `tests/visual-workspace.test.js`
+- Guide candidate: no
+- Guide note: web-project-guide Visual Design Quality / AP-026〜AP-028をProjectへ適用した実例。
 
 ---
 

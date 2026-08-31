@@ -3,7 +3,7 @@
 **Current version: v0.13.2**  
 **Build: 20260830-8**
 
-YouTube動画、端末のMP3/MP4、通常歌詞、同期歌詞を1つのライブラリで管理する個人用Webアプリです。
+YouTube動画、端末のMP3/MP4、通常歌詞、同期歌詞を1つのライブラリで管理するWebアプリです。
 
 ## 目的
 
@@ -28,14 +28,28 @@ YouTube動画、端末のMP3/MP4、通常歌詞、同期歌詞を1つのライ�
 9. ゲストとクラウドアカウントのデータを混在させないこと
 10. 大きな仕様変更時はSchema / README / 作業報告を同時更新すること
 
+## Visual Direction
+
+LyricTubeは `MEDIA + TOOL` として、**Library → Player → Lyrics** の作業空間を主役にします。
+
+- Layout: Desktopは左Library rail + Player + Lyricsのmaster-detail構成
+- Density: medium-high。日常操作を優先し、Marketing的な大Heroは置かない
+- Typography: compact product UI。大きさだけでなくWeight / Spacing / Contrastで階層を作る
+- Color: dark neutral中心。紫Accentは選択・再生・Primary Actionなど意味がある状態だけに使う
+- Components: 曲一覧はList、曲を探す画面はMedia Grid、編集設定はSection / Divider中心
+- Decorative effects: ShadowはPlayer / OverlayなどElevationが必要な場所だけ。Gradient / Glowの常用は避ける
+- Signature: 再生領域と同期歌詞を並べて使うMedia Workspaceそのもの
+
+現在のVisual compositionは `workspace.css`、Sidebarの構造と視認性は `sidebar.css` を正本とします。`workspace.css` は既存のCSS読込順を壊さないため `sidebar.css` から読み込みます。
+
 ## 現在の構成
 
 ```text
 index.html
-├─ version.js                 表示バージョン / Build / Schema番号
-├─ core/app-utils.js         LRC / 時刻 / 文字列などPure utility
-├─ core/runtime-hooks.js     拡張機能用Hook / Filter基盤
-├─ core/player-controller.js YouTube / Local Media共通再生API
+├─ version.js                 表示Version / Build / Schema番号
+├─ core/app-utils.js          LRC / 時刻 / 文字列などPure utility
+├─ core/runtime-hooks.js      拡張機能用Hook / Filter基盤
+├─ core/player-controller.js  YouTube / Local Media共通再生API
 ├─ library-schema.js          ライブラリ正規化・移行
 ├─ sync-interpolation.js      基準点間の歌詞時間自動補間
 ├─ profile-data.js            アカウント別localStorageルーティング
@@ -47,97 +61,69 @@ index.html
 └─ app.js                     既存コアUI / 再生 / 同期編集
 ```
 
-`app.js` はまだ大きいですが、v0.13.0でPure utilityを `core/app-utils.js` へ分離し、タグ機能の本体関数上書きをHook方式へ移行しました。v0.13.1ではPlayer Controllerも分離し、YouTube / Local Mediaの再生操作を共通化しました。次はUI / Dialogを段階分割します。機能を一気に移動して既存ライブラリや再生を壊す変更は行いません。
+`app.js` はまだ大きいため、Pure utility、Hook、Player Controllerから段階分割しています。一括Rewriteは行わず、既存ライブラリ・再生・同期互換を維持しながら移行します。
 
 ## バージョン管理
 
-ユーザー向けのバージョンとキャッシュ用Buildを分離しています。
-
-- 表示: `v0.13.2`
+- 表示Version: `v0.13.2`
 - Build: `20260830-8`
-- データSchema: `4`
+- Data Schema: `4`
 
-正本は `version.js` です。旧 `v35 / v36` の番号は現行UIのバージョンとして使用しません。
+正本は `version.js` です。旧 `v35 / v36` 等の開発番号は現行UIのVersionとして使用しません。
 
 ## 再生ソース
 
 ### YouTube
 
-YouTube IFrame Player APIを使用します。YouTube Data APIキーは不要です。
+YouTube IFrame Player APIを使用します。YouTube Data APIキーは通常再生には不要です。
 
 ### 端末ファイル
 
 `local-media.js` が以下を扱います。
 
-- MP3
-- M4A
-- AAC
-- WAV
-- OGG / OGA
-- OPUS
-- FLAC
-- MP4
-- WebM
-- M4V
+- MP3 / M4A / AAC / WAV / OGG / OGA / OPUS / FLAC
+- MP4 / WebM / M4V
 
 ファイル本体はIndexedDB `lyrictube.localMedia.v1` に保存します。クラウドへは曲情報とファイル名などのメタデータだけを同期します。
 
-旧 `lyrictube.localAudio.v1` が残っている場合、Local Media初期化時に新ストレージへ移行を試みます。
+旧 `lyrictube.localAudio.v1` が残っている場合、Local Media初期化時に新ストレージへ移行を試みます。別端末ではファイル本体が無いため、再登録導線を表示します。
 
-別端末ではファイル本体は存在しないため、「この端末にファイルがありません」と表示し、再登録できます。
+## 歌詞
 
-## 歌詞検索
-
-自動検索は以下の順で候補を統合します。
+自動検索は以下のProvider候補を統合します。
 
 1. LRCLIB
 2. SyncLRC
 3. lyrics.ovh（通常歌詞の補完）
 
-結果は重複除去し、取得元を表示します。保存時は `lyricsProvider` / `lyricsProviderId` を記録します。旧 `lrclibId` も互換性のため維持します。
+保存時は `lyricsProvider` / `lyricsProviderId` を記録し、旧 `lrclibId` も互換性のため維持します。
 
 ### ざっくり自動合わせ
 
-同期エディタでは、全行を手作業で打刻せずに数か所だけ基準点を設定できます。2個以上の基準点を置いて「基準点の間を自動補間」を押すと、基準点の間を区間ごとに自動調整します。
+同期エディタでは2個以上の基準点を置き、その間の歌詞時間を自動補間できます。
 
-- 元の同期歌詞がある場合: 元の歌詞間隔を保ったまま時間軸を一定倍率で伸縮
-- 元の同期時間が無い区間: 行数ベースで均等補間
-- 補間後: 気になる行だけ従来の `±0.1 / ±0.5秒` で修正可能
-- 基準点情報は編集セッション専用で、保存データ形式は変更しません
+- 元の同期歌詞がある場合: 元の歌詞間隔を保ったまま時間軸を伸縮
+- 元時間が無い区間: 行数ベースで均等補間
+- 補間後: 行単位 `±0.1 / ±0.5秒` で微調整可能
+- 基準点情報は編集セッション専用で、保存Schemaは変更しない
 
 ## クラウド同期
 
 Supabaseを使用します。
 
-- `profile-data.js`: localStorageへの変更から差分を生成
-- `cloud-sync.js`: 差分をまとめてSupabaseへ送信
-- `site-shell.js`: ログイン・初回読込のみ担当
+- `profile-data.js`: localStorage変更から差分生成
+- `cloud-sync.js`: 差分をSupabaseへ送信する唯一のCloud Writer
+- `site-shell.js`: ログイン・初回読込
 
-v0.10.2から **クラウド保存Writerは `cloud-sync.js` の1本だけ**です。以前の `site-shell.js` 全体保存処理は無効化しています。
-
-同期待ちデータは端末のlocalStorageへ一時保存するため、通信失敗直後にページを閉じても次回再送できます。
+同期待ちデータはlocalStorageへ一時保存し、通信復帰後に再送します。
 
 ## ログイン
 
-初回はアカウント名 + パスワードでログインします。
+初回はアカウント名 + パスワードでログインします。成功したアカウント名だけを端末に記憶し、パスワードは保存しません。Supabase側では同一アカウントへの連続ログイン失敗を制限します。
 
-成功したアカウント名だけを端末に保存し、次回はパスワード欄だけ表示できます。パスワードそのものは保存しません。「変更」から別アカウントへ切り替えられます。
+## データ / 保存場所
 
-Supabase側では同一アカウントへの連続ログイン失敗を制限します。
-
-## データ
-
-現在の互換キーは `lyrictube.library.v3` のままです。
-
-内部Schemaは `settings.dataSchemaVersion = 4` を使用します。読み込み時は `library-schema.js` が不足フィールド・旧Local Audio・Provider情報などを正規化します。
-
-機械可読Schema:
-
-- `data/library.schema.json`
-
-詳細は `docs/DATA_SCHEMA.md`。
-
-## 保存場所
+互換Storage Keyは `lyrictube.library.v3`、内部Schemaは `settings.dataSchemaVersion = 4` です。
 
 | データ | 保存先 |
 |---|---|
@@ -147,24 +133,18 @@ Supabase側では同一アカウントへの連続ログイン失敗を制限し
 | 前回成功したアカウント名 | localStorage |
 | 同期待ちキュー | localStorage |
 
+機械可読Schemaは `data/library.schema.json`、詳細は `docs/DATA_SCHEMA.md` を参照してください。
+
 ## GitHub Pages
 
-静的HTML / CSS / JS構成なのでGitHub Pagesで利用できます。
-
-1. `Settings`
-2. `Pages`
-3. `Deploy from a branch`
-4. `main`
-5. `/ (root)`
-
-APIキー・パスワード・秘密情報をリポジトリへ追加しないでください。
+静的HTML / CSS / JS構成です。公開RepoへAPI Secret、パスワード、Service Role Key等を追加しないでください。
 
 ## 自動検証
 
 GitHub Actions `Validate LyricTube` で以下を確認します。
 
 - 全 `.js` の `node --check`
-- `tests/*.test.js` の同期補間ロジックテスト
+- `tests/*.test.js` のロジック / Regression Guard
 - 全 `.json` のJSON構文
 - `index.html` のローカル参照切れ
 - 廃止したLocal Audio runtimeの再混入
@@ -173,23 +153,27 @@ GitHub Actions `Validate LyricTube` で以下を確認します。
 
 ### web-project-guide 定期監査
 
-GitHub Actions `Web Project Guide Audit` を毎週実行します。
+`Web Project Guide Audit` を毎週実行します。
 
-- `EliteMay/web-project-guide` の最新Versionとmain Commitを確認
-- `project-guide.json` に記録した確認済みRevisionと比較
+- `EliteMay/web-project-guide` の最新Version / main Commitを確認
+- `project-guide.json` の確認済みRevisionと比較
 - 定期実行時に `Validate LyricTube` も再実行
 - 未確認のGuide変更があればGitHub Issueを1件だけ作成・更新
-- Guide更新を理由にLyricTubeのコードを自動書換えしない
-- Review後にbaselineを更新すると次回監査でIssueを自動Close
+- Guide更新だけを理由にLyricTubeのコードを自動書換えしない
 
-現在のProject Profileは `STATIC / MEDIA / CLOUD / PUBLIC-CONTENT` です。詳細は `docs/GUIDE_AUDIT.md` と `PROJECT_LEARNINGS.md` を参照してください。
+Project Profileは `STATIC / MEDIA / CLOUD / PUBLIC-CONTENT` です。詳細は `docs/GUIDE_AUDIT.md` と `PROJECT_LEARNINGS.md` を参照してください。
 
-## ファイル構成
+## 主なファイル
 
 ```text
 .github/workflows/
   validate-js.yml
   guide-audit.yml
+
+core/
+  app-utils.js
+  runtime-hooks.js
+  player-controller.js
 
 assets/
   lyrictube-icon.webp
@@ -227,6 +211,8 @@ lyrics-providers.js
 local-media.js
 tags.js
 styles.css
+workspace.css
+sidebar.css
 mobile.css
 guest.css
 auth-ui.css
@@ -234,34 +220,14 @@ tags.css
 index.html
 ```
 
-## 注意点
+## 注意点 / 既知の課題
 
 - ブラウザのサイトデータを削除するとLocal Media本体も消える可能性があります。
 - MP4の再生可否はブラウザが対応する映像/音声Codecに依存します。
 - YouTube埋め込み不可動画は再生できません。
 - 外部歌詞サービス障害時は、そのProviderだけ一時的に利用できません。
 - Supabaseへ同期するのは曲情報であり、MP3 / MP4本体ではありません。
+- `app.js` はまだ大きく、UI / Dialog / Library単位の段階分割が残っています。
+- Visual変更はStatic / Regressionで確認できますが、最終的な見た目は実ブラウザ・Zoom・小Viewportでも確認が必要です。
 
-## 既知の課題
-
-`app.js` は旧バージョンから機能を積み重ねてきたため、まだ大きな単一ファイルです。v0.10.2では重複ランタイムとデータ・同期の土台を先に整理しました。今後は動作を維持したままPlayer / Lyrics / Library / UI単位に段階分割します。
-
-詳細は `docs/KNOWN_ISSUES.md` を参照してください。
-
-
-## v0.13.2 Sidebar安定化（build 20260830-8）
-
-- Sidebarを「ブランド / 中央スクロール / 操作ツール」の3領域に分離。
-- タグ・プレイリスト・曲一覧だけを中央でスクロールし、`設定 / ? / 書き出し / 読み込み` は常に表示領域へ残す。
-- 低い縦解像度やモバイルでも主要操作が押し出されにくい構造へ変更。
-- Sidebar見出しのコントラストを改善。
-- 保存形式 `lyrictube.library.v3` / Schema 4は変更なし。
-
-## v0.12.0 安定性修正
-
-- ログインを30秒以上放置してもLocal Media / Tagsが確実に初期化されるよう、Pollingから`lyrictube:app-ready`イベントへ変更。
-- MP3 / MP4でも同期歌詞追従、歌詞クリックシーク、Space / ← / →操作が同じ再生経路を使うよう修正。
-- `GH v35`を再表示する旧処理と`lyrictube_v14_`書き出し名を撤去。
-- 破損したlocalStorage JSONは上書き前に復旧用コピーへ退避。
-- Sidebar下部4操作をPC / モバイルとも4列で固定。
-- Schema検査と回帰テストを強化。
+変更履歴は `docs/CHANGELOG.md`、詳細な未完了事項は `docs/KNOWN_ISSUES.md` を参照してください。
