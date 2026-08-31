@@ -171,9 +171,26 @@ GitHub Actions `Validate LyricTube` で以下を確認します。
 - Base64画像のHTML再埋め込み
 - Python保守ツールの構文
 
+### web-project-guide 定期監査
+
+GitHub Actions `Web Project Guide Audit` を毎週実行します。
+
+- `EliteMay/web-project-guide` の最新Versionとmain Commitを確認
+- `project-guide.json` に記録した確認済みRevisionと比較
+- 定期実行時に `Validate LyricTube` も再実行
+- 未確認のGuide変更があればGitHub Issueを1件だけ作成・更新
+- Guide更新を理由にLyricTubeのコードを自動書換えしない
+- Review後にbaselineを更新すると次回監査でIssueを自動Close
+
+現在のProject Profileは `STATIC / MEDIA / CLOUD / PUBLIC-CONTENT` です。詳細は `docs/GUIDE_AUDIT.md` と `PROJECT_LEARNINGS.md` を参照してください。
+
 ## ファイル構成
 
 ```text
+.github/workflows/
+  validate-js.yml
+  guide-audit.yml
+
 assets/
   lyrictube-icon.webp
 
@@ -188,11 +205,17 @@ docs/
   ARCHITECTURE.md
   CLOUD.md
   DATA_SCHEMA.md
+  GUIDE_AUDIT.md
   LYRICS.md
   STORAGE.md
   CHANGELOG.md
   KNOWN_ISSUES.md
 
+tools/
+  check_web_project_guide.py
+
+PROJECT_LEARNINGS.md
+project-guide.json
 app.js
 version.js
 library-schema.js
