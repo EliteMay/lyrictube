@@ -1,0 +1,15 @@
+{
+  "sourceRepository": "EliteMay/web-project-guide",
+  "sourceUrl": "https://github.com/EliteMay/web-project-guide",
+  "reviewedGuideVersion": "1.5.0",
+  "reviewedGuideCommit": "b983ed304ee6ad87ccd0b1b09ae895710a8c82d0",
+  "reviewedAt": "2026-08-31",
+  "profiles": [
+    "STATIC",
+    "MEDIA",
+    "CLOUD",
+    "PUBLIC-CONTENT"
+  ],
+  "schedule": "weekly",
+  "policy": "Guide updates trigger review and an issue; they do not automatically rewrite LyricTube."
+}
