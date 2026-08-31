@@ -287,15 +287,20 @@
     } catch {}
   }
 
-  function loadMainApp() {
+  function loadScript(src, label) {
     return new Promise((resolve, reject) => {
       const script = document.createElement("script");
-      script.src = `app.js?v=${VERSION}`;
+      script.src = src;
       script.async = false;
       script.onload = resolve;
-      script.onerror = () => reject(new Error("app.js load failed"));
+      script.onerror = () => reject(new Error(`${label} load failed`));
       document.body.appendChild(script);
     });
+  }
+
+  async function loadMainApp() {
+    await loadScript(`core/fair-shuffle.js?v=${VERSION}`, "fair shuffle");
+    await loadScript(`app.js?v=${VERSION}`, "app.js");
   }
 
   function initCloudSync(role, session) {
