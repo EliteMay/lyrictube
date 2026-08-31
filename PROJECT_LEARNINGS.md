@@ -86,6 +86,26 @@
 - Guide candidate: yes
 - Guide note: Visual Quality BaselineのComponent Consistency / Interactive State / Visual Verificationに該当する実例。
 
+### PL-F-005 完全ランダムShuffleで未再生曲が長時間選ばれなかった
+
+- Date: 2026-08-31
+- Status: resolved
+- Severity: medium
+- Cost: medium
+- Symptom: 昨日から何度も流れている曲が再び選ばれる一方、登録済みなのに一度も流れていない曲が残った。
+- Expected: Shuffle感は保ちながら、未再生曲や長く聴いていない曲へ十分な再生機会がある。
+- Actual: 次曲を選ぶたびに現在曲だけを除外して `Math.random()` で完全ランダム選択していたため、短期・日跨ぎの再生履歴を考慮しなかった。
+- Trigger / Reproduction: 複数曲のライブラリでShuffleを長時間利用し、`playCount / lastPlayedAt` と実際の選曲を比較する。
+- Root Cause: Shuffleを独立試行として実装し、既に保存している `lastPlayedAt` を候補選択へ利用していなかった。
+- Final Fix: `core/fair-shuffle.js` を追加。未再生曲を最優先し、全候補に履歴がある場合は最も長く聴いていない曲群からランダム選択する。既存 `lastPlayedAt` を使うため新しい保存Schemaは追加しない。
+- Affected files / systems: `app.js`, `site-shell.js`, `core/fair-shuffle.js`
+- Detection method: User long-term usage report + code review
+- Regression Guard: `tests/fair-shuffle.test.js`, `tests/fair-shuffle-integration.test.js`
+- Prevention: 「ランダム」がUX目的の場合は数学的な完全ランダムだけでなく、重複・公平性・履歴・対象Queueの期待を先に定義する。
+- Related Issue / PR / Commit: v0.13.2 build 20260831-1
+- Guide candidate: no
+- Guide note: Project固有のMedia playback policyとして保持する。
+
 ---
 
 ## Success
@@ -125,9 +145,9 @@
 - Trade-off: 派手な装飾は減るため、Artwork / Player / Lyricsの実Content品質がより目立つ。
 - Reuse when: 高頻度で使うMedia Tool、PlayerとLibraryを同時に扱うWorkspace。
 - Avoid when: Marketing Messageそのものを主役にするLanding Page。
-- Related files / tests: `workspace.css`, `sidebar.css`, `tests/visual-workspace.test.js`
+- Related files / tests: `workspace.css`, `sidebar.css`, `theme.css`, `docs/VISUAL_BASELINE.md`, visual regression tests
 - Guide candidate: no
-- Guide note: web-project-guide Visual Design Quality / AP-026〜AP-028をProjectへ適用した実例。
+- Guide note: web-project-guide Visual Design Quality / AP-026〜AP-028をProjectへ適用した実例。2026-08-31にユーザー確認済みVisualをBaseline Commit `230fd87bf027a6d7351a3e41efa761800b945e43` として固定。
 
 ---
 
