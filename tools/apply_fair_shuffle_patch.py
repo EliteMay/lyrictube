@@ -1,17 +1,34 @@
 from pathlib import Path
 
 
+OLD_BUILD = "20260830-8"
+NEW_BUILD = "20260831-1"
+
+
 def replace_once(path: str, old: str, new: str, marker: str) -> None:
     file = Path(path)
     text = file.read_text(encoding="utf-8")
     if new in text:
-        print(f"{path}: already patched")
+        print(f"{path}: already patched {marker}")
         return
     count = text.count(old)
     if count != 1:
         raise SystemExit(f"{path}: expected exactly one {marker} pattern, found {count}")
     file.write_text(text.replace(old, new, 1), encoding="utf-8")
     print(f"{path}: patched {marker}")
+
+
+def replace_all(path: str, old: str, new: str, marker: str) -> None:
+    file = Path(path)
+    text = file.read_text(encoding="utf-8")
+    if old not in text:
+        if new in text:
+            print(f"{path}: already patched {marker}")
+            return
+        raise SystemExit(f"{path}: missing {marker} pattern")
+    count = text.count(old)
+    file.write_text(text.replace(old, new), encoding="utf-8")
+    print(f"{path}: patched {marker} ({count} replacements)")
 
 
 replace_once(
@@ -52,3 +69,8 @@ replace_once(
 ''',
     "main runtime loader",
 )
+
+replace_all("index.html", f"?v={OLD_BUILD}", f"?v={NEW_BUILD}", "runtime cache revision")
+replace_once("version.js", f'build: "{OLD_BUILD}"', f'build: "{NEW_BUILD}"', "version build")
+replace_once("data/defaults.json", f'"buildRevision": "{OLD_BUILD}"', f'"buildRevision": "{NEW_BUILD}"', "defaults build")
+replace_once("site-shell.js", 'const VERSION = window.LyricTubeVersion?.build || "20260830-7";', f'const VERSION = window.LyricTubeVersion?.build || "{NEW_BUILD}";', "site shell fallback build")
