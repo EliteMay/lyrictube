@@ -35,12 +35,12 @@ LyricTubeは `MEDIA + TOOL` として、**Library → Player → Lyrics** の作
 - Layout: Desktopは左Library rail + Player + Lyricsのmaster-detail構成
 - Density: medium-high。日常操作を優先し、Marketing的な大Heroは置かない
 - Typography: compact product UI。大きさだけでなくWeight / Spacing / Contrastで階層を作る
-- Color: dark neutral中心。紫Accentは選択・再生・Primary Actionなど意味がある状態だけに使う
+- Theme: Dark / Light / Synthwave / Midnight / Sepiaの5種類。ThemeごとのPage / Navigation / Surface / Text / Border / Accentは同じToken体系で切り替える
 - Components: 曲一覧はList、曲を探す画面はMedia Grid、編集設定はSection / Divider中心
 - Decorative effects: ShadowはPlayer / OverlayなどElevationが必要な場所だけ。Gradient / Glowの常用は避ける
 - Signature: 再生領域と同期歌詞を並べて使うMedia Workspaceそのもの
 
-現在のVisual compositionは `workspace.css`、Sidebarの構造と視認性は `sidebar.css` を正本とします。`workspace.css` は既存のCSS読込順を壊さないため `sidebar.css` から読み込みます。
+Visual compositionは `workspace.css`、Sidebarの構造は `sidebar.css`、Theme Colorの正本は `theme.css` です。Legacy CSSにTheme指定が残っていても、現行UIの配色判断は `theme.css` のTokenを基準にします。
 
 ## 現在の構成
 
@@ -151,6 +151,8 @@ GitHub Actions `Validate LyricTube` で以下を確認します。
 - Base64画像のHTML再埋め込み
 - Python保守ツールの構文
 
+Visual regression guardではMedia Workspace構造に加え、5テーマが共通Token体系を持ち、SidebarがDark固定へ戻らないことも確認します。
+
 ### web-project-guide 定期監査
 
 `Web Project Guide Audit` を毎週実行します。
@@ -212,6 +214,7 @@ local-media.js
 tags.js
 styles.css
 workspace.css
+theme.css
 sidebar.css
 mobile.css
 guest.css
@@ -228,6 +231,7 @@ index.html
 - 外部歌詞サービス障害時は、そのProviderだけ一時的に利用できません。
 - Supabaseへ同期するのは曲情報であり、MP3 / MP4本体ではありません。
 - `app.js` はまだ大きく、UI / Dialog / Library単位の段階分割が残っています。
+- Legacy `styles.css` には旧世代のVisual ruleが残っていますが、現行のLayout / Themeの正本は `workspace.css` / `sidebar.css` / `theme.css` です。段階的に整理します。
 - Visual変更はStatic / Regressionで確認できますが、最終的な見た目は実ブラウザ・Zoom・小Viewportでも確認が必要です。
 
 変更履歴は `docs/CHANGELOG.md`、詳細な未完了事項は `docs/KNOWN_ISSUES.md` を参照してください。

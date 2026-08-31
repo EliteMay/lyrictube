@@ -66,6 +66,26 @@
 - Guide candidate: yes
 - Guide note: web-project-guide F-006 / F-012へ還元済み。
 
+### PL-F-004 新旧Theme Layerが混在して画面内の配色が分裂した
+
+- Date: 2026-08-31
+- Status: resolved
+- Severity: high
+- Cost: medium
+- Symptom: Light / Sepia等を選ぶと中央と歌詞は明るいSurfaceになる一方、SidebarだけDark固定のまま残り、HoverやActive歌詞にも別世代の色・Gradientが混在した。
+- Expected: 1つのThemeを選んだら、Navigation / Main / Lyrics / Controlsが同じToken体系で一貫して切り替わる。
+- Actual: 新しい `sidebar.css` が `#0c0f13 !important` でSidebarを固定し、旧 `styles.css` の `body.theme-*` が高いSpecificityでMain側を上書きした。さらに旧Gradient lyric ruleの `-webkit-text-fill-color: transparent` が残った。
+- Trigger / Reproduction: SettingsでLight / Sepia / Midnight / Synthwaveへ切替し、Topbar / Sidebar / Lyrics / Hover状態を比較する。
+- Root Cause: Visual refreshでLayoutの正本は追加したが、Theme Colorの正本を定義せずLegacy theme selectorsと新しい固定色を同時に残した。
+- Final Fix: `theme.css` をTheme Colorの正本にし、5テーマのPage / Navigation / Surface / Text / Border / Accent Tokenを統一。SidebarもToken参照へ変更し、旧Ambient / Gradient lyric / unrelated hover surfaceを最終Layerで正規化した。
+- Affected files / systems: `styles.css`, `workspace.css`, `sidebar.css`, `theme.css`, Tags / Dialog / Bottom PlayerのVisual state
+- Detection method: User screenshot + CSS specificity review
+- Regression Guard: `tests/theme-consistency.test.js`
+- Prevention: 大規模Visual refreshではLayout LayerだけでなくTheme Token OwnershipとLoad Orderを先に決める。Themeごとの主要SurfaceとHover / Active状態をScreenshotで確認する。
+- Related Issue / PR / Commit: Theme unification follow-up after Media Workspace refresh
+- Guide candidate: yes
+- Guide note: Visual Quality BaselineのComponent Consistency / Interactive State / Visual Verificationに該当する実例。
+
 ---
 
 ## Success
@@ -116,3 +136,4 @@
 | ID | Type | Summary | Evidence | Next action |
 |---|---|---|---|---|
 | PL-Q-001 | success | 定期的にGuide revisionとProject CIをまとめて確認する仕組み | `guide-audit.yml` | 数回運用し、Issue通知の頻度と実用性を評価する |
+| PL-Q-002 | failure | Visual refresh時にTheme token ownershipを曖昧にすると新旧CSSが混在する | `theme.css`, `tests/theme-consistency.test.js` | web-project-guideのVisual review / Theme ownership例へ還元候補として評価する |

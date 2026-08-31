@@ -1,4 +1,5 @@
 @import url("workspace.css?v=20260831-design1");
+@import url("theme.css?v=20260831-theme1");
 
 /* Canonical sidebar layout: persistent header/tools + one scroll region. */
 @media(min-width:901px){
@@ -11,8 +12,9 @@
   min-height:0!important;
   overflow:hidden!important;
   padding:16px 12px 12px!important;
-  background:#0c0f13!important;
+  background:var(--ui-nav-bg)!important;
   border-right:1px solid var(--ui-line-strong)!important;
+  color:var(--ui-text)!important;
   backdrop-filter:none!important;
 }
 .brand-row{
@@ -22,7 +24,7 @@
 }
 .brand-lockup{gap:10px!important;min-width:0}
 .brand-logo{width:38px!important;height:38px!important;border-radius:9px!important}
-.brand-title-line h1{font-size:20px!important;line-height:1.1}
+.brand-title-line h1{font-size:20px!important;line-height:1.1;color:var(--ui-text)!important}
 .brand-subtitle{
   max-width:190px;
   margin-top:4px!important;
@@ -36,7 +38,7 @@
   flex:0 0 36px;
   border-color:transparent!important;
   background:var(--accent)!important;
-  color:#111318!important;
+  color:var(--ui-accent-on)!important;
   font-weight:900;
 }
 .brand-row>.icon-btn:hover{transform:translateY(-1px)}
@@ -49,20 +51,21 @@
   padding:0 4px 8px 0;
 }
 .sidebar-scroll::-webkit-scrollbar{width:8px}
-.sidebar-scroll::-webkit-scrollbar-thumb{border:2px solid transparent;border-radius:8px;background:rgba(255,255,255,.12);background-clip:padding-box}
+.sidebar-scroll::-webkit-scrollbar-thumb{border:2px solid transparent;border-radius:8px;background:color-mix(in srgb,var(--ui-text) 16%,transparent);background-clip:padding-box}
 .sidebar-scroll .search-box{
   min-height:40px;
   margin-top:13px;
   border-color:transparent!important;
   border-radius:9px!important;
   background:var(--ui-surface-2)!important;
+  color:var(--ui-text)!important;
 }
 .sidebar-scroll .search-box:focus-within{
-  border-color:rgba(139,92,246,.4)!important;
-  box-shadow:0 0 0 2px rgba(139,92,246,.08)!important;
+  border-color:hsl(var(--accent-h) 72% 60% / .38)!important;
+  box-shadow:0 0 0 2px hsl(var(--accent-h) 72% 60% / .08)!important;
 }
 .sidebar-scroll .search-box>span{color:var(--ui-text-3)}
-.sidebar-scroll .search-box input{padding:9px 0!important;font-size:12px}
+.sidebar-scroll .search-box input{padding:9px 0!important;font-size:12px;color:var(--ui-text)!important}
 
 .page-switch{
   grid-template-columns:1fr 1fr;
@@ -79,6 +82,7 @@
   min-height:34px;
   border:0!important;
   border-radius:0!important;
+  background:transparent!important;
   color:var(--ui-text-3)!important;
   font-size:10px!important;
   font-weight:750!important;
@@ -105,7 +109,7 @@
   border:0!important;
   border-radius:7px!important;
   padding:7px 8px!important;
-  color:#b6bdc6!important;
+  color:var(--ui-text-2)!important;
   font-size:12px;
 }
 .view-btn:hover{background:var(--ui-surface-2)!important;color:var(--ui-text)!important}
@@ -120,7 +124,7 @@
   color:var(--ui-text-3)!important;
   font-size:9px!important;
 }
-.view-btn.active .nav-icon{color:#d8ceff!important}
+.view-btn.active .nav-icon{color:var(--ui-accent-text)!important}
 .nav-count{color:var(--ui-text-3)!important;font-variant-numeric:tabular-nums}
 .view-nav-divider{margin:5px 6px!important;background:var(--ui-line)!important}
 .smart-view{font-size:11px!important}
@@ -156,7 +160,7 @@
 .playlist-item,.tag-sidebar-item,.tag-sidebar-empty{
   min-height:32px!important;
   border-radius:7px!important;
-  color:#aeb6c0!important;
+  color:var(--ui-text-2)!important;
 }
 .playlist-item{padding:7px 8px!important;font-size:11px}
 .playlist-item:hover,.playlist-item.active,.tag-sidebar-item:hover,.tag-sidebar-item.active,.tag-sidebar-empty:hover{
@@ -180,6 +184,7 @@
   padding:7px!important;
   border:0!important;
   border-radius:8px!important;
+  color:var(--ui-text)!important;
   transition:background-color .14s ease!important;
 }
 .song-item:hover{
@@ -192,13 +197,14 @@
 }
 .song-item.active::before{display:none!important}
 .thumb{width:38px!important;border-radius:7px!important;background:var(--ui-surface-3)!important}
-.song-meta strong{font-size:12px!important;font-weight:720}
+.song-meta strong{font-size:12px!important;font-weight:720;color:var(--ui-text)!important}
 .song-meta span{margin-top:2px!important;color:var(--ui-text-3)!important;font-size:10px!important}
 .song-playlist-add{
   width:28px!important;
   height:28px!important;
   border-radius:7px!important;
   box-shadow:none!important;
+  color:var(--ui-text-3)!important;
 }
 
 .sidebar-tools{
@@ -210,7 +216,7 @@
   border-top:1px solid var(--ui-line);
   position:relative;
   z-index:2;
-  background:#0c0f13;
+  background:var(--ui-nav-bg)!important;
 }
 .sidebar-tools .ghost-btn,
 .sidebar-tools .file-label{
@@ -237,10 +243,10 @@
 @media(max-width:900px){
   .sidebar{
     padding:14px 12px 10px!important;
-    background:#0c0f13!important;
+    background:var(--ui-nav-bg)!important;
   }
   .sidebar-scroll{overflow-y:auto!important;padding-right:2px}
-  .sidebar-tools{padding-top:8px;background:#0c0f13}
+  .sidebar-tools{padding-top:8px;background:var(--ui-nav-bg)!important}
   .brand-row{padding-bottom:12px}
   .page-switch-btn.active::after{bottom:-8px}
 }

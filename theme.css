@@ -1,0 +1,544 @@
+/*
+ * LyricTube canonical theme layer.
+ * One source of truth for page, navigation, surface, text and control colors.
+ * Loaded after legacy styles through sidebar.css so older theme rules cannot
+ * split the workspace into unrelated dark/light surfaces.
+ */
+
+:root{
+  --ui-bg:#090b0e;
+  --ui-nav-bg:#0c0f13;
+  --ui-topbar-bg:#0b0e12;
+  --ui-bottom-bg:#0a0d11;
+  --ui-surface:#0f1216;
+  --ui-surface-2:#14181d;
+  --ui-surface-3:#1a1f25;
+  --ui-player-stage:#050607;
+  --ui-line:rgba(255,255,255,.075);
+  --ui-line-strong:rgba(255,255,255,.12);
+  --ui-text:#f4f6f8;
+  --ui-text-2:#a7afb9;
+  --ui-text-3:#727b87;
+  --ui-accent-text:#ddd5ff;
+  --ui-accent-on:#101217;
+  --ui-danger:#ff8585;
+  --ui-overlay:rgba(0,0,0,.72);
+}
+
+body.theme-dark{
+  --ui-bg:#090b0e;
+  --ui-nav-bg:#0c0f13;
+  --ui-topbar-bg:#0b0e12;
+  --ui-bottom-bg:#0a0d11;
+  --ui-surface:#0f1216;
+  --ui-surface-2:#14181d;
+  --ui-surface-3:#1a1f25;
+  --ui-line:rgba(255,255,255,.075);
+  --ui-line-strong:rgba(255,255,255,.12);
+  --ui-text:#f4f6f8;
+  --ui-text-2:#a7afb9;
+  --ui-text-3:#727b87;
+  --ui-accent-text:hsl(var(--accent-h) 82% 88%);
+  --ui-accent-on:#101217;
+  color-scheme:dark;
+}
+
+body.theme-light{
+  --ui-bg:#eef1f5;
+  --ui-nav-bg:#f7f8fa;
+  --ui-topbar-bg:#f8f9fb;
+  --ui-bottom-bg:#f8f9fb;
+  --ui-surface:#ffffff;
+  --ui-surface-2:#f0f2f5;
+  --ui-surface-3:#e5e8ed;
+  --ui-line:rgba(27,34,45,.09);
+  --ui-line-strong:rgba(27,34,45,.14);
+  --ui-text:#1c2129;
+  --ui-text-2:#626b78;
+  --ui-text-3:#858e9a;
+  --ui-accent-text:hsl(var(--accent-h) 66% 38%);
+  --ui-accent-on:#ffffff;
+  --ui-overlay:rgba(20,24,30,.45);
+  color-scheme:light;
+}
+
+body.theme-synthwave{
+  --ui-bg:#0d0713;
+  --ui-nav-bg:#130a1c;
+  --ui-topbar-bg:#130a1b;
+  --ui-bottom-bg:#100817;
+  --ui-surface:#1a1024;
+  --ui-surface-2:#24142f;
+  --ui-surface-3:#311a40;
+  --ui-line:rgba(244,225,255,.09);
+  --ui-line-strong:rgba(244,225,255,.15);
+  --ui-text:#f7effc;
+  --ui-text-2:#b7a5c2;
+  --ui-text-3:#806f8d;
+  --ui-accent-text:#ffd3f6;
+  --ui-accent-on:#170717;
+  color-scheme:dark;
+}
+
+body.theme-midnight{
+  --ui-bg:#050a15;
+  --ui-nav-bg:#08101f;
+  --ui-topbar-bg:#08101d;
+  --ui-bottom-bg:#070e1b;
+  --ui-surface:#0d1728;
+  --ui-surface-2:#142239;
+  --ui-surface-3:#1d2e49;
+  --ui-line:rgba(220,232,255,.085);
+  --ui-line-strong:rgba(220,232,255,.14);
+  --ui-text:#edf3fb;
+  --ui-text-2:#9cabc0;
+  --ui-text-3:#687a94;
+  --ui-accent-text:#cfe6ff;
+  --ui-accent-on:#07101d;
+  color-scheme:dark;
+}
+
+body.theme-sepia{
+  --ui-bg:#eee8dc;
+  --ui-nav-bg:#f5f0e7;
+  --ui-topbar-bg:#f5f0e7;
+  --ui-bottom-bg:#f6f1e9;
+  --ui-surface:#fbf8f1;
+  --ui-surface-2:#eee7da;
+  --ui-surface-3:#e3dacb;
+  --ui-line:rgba(74,54,34,.11);
+  --ui-line-strong:rgba(74,54,34,.17);
+  --ui-text:#3c3024;
+  --ui-text-2:#766857;
+  --ui-text-3:#9a8b79;
+  --ui-accent-text:#995d22;
+  --ui-accent-on:#fffaf2;
+  --ui-overlay:rgba(48,36,25,.42);
+  color-scheme:light;
+}
+
+body.theme-dark,
+body.theme-light,
+body.theme-synthwave,
+body.theme-midnight,
+body.theme-sepia{
+  --bg:var(--ui-bg);
+  --panel:var(--ui-surface);
+  --panel2:var(--ui-surface-2);
+  --panel3:var(--ui-surface-3);
+  --border:var(--ui-line);
+  --text:var(--ui-text);
+  --muted:var(--ui-text-2);
+  --inputSurface:var(--ui-surface-2);
+  --controlSurface:var(--ui-surface-2);
+  --accentText:var(--ui-accent-text);
+  background:var(--ui-bg)!important;
+  color:var(--ui-text)!important;
+}
+
+/* Decorative legacy background layers were designed before the workspace UI.
+   They are disabled so one theme cannot leak a second background behind it. */
+body.theme-dark::before,
+body.theme-dark::after,
+body.theme-light::before,
+body.theme-light::after,
+body.theme-synthwave::before,
+body.theme-synthwave::after,
+body.theme-midnight::before,
+body.theme-midnight::after,
+body.theme-sepia::before,
+body.theme-sepia::after{
+  content:none!important;
+  display:none!important;
+}
+
+body.theme-dark .main,
+body.theme-light .main,
+body.theme-synthwave .main,
+body.theme-midnight .main,
+body.theme-sepia .main,
+body.theme-dark .workspace,
+body.theme-light .workspace,
+body.theme-synthwave .workspace,
+body.theme-midnight .workspace,
+body.theme-sepia .workspace,
+body.theme-dark .browse-page,
+body.theme-light .browse-page,
+body.theme-synthwave .browse-page,
+body.theme-midnight .browse-page,
+body.theme-sepia .browse-page,
+body.theme-dark .tags-page,
+body.theme-light .tags-page,
+body.theme-synthwave .tags-page,
+body.theme-midnight .tags-page,
+body.theme-sepia .tags-page{
+  background:var(--ui-bg)!important;
+  color:var(--ui-text)!important;
+}
+
+body.theme-dark .topbar,
+body.theme-light .topbar,
+body.theme-synthwave .topbar,
+body.theme-midnight .topbar,
+body.theme-sepia .topbar{
+  background:var(--ui-topbar-bg)!important;
+  border-bottom-color:var(--ui-line)!important;
+  color:var(--ui-text)!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+}
+
+body.theme-dark .bottom-player,
+body.theme-light .bottom-player,
+body.theme-synthwave .bottom-player,
+body.theme-midnight .bottom-player,
+body.theme-sepia .bottom-player{
+  background:var(--ui-bottom-bg)!important;
+  border-top-color:var(--ui-line-strong)!important;
+  color:var(--ui-text)!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+}
+body.theme-dark .bottom-player::before,
+body.theme-light .bottom-player::before,
+body.theme-synthwave .bottom-player::before,
+body.theme-midnight .bottom-player::before,
+body.theme-sepia .bottom-player::before{display:none!important}
+
+/* Secondary controls are sections, not five separate theme-specific cards. */
+body.theme-dark .version-card,
+body.theme-dark .transport-card,
+body.theme-dark .range-card,
+body.theme-dark .sync-card,
+body.theme-light .version-card,
+body.theme-light .transport-card,
+body.theme-light .range-card,
+body.theme-light .sync-card,
+body.theme-synthwave .version-card,
+body.theme-synthwave .transport-card,
+body.theme-synthwave .range-card,
+body.theme-synthwave .sync-card,
+body.theme-midnight .version-card,
+body.theme-midnight .transport-card,
+body.theme-midnight .range-card,
+body.theme-midnight .sync-card,
+body.theme-sepia .version-card,
+body.theme-sepia .transport-card,
+body.theme-sepia .range-card,
+body.theme-sepia .sync-card{
+  background:transparent!important;
+  border-color:transparent!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+}
+
+body.theme-dark .lyrics-panel,
+body.theme-light .lyrics-panel,
+body.theme-synthwave .lyrics-panel,
+body.theme-midnight .lyrics-panel,
+body.theme-sepia .lyrics-panel,
+body.theme-dark .lyrics-head,
+body.theme-light .lyrics-head,
+body.theme-synthwave .lyrics-head,
+body.theme-midnight .lyrics-head,
+body.theme-sepia .lyrics-head{
+  background:var(--ui-surface)!important;
+  border-color:var(--ui-line-strong)!important;
+  color:var(--ui-text)!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+}
+
+body.theme-dark .player-card,
+body.theme-light .player-card,
+body.theme-synthwave .player-card,
+body.theme-midnight .player-card,
+body.theme-sepia .player-card{
+  background:var(--ui-player-stage)!important;
+  border-color:var(--ui-line-strong)!important;
+}
+
+body.theme-dark .browse-hero,
+body.theme-light .browse-hero,
+body.theme-synthwave .browse-hero,
+body.theme-midnight .browse-hero,
+body.theme-sepia .browse-hero,
+body.theme-dark .tags-hero,
+body.theme-light .tags-hero,
+body.theme-synthwave .tags-hero,
+body.theme-midnight .tags-hero,
+body.theme-sepia .tags-hero{
+  background:transparent!important;
+  border-color:var(--ui-line)!important;
+  box-shadow:none!important;
+}
+
+body.theme-dark .browse-card,
+body.theme-light .browse-card,
+body.theme-synthwave .browse-card,
+body.theme-midnight .browse-card,
+body.theme-sepia .browse-card{
+  background:transparent!important;
+  border-color:transparent!important;
+  box-shadow:none!important;
+}
+
+body.theme-dark .dialog,
+body.theme-light .dialog,
+body.theme-synthwave .dialog,
+body.theme-midnight .dialog,
+body.theme-sepia .dialog,
+body.theme-dark .tag-filter-popover,
+body.theme-light .tag-filter-popover,
+body.theme-synthwave .tag-filter-popover,
+body.theme-midnight .tag-filter-popover,
+body.theme-sepia .tag-filter-popover,
+body.theme-dark .tag-manager-panel,
+body.theme-light .tag-manager-panel,
+body.theme-synthwave .tag-manager-panel,
+body.theme-midnight .tag-manager-panel,
+body.theme-sepia .tag-manager-panel{
+  background:var(--ui-surface)!important;
+  border-color:var(--ui-line)!important;
+  color:var(--ui-text)!important;
+}
+
+body.theme-dark .dialog input,
+body.theme-dark .dialog textarea,
+body.theme-dark .dialog select,
+body.theme-light .dialog input,
+body.theme-light .dialog textarea,
+body.theme-light .dialog select,
+body.theme-synthwave .dialog input,
+body.theme-synthwave .dialog textarea,
+body.theme-synthwave .dialog select,
+body.theme-midnight .dialog input,
+body.theme-midnight .dialog textarea,
+body.theme-midnight .dialog select,
+body.theme-sepia .dialog input,
+body.theme-sepia .dialog textarea,
+body.theme-sepia .dialog select{
+  background:var(--ui-surface-2)!important;
+  border-color:var(--ui-line)!important;
+  color:var(--ui-text)!important;
+}
+
+body.theme-dark .range-box,
+body.theme-dark .skip-row,
+body.theme-dark .version-tab,
+body.theme-dark .result-item,
+body.theme-dark .sync-editor-row,
+body.theme-dark .playlist-manage-row,
+body.theme-dark .help-block,
+body.theme-dark .settings-section,
+body.theme-dark .queue-item,
+body.theme-dark .tag-manager-item,
+body.theme-dark .tag-song-search,
+body.theme-dark .tag-song-check-row,
+body.theme-dark .tag-editor-preview,
+body.theme-light .range-box,
+body.theme-light .skip-row,
+body.theme-light .version-tab,
+body.theme-light .result-item,
+body.theme-light .sync-editor-row,
+body.theme-light .playlist-manage-row,
+body.theme-light .help-block,
+body.theme-light .settings-section,
+body.theme-light .queue-item,
+body.theme-light .tag-manager-item,
+body.theme-light .tag-song-search,
+body.theme-light .tag-song-check-row,
+body.theme-light .tag-editor-preview,
+body.theme-synthwave .range-box,
+body.theme-synthwave .skip-row,
+body.theme-synthwave .version-tab,
+body.theme-synthwave .result-item,
+body.theme-synthwave .sync-editor-row,
+body.theme-synthwave .playlist-manage-row,
+body.theme-synthwave .help-block,
+body.theme-synthwave .settings-section,
+body.theme-synthwave .queue-item,
+body.theme-synthwave .tag-manager-item,
+body.theme-synthwave .tag-song-search,
+body.theme-synthwave .tag-song-check-row,
+body.theme-synthwave .tag-editor-preview,
+body.theme-midnight .range-box,
+body.theme-midnight .skip-row,
+body.theme-midnight .version-tab,
+body.theme-midnight .result-item,
+body.theme-midnight .sync-editor-row,
+body.theme-midnight .playlist-manage-row,
+body.theme-midnight .help-block,
+body.theme-midnight .settings-section,
+body.theme-midnight .queue-item,
+body.theme-midnight .tag-manager-item,
+body.theme-midnight .tag-song-search,
+body.theme-midnight .tag-song-check-row,
+body.theme-midnight .tag-editor-preview,
+body.theme-sepia .range-box,
+body.theme-sepia .skip-row,
+body.theme-sepia .version-tab,
+body.theme-sepia .result-item,
+body.theme-sepia .sync-editor-row,
+body.theme-sepia .playlist-manage-row,
+body.theme-sepia .help-block,
+body.theme-sepia .settings-section,
+body.theme-sepia .queue-item,
+body.theme-sepia .tag-manager-item,
+body.theme-sepia .tag-song-search,
+body.theme-sepia .tag-song-check-row,
+body.theme-sepia .tag-editor-preview{
+  background:var(--ui-surface-2)!important;
+  border-color:var(--ui-line)!important;
+  color:var(--ui-text)!important;
+  box-shadow:none!important;
+}
+
+/* Ordinary controls must never switch to an unrelated dark surface on hover. */
+body.theme-dark .ghost-btn:hover,
+body.theme-dark .icon-btn:hover,
+body.theme-dark .mode-btn:hover,
+body.theme-dark .transport-btn:hover,
+body.theme-dark .chip:hover,
+body.theme-dark .mini-icon:hover,
+body.theme-light .ghost-btn:hover,
+body.theme-light .icon-btn:hover,
+body.theme-light .mode-btn:hover,
+body.theme-light .transport-btn:hover,
+body.theme-light .chip:hover,
+body.theme-light .mini-icon:hover,
+body.theme-synthwave .ghost-btn:hover,
+body.theme-synthwave .icon-btn:hover,
+body.theme-synthwave .mode-btn:hover,
+body.theme-synthwave .transport-btn:hover,
+body.theme-synthwave .chip:hover,
+body.theme-synthwave .mini-icon:hover,
+body.theme-midnight .ghost-btn:hover,
+body.theme-midnight .icon-btn:hover,
+body.theme-midnight .mode-btn:hover,
+body.theme-midnight .transport-btn:hover,
+body.theme-midnight .chip:hover,
+body.theme-midnight .mini-icon:hover,
+body.theme-sepia .ghost-btn:hover,
+body.theme-sepia .icon-btn:hover,
+body.theme-sepia .mode-btn:hover,
+body.theme-sepia .transport-btn:hover,
+body.theme-sepia .chip:hover,
+body.theme-sepia .mini-icon:hover{
+  background:var(--ui-surface-3)!important;
+  border-color:var(--ui-line-strong)!important;
+  color:var(--ui-text)!important;
+  box-shadow:none!important;
+}
+
+body.theme-dark .ghost-btn,
+body.theme-dark .mode-btn,
+body.theme-dark .transport-btn,
+body.theme-dark .chip,
+body.theme-light .ghost-btn,
+body.theme-light .mode-btn,
+body.theme-light .transport-btn,
+body.theme-light .chip,
+body.theme-synthwave .ghost-btn,
+body.theme-synthwave .mode-btn,
+body.theme-synthwave .transport-btn,
+body.theme-synthwave .chip,
+body.theme-midnight .ghost-btn,
+body.theme-midnight .mode-btn,
+body.theme-midnight .transport-btn,
+body.theme-midnight .chip,
+body.theme-sepia .ghost-btn,
+body.theme-sepia .mode-btn,
+body.theme-sepia .transport-btn,
+body.theme-sepia .chip{
+  color:var(--ui-text)!important;
+}
+
+body.theme-dark .primary-soft,
+body.theme-dark .view-btn.active,
+body.theme-dark .version-tab.active,
+body.theme-dark .mode-btn.active,
+body.theme-dark .chip.active,
+body.theme-dark .status-pill.synced,
+body.theme-light .primary-soft,
+body.theme-light .view-btn.active,
+body.theme-light .version-tab.active,
+body.theme-light .mode-btn.active,
+body.theme-light .chip.active,
+body.theme-light .status-pill.synced,
+body.theme-synthwave .primary-soft,
+body.theme-synthwave .view-btn.active,
+body.theme-synthwave .version-tab.active,
+body.theme-synthwave .mode-btn.active,
+body.theme-synthwave .chip.active,
+body.theme-synthwave .status-pill.synced,
+body.theme-midnight .primary-soft,
+body.theme-midnight .view-btn.active,
+body.theme-midnight .version-tab.active,
+body.theme-midnight .mode-btn.active,
+body.theme-midnight .chip.active,
+body.theme-midnight .status-pill.synced,
+body.theme-sepia .primary-soft,
+body.theme-sepia .view-btn.active,
+body.theme-sepia .version-tab.active,
+body.theme-sepia .mode-btn.active,
+body.theme-sepia .chip.active,
+body.theme-sepia .status-pill.synced{
+  background:var(--accentSoft)!important;
+  border-color:hsl(var(--accent-h) 72% 60% / .26)!important;
+  color:var(--ui-accent-text)!important;
+  box-shadow:none!important;
+}
+
+body.theme-dark .primary-btn,
+body.theme-light .primary-btn,
+body.theme-synthwave .primary-btn,
+body.theme-midnight .primary-btn,
+body.theme-sepia .primary-btn{
+  background:var(--accent)!important;
+  color:var(--ui-accent-on)!important;
+  box-shadow:none!important;
+}
+
+/* Active lyric uses one semantic accent marker; old gradient-text rules are reset. */
+body.theme-dark .lyric-line.active,
+body.theme-light .lyric-line.active,
+body.theme-synthwave .lyric-line.active,
+body.theme-midnight .lyric-line.active,
+body.theme-sepia .lyric-line.active{
+  background:none!important;
+  color:var(--ui-text)!important;
+  -webkit-background-clip:border-box!important;
+  background-clip:border-box!important;
+  -webkit-text-fill-color:currentColor!important;
+  text-shadow:none!important;
+}
+body.theme-dark .lyric-line,
+body.theme-light .lyric-line,
+body.theme-synthwave .lyric-line,
+body.theme-midnight .lyric-line,
+body.theme-sepia .lyric-line{color:var(--ui-text-3)!important}
+body.theme-dark .lyric-line.near,
+body.theme-light .lyric-line.near,
+body.theme-synthwave .lyric-line.near,
+body.theme-midnight .lyric-line.near,
+body.theme-sepia .lyric-line.near{color:var(--ui-text-2)!important}
+body.theme-dark .lyric-line.active,
+body.theme-light .lyric-line.active,
+body.theme-synthwave .lyric-line.active,
+body.theme-midnight .lyric-line.active,
+body.theme-sepia .lyric-line.active{color:var(--ui-text)!important}
+
+/* Tag controls use the theme surface; the tag color remains semantic metadata. */
+body.theme-dark .browse-tag-edit,
+body.theme-light .browse-tag-edit,
+body.theme-synthwave .browse-tag-edit,
+body.theme-midnight .browse-tag-edit,
+body.theme-sepia .browse-tag-edit{
+  background:color-mix(in srgb,var(--ui-surface) 90%,transparent)!important;
+  border-color:var(--ui-line-strong)!important;
+  color:var(--ui-text)!important;
+  backdrop-filter:none!important;
+}
+
+.dialog::backdrop{background:var(--ui-overlay)!important}
