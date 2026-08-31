@@ -1,8 +1,8 @@
 {
   "sourceRepository": "EliteMay/web-project-guide",
   "sourceUrl": "https://github.com/EliteMay/web-project-guide",
-  "reviewedGuideVersion": "1.5.0",
-  "reviewedGuideCommit": "b983ed304ee6ad87ccd0b1b09ae895710a8c82d0",
+  "reviewedGuideVersion": "1.11.0",
+  "reviewedGuideCommit": "33d5aa3fc5c09360dfcf75637bc61a18356c1cfa",
   "reviewedAt": "2026-08-31",
   "profiles": [
     "STATIC",
