@@ -9,14 +9,15 @@ LyricTube v0.13.2 の現行構成です。
 3. `core/runtime-hooks.js`
 4. `core/player-controller.js`
 5. `library-schema.js`
-5. `sync-interpolation.js`
-6. `profile-data.js`
+6. `sync-interpolation.js`
+7. `profile-data.js`
 8. `cloud-sync.js`
 9. `site-shell.js`
 10. `lyrics-providers.js`
 11. `local-media.js`
 12. `tags.js`
-13. ログイン / ゲスト確定後に `site-shell.js` が `app.js` を読み込む
+13. ログイン / ゲスト確定後に `site-shell.js` が `core/fair-shuffle.js` を読み込む
+14. 続けて `site-shell.js` が `app.js` を読み込む
 
 ## 責務
 
@@ -46,6 +47,15 @@ LyricTube v0.13.2 の現行構成です。
 - YouTube / Local Media共通の `play / pause / seek / currentTime / duration / state`
 - Source切替をAdapterとして管理
 - Local Mediaによる再生関数の大量上書きを廃止
+
+### core/fair-shuffle.js
+
+- Shuffle時の次曲候補選択をDOMから分離したPure logic
+- 現在曲を候補から除外
+- `lastPlayedAt` の無い未再生曲を最優先
+- 全候補に履歴がある場合は、最も長く聴いていない曲群の中からランダム選択
+- 既存 `lastPlayedAt` だけを使うためShuffle専用Storage / Schemaは持たない
+- Queueの範囲そのものは `app.js` の既存 `queueSongs()` が決定する
 
 ### library-schema.js
 
@@ -83,7 +93,7 @@ LyricTube v0.13.2 の現行構成です。
 - アカウント管理
 - スマホSidebar
 - 初回Cloud library取得
-- `app.js` bootstrap
+- `core/fair-shuffle.js` / `app.js` bootstrap
 
 Cloudの保存処理は持ちません。
 
@@ -109,6 +119,8 @@ Cloudの保存処理は持ちません。
 ### app.js
 
 旧バージョンからの互換コアです。現状は再生・ライブラリ・同期エディタ・UIの多くを含むため大きいですが、v0.10.0から `window.LyricTubeCore` Facadeを公開し、追加機能が直接内部状態へ依存しすぎない構成へ移行しています。
+
+Shuffle時は既存 `queueSongs()` で現在の表示 / Playlist / Tag Filter等に対応するQueueを作り、次曲の公平な候補選択だけを `core/fair-shuffle.js` へ委譲します。
 
 ## 今後の分割順
 
