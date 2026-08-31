@@ -1,0 +1,127 @@
+name: Web Project Guide Audit
+
+on:
+  schedule:
+    - cron: '23 0 * * 1'
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/guide-audit.yml'
+      - '.github/workflows/validate-js.yml'
+      - 'tools/check_web_project_guide.py'
+      - 'project-guide.json'
+      - 'PROJECT_LEARNINGS.md'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/guide-audit.yml'
+      - '.github/workflows/validate-js.yml'
+      - 'tools/check_web_project_guide.py'
+      - 'project-guide.json'
+      - 'PROJECT_LEARNINGS.md'
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  guide-check:
+    runs-on: ubuntu-latest
+    outputs:
+      needs_review: ${{ steps.audit.outputs.needs_review }}
+      latest_version: ${{ steps.audit.outputs.latest_version }}
+      latest_commit: ${{ steps.audit.outputs.latest_commit }}
+      adopted_version: ${{ steps.audit.outputs.adopted_version }}
+      reviewed_commit: ${{ steps.audit.outputs.reviewed_commit }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check latest web-project-guide revision
+        id: audit
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python tools/check_web_project_guide.py
+
+  validate:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    uses: ./.github/workflows/validate-js.yml
+
+  sync-review-issue:
+    needs: guide-check
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    env:
+      NEEDS_REVIEW: ${{ needs.guide-check.outputs.needs_review }}
+      LATEST_VERSION: ${{ needs.guide-check.outputs.latest_version }}
+      LATEST_COMMIT: ${{ needs.guide-check.outputs.latest_commit }}
+      ADOPTED_VERSION: ${{ needs.guide-check.outputs.adopted_version }}
+      REVIEWED_COMMIT: ${{ needs.guide-check.outputs.reviewed_commit }}
+    steps:
+      - name: Create, update, or close guide review issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const marker = '<!-- web-project-guide-audit -->';
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const needsReview = process.env.NEEDS_REVIEW === 'true';
+            const latestVersion = process.env.LATEST_VERSION;
+            const latestCommit = process.env.LATEST_COMMIT;
+            const adoptedVersion = process.env.ADOPTED_VERSION;
+            const reviewedCommit = process.env.REVIEWED_COMMIT;
+
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner,
+              repo,
+              state: 'open',
+              per_page: 100,
+            });
+            const existing = issues.find((issue) => !issue.pull_request && issue.body?.includes(marker));
+
+            if (!needsReview) {
+              if (existing) {
+                await github.rest.issues.createComment({
+                  owner,
+                  repo,
+                  issue_number: existing.number,
+                  body: `Reviewed baseline now matches web-project-guide ${latestVersion} (${latestCommit.slice(0, 12)}). Closing this periodic audit issue.`,
+                });
+                await github.rest.issues.update({
+                  owner,
+                  repo,
+                  issue_number: existing.number,
+                  state: 'closed',
+                  state_reason: 'completed',
+                });
+              }
+              core.info('web-project-guide baseline is current.');
+              return;
+            }
+
+            const compareUrl = `https://github.com/EliteMay/web-project-guide/compare/${reviewedCommit}...${latestCommit}`;
+            const title = `[Guide Audit] web-project-guide ${latestVersion} review required`;
+            const body = `${marker}
+            LyricTube's periodic audit detected an unreviewed web-project-guide revision.
+
+            - Reviewed: ${adoptedVersion} / \`${reviewedCommit.slice(0, 12)}\`
+            - Latest: ${latestVersion} / \`${latestCommit.slice(0, 12)}\`
+            - Diff: ${compareUrl}
+            - Profiles: STATIC / MEDIA / CLOUD / PUBLIC-CONTENT
+
+            Review the latest START_HERE and only the relevant Guide sections. Apply necessary LyricTube changes separately; this workflow intentionally does not rewrite application code automatically.
+
+            After review, update \`project-guide.json\` to the reviewed Guide version and commit. A later audit run will close this issue when the baseline matches.`;
+
+            if (existing) {
+              await github.rest.issues.update({
+                owner,
+                repo,
+                issue_number: existing.number,
+                title,
+                body,
+              });
+              core.info(`Updated existing guide audit issue #${existing.number}.`);
+            } else {
+              const { data: created } = await github.rest.issues.create({ owner, repo, title, body });
+              core.info(`Created guide audit issue #${created.number}.`);
+            }
