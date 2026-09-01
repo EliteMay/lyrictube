@@ -1,6 +1,6 @@
 {
   "appVersion": "v0.13.2",
-  "buildRevision": "20260831-1",
+  "buildRevision": "20260901-1",
   "dataFormatVersion": 3,
   "dataSchemaVersion": 4,
   "storageKey": "lyrictube.library.v3",
@@ -50,12 +50,19 @@
     "startEndRange": true,
     "guestMode": true,
     "cloudAccounts": true,
+    "selfServiceAccountRegistration": true,
     "rememberLastAccountName": true
   },
   "security": {
     "passwordStoredClientSide": false,
     "credentialsInRepository": false,
+    "registrationKeyStoredClientSide": false,
     "loginRateLimit": {
+      "windowMinutes": 10,
+      "maxFailures": 5,
+      "blockMinutes": 15
+    },
+    "registrationKeyRateLimit": {
       "windowMinutes": 10,
       "maxFailures": 5,
       "blockMinutes": 15
