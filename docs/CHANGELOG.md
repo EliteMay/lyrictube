@@ -1,3 +1,13 @@
+## v0.13.2 Song form tagging / build 20260902-1（2026-09-02）
+
+- 「曲を追加 / 曲情報を編集」ダイアログへタグ選択欄を追加。
+- 既存タグはチェック式で複数選択でき、保存時に既存の `song.tagIds` へ反映。
+- ダイアログ内から新規タグを作成し、そのまま選択可能。
+- タグ定義は既存の `library.settings.tags` を再利用し、新しい保存Schemaは追加しない。
+- `app.js` はタグ実装へ依存せず、`dialog:song-open` / `song:before-save` Hookで拡張する。
+- User-validated Visual Baselineの構造・Theme Tokenは変更しない。追加欄の実ブラウザVisualは未確認。
+- Data Schema 4 / `lyrictube.library.v3` を維持。
+
 ## v0.13.2 Self-service account registration / build 20260901-1（2026-09-01）
 
 - ログイン画面へ「＋ 新しいアカウントを作る」を追加。

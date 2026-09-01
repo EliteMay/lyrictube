@@ -1,6 +1,6 @@
 {
   "appVersion": "v0.13.2",
-  "buildRevision": "20260901-1",
+  "buildRevision": "20260902-1",
   "dataFormatVersion": 3,
   "dataSchemaVersion": 4,
   "storageKey": "lyrictube.library.v3",
@@ -44,6 +44,7 @@
     "favorites": true,
     "recentlyPlayed": true,
     "tags": true,
+    "songFormTagging": true,
     "lyricsSync": true,
     "manualLyricsEditing": true,
     "skipSegments": true,
