@@ -1,0 +1,83 @@
+name: Temporary Registration Documentation Patch
+
+on:
+  push:
+    branches:
+      - feat/self-service-account-registration
+    paths:
+      - .github/workflows/temp-registration-doc-patch.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/self-service-account-registration
+          fetch-depth: 0
+      - name: Patch project documentation exactly
+        shell: python
+        run: |
+          from pathlib import Path
+
+          def replace_once(path, old, new):
+              p=Path(path)
+              text=p.read_text(encoding='utf-8')
+              count=text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{path}: expected one match, got {count}')
+              p.write_text(text.replace(old,new,1),encoding='utf-8')
+
+          replace_once('README.md','**Build: 20260831-1**','**Build: 20260901-1**')
+          replace_once('README.md','- Build: `20260831-1`','- Build: `20260901-1`')
+          replace_once(
+              'README.md',
+              '初回はアカウント名 + パスワードでログインします。成功したアカウント名だけを端末に記憶し、パスワードは保存しません。Supabase側では同一アカウントへの連続ログイン失敗を制限します。',
+              '既存アカウントはアカウント名 + パスワードでログインします。ログイン画面の「＋ 新しいアカウントを作る」から、アカウント作成キーを使った新規登録もできます。登録成功後はそのままクラウドアカウントへログインします。成功したアカウント名だけを端末に記憶し、ログインパスワードとアカウント作成キーは保存しません。Supabase側ではログイン失敗と作成キーの連続失敗を制限します。'
+          )
+
+          cloud=Path('docs/CLOUD.md')
+          cloud_text=cloud.read_text(encoding='utf-8')
+          cloud_text=cloud_text.replace(
+              '- ログイン\n- Session確認\n- 初回Library取得\n- アカウント管理',
+              '- ログイン / 作成キー付き新規アカウント登録\n- Session確認\n- 初回Library取得\n- アカウント管理',
+              1
+          )
+          auth_old='''v0.10.0では同一アカウント名へのログイン失敗を10分窓で数え、5回失敗すると15分間ブロックします。成功時は失敗カウンターを削除します。'''
+          auth_new='''v0.10.0では同一アカウント名へのログイン失敗を10分窓で数え、5回失敗すると15分間ブロックします。成功時は失敗カウンターを削除します。\n\nBuild `20260901-1` から、未ログイン状態でも作成キーを使って新規クラウドアカウントを作成できます。作成キーの平文はGitHub Pages / localStorage / sessionStorageへ保存せず、Edge Function側でSHA-256照合します。作成キーの誤入力は接続元を直接保存せずHash化したRate Keyで数え、短時間の連続試行を制限します。登録は `lyrictube_register_account` でアカウントと初期Stateを同一Transaction内に作成し、成功後は30日Sessionを発行してそのままログインします。'''
+          if cloud_text.count(auth_old) != 1:
+              raise SystemExit('docs/CLOUD.md: auth anchor mismatch')
+          cloud.write_text(cloud_text.replace(auth_old,auth_new,1),encoding='utf-8')
+
+          changelog=Path('docs/CHANGELOG.md')
+          c=changelog.read_text(encoding='utf-8')
+          entry='''## v0.13.2 Self-service account registration / build 20260901-1（2026-09-01）\n\n- ログイン画面へ「＋ 新しいアカウントを作る」を追加。\n- アカウント名 / 表示名 / ログインパスワード / 確認用パスワード / アカウント作成キーを入力して登録できる。\n- 登録成功後は新しいクラウドアカウントへ自動ログインし、空のライブラリから開始する。\n- アカウント作成キーの平文は公開Frontend / GitHub / localStorage / sessionStorageへ保存しない。\n- Supabase Edge Function `lyrictube-api` v3 に未ログイン用 `register_account` Actionを追加し、作成キーをServer-side SHA-256で照合。\n- 作成キー誤入力はHash化した接続元Rate Keyで制限し、5回失敗後は15分間ブロック。\n- DB Migration `add_public_account_registration` でCase-insensitive username unique indexと、Account + initial StateをTransactionで作る `lyrictube_register_account` を追加。\n- ゲストモードは従来どおりRead-only。\n- Data Schema 4 / `lyrictube.library.v3` は変更なし。\n\n'''
+          if c.startswith(entry):
+              raise SystemExit('docs/CHANGELOG.md: entry already present')
+          changelog.write_text(entry+c,encoding='utf-8')
+
+          report=Path('作業報告書.md')
+          r=report.read_text(encoding='utf-8')
+          report_entry='''## 2026-09-01 サイト内アカウント作成\n\n- 学校PC等の別端末でゲストログインすると曲追加ができないという利用状況を起点に、サイト内からクラウドアカウントを作成できる導線を追加。\n- ログイン画面から登録フォームへ切り替え、作成キーを知っている利用者だけ新規登録可能にした。\n- 作成キーはFrontendへHardcodeせず、Supabase Edge Function側でDigest照合。誤入力にはRate Limitを追加。\n- DB側はAccount作成と初期State作成を同一Transactionにし、途中失敗で片方だけ残らないようにした。\n- 登録成功後はSessionを発行して自動ログインする。\n- Build `20260901-1`。Data Schema 4は変更なし。\n- Static / CI検証を行う。実ブラウザでの登録画面Visualと実際の学校PC環境は未確認。\n\n'''
+          if not r.startswith(report_entry):
+              report.write_text(report_entry+r,encoding='utf-8')
+
+          learn=Path('PROJECT_LEARNINGS.md')
+          l=learn.read_text(encoding='utf-8')
+          anchor='''---\n\n## Guide Feedback Queue'''
+          addition='''### PL-S-004 公開Frontendへ作成キーを置かずServer-side Gateで新規登録する\n\n- Date: 2026-09-01\n- Goal / Problem: 別端末から自分でクラウドアカウントを作れるようにしつつ、誰でも無制限に登録できる状態とFrontendへの秘密情報露出を避ける。\n- Adopted Pattern: Login UI → Edge Function `register_account` → Server-side key digest check + rate limit → Transactional account/state creation → Session発行。\n- Why it worked: GitHub Pages側へ作成キーの平文やService Role権限を置かず、既存の独自Session / Supabase構成を再利用できる。\n- Trade-off: 作成キーを共有した相手は登録できるため、完全なPublic SignupではなくInvite-key方式として運用する必要がある。\n- Reuse when: 個人・少人数向けCloud Toolで、メール認証までは不要だが新規登録を所有者が制御したいとき。\n- Avoid when: 不特定多数向けサービス、本人確認・Password reset・Account recoveryが必要なProduct。\n- Related files / systems: `site-shell.js`, `auth-ui.css`, Supabase `lyrictube-api` v3, `lyrictube_register_account`\n- Guide candidate: no\n- Guide note: 現行Security Baselineの「公開FrontendへSecretを置かない」をProjectへ適用した実例。\n\n---\n\n## Guide Feedback Queue'''
+          if anchor not in l:
+              raise SystemExit('PROJECT_LEARNINGS.md: queue anchor missing')
+          learn.write_text(l.replace(anchor,addition,1),encoding='utf-8')
+      - name: Validate documentation diff
+        run: git diff --check
+      - name: Commit documentation
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md docs/CLOUD.md docs/CHANGELOG.md PROJECT_LEARNINGS.md 作業報告書.md
+          git commit -m "docs: document self-service account registration [doc-patch]"
+          git push origin HEAD:feat/self-service-account-registration
