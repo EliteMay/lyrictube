@@ -149,6 +149,19 @@
 - Guide candidate: no
 - Guide note: web-project-guide Visual Design Quality / AP-026〜AP-028をProjectへ適用した実例。2026-08-31にユーザー確認済みVisualをBaseline Commit `230fd87bf027a6d7351a3e41efa761800b945e43` として固定。
 
+### PL-S-004 公開Frontendへ作成キーを置かずServer-side Gateで新規登録する
+
+- Date: 2026-09-01
+- Goal / Problem: 別端末から自分でクラウドアカウントを作れるようにしつつ、誰でも無制限に登録できる状態とFrontendへの秘密情報露出を避ける。
+- Adopted Pattern: Login UI → Edge Function `register_account` → Server-side key digest check + rate limit → Transactional account/state creation → Session発行。
+- Why it worked: GitHub Pages側へ作成キーの平文やService Role権限を置かず、既存の独自Session / Supabase構成を再利用できる。
+- Trade-off: 作成キーを共有した相手は登録できるため、完全なPublic SignupではなくInvite-key方式として運用する必要がある。
+- Reuse when: 個人・少人数向けCloud Toolで、メール認証までは不要だが新規登録を所有者が制御したいとき。
+- Avoid when: 不特定多数向けサービス、本人確認・Password reset・Account recoveryが必要なProduct。
+- Related files / systems: `site-shell.js`, `auth-ui.css`, Supabase `lyrictube-api` v3, `lyrictube_register_account`
+- Guide candidate: no
+- Guide note: 現行Security Baselineの「公開FrontendへSecretを置かない」をProjectへ適用した実例。
+
 ---
 
 ## Guide Feedback Queue

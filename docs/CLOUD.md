@@ -4,7 +4,7 @@
 
 ### site-shell.js
 
-- ログイン
+- ログイン / 作成キー付き新規アカウント登録
 - Session確認
 - 初回Library取得
 - アカウント管理
@@ -47,6 +47,8 @@ Edge Functionは独自Session tokenを検証します。
 パスワードはGitHub Pagesへ保存しません。
 
 v0.10.0では同一アカウント名へのログイン失敗を10分窓で数え、5回失敗すると15分間ブロックします。成功時は失敗カウンターを削除します。
+
+Build `20260901-1` から、未ログイン状態でも作成キーを使って新規クラウドアカウントを作成できます。作成キーの平文はGitHub Pages / localStorage / sessionStorageへ保存せず、Edge Function側でSHA-256照合します。作成キーの誤入力は接続元を直接保存せずHash化したRate Keyで数え、短時間の連続試行を制限します。登録は `lyrictube_register_account` でアカウントと初期Stateを同一Transaction内に作成し、成功後は30日Sessionを発行してそのままログインします。
 
 ## Local Media
 

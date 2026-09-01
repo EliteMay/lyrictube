@@ -8,7 +8,7 @@
   const CONFIG_URL = "data/site-config.json";
   const GUEST_LIBRARY_URL = "data/library.json";
   const API_URL = "https://ctktkyxuzkrsigwoswoc.supabase.co/functions/v1/lyrictube-api";
-  const VERSION = window.LyricTubeVersion?.build || "20260831-1";
+  const VERSION = window.LyricTubeVersion?.build || "20260901-1";
 
   const qs = (selector, root = document) => root.querySelector(selector);
   const qsa = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -125,6 +125,39 @@
           </div>
           <p id="accessStatus" class="access-status">接続を確認しています…</p>
         </form>
+        <button id="openRegisterBtn" class="access-create-toggle" type="button" disabled>＋ 新しいアカウントを作る</button>
+        <form id="registerForm" class="access-register-form" hidden autocomplete="off">
+          <div class="access-register-head">
+            <strong>新規アカウント作成</strong>
+            <span>作成キーを知っている人だけ登録できます。作成後はこの端末でそのままログインします。</span>
+          </div>
+          <label>
+            <span class="access-label">ACCOUNT</span>
+            <input id="registerUsername" type="text" autocomplete="username" maxlength="24" placeholder="3〜24文字の英数字・._-">
+          </label>
+          <label>
+            <span class="access-label">DISPLAY NAME <small>任意</small></span>
+            <input id="registerDisplayName" type="text" maxlength="40" placeholder="表示名">
+          </label>
+          <label>
+            <span class="access-label">PASSWORD</span>
+            <input id="registerPassword" type="password" autocomplete="new-password" minlength="8" maxlength="128" placeholder="8文字以上">
+          </label>
+          <label>
+            <span class="access-label">PASSWORD AGAIN</span>
+            <input id="registerPasswordAgain" type="password" autocomplete="new-password" minlength="8" maxlength="128" placeholder="もう一度入力">
+          </label>
+          <label>
+            <span class="access-label">ACCOUNT CREATE KEY</span>
+            <input id="registerCreationKey" type="password" autocomplete="off" placeholder="アカウント作成キー">
+            <span class="access-register-hint">作成キーはこのブラウザへ保存しません。</span>
+          </label>
+          <div class="access-register-actions">
+            <button id="cancelRegisterBtn" class="access-register-cancel" type="button">戻る</button>
+            <button id="registerSubmit" class="access-register-submit" type="submit">作成してログイン</button>
+          </div>
+          <p id="registerStatus" class="access-register-status" aria-live="polite"></p>
+        </form>
         <div class="access-divider"><span>or</span></div>
         <button id="guestAccessBtn" class="guest-access-btn" type="button" disabled>
           <span class="guest-access-icon">◎</span>
@@ -230,12 +263,47 @@
       const submit = qs("#accessSubmit", gate);
       const guest = qs("#guestAccessBtn", gate);
       const status = qs("#accessStatus", gate);
+      const intro = qs(".access-copy", gate);
+      const divider = qs(".access-divider", gate);
+      const openRegister = qs("#openRegisterBtn", gate);
+      const registerForm = qs("#registerForm", gate);
+      const cancelRegister = qs("#cancelRegisterBtn", gate);
+      const registerSubmit = qs("#registerSubmit", gate);
+      const registerStatus = qs("#registerStatus", gate);
+      const registerUsername = qs("#registerUsername", gate);
+      const registerDisplayName = qs("#registerDisplayName", gate);
+      const registerPassword = qs("#registerPassword", gate);
+      const registerPasswordAgain = qs("#registerPasswordAgain", gate);
+      const registerCreationKey = qs("#registerCreationKey", gate);
       usernameInput.disabled = false;
       passwordInput.disabled = false;
       submit.disabled = false;
       guest.disabled = false;
+      openRegister.disabled = false;
       status.textContent = "";
       if (!applyRememberedAccount(gate, usernameInput, passwordInput)) passwordInput.focus();
+
+      const setRegisterMode = enabled => {
+        form.hidden = enabled;
+        openRegister.hidden = enabled;
+        divider.hidden = enabled;
+        guest.hidden = enabled;
+        registerForm.hidden = !enabled;
+        registerStatus.textContent = "";
+        registerStatus.classList.remove("success");
+        if (enabled) {
+          intro.textContent = "作成キーを使って、新しいクラウドアカウントを作成します。";
+          if (!registerUsername.value) registerUsername.value = usernameInput.value.trim();
+          registerUsername.focus();
+        } else {
+          intro.textContent = readRememberedAccount()
+            ? "前回のアカウントを使います。パスワードだけ入力してください。"
+            : "アカウント名とパスワードでログインします。";
+          (usernameInput.value ? passwordInput : usernameInput).focus();
+        }
+      };
+      openRegister.addEventListener("click", () => setRegisterMode(true));
+      cancelRegister.addEventListener("click", () => setRegisterMode(false));
 
       form.addEventListener("submit", async event => {
         event.preventDefault();
@@ -263,6 +331,56 @@
           passwordInput.value = "";
           submit.disabled = false;
           passwordInput.focus();
+        }
+      });
+
+      registerForm.addEventListener("submit", async event => {
+        event.preventDefault();
+        const username = registerUsername.value.trim();
+        const displayName = registerDisplayName.value.trim();
+        const password = registerPassword.value;
+        const passwordAgain = registerPasswordAgain.value;
+        const creationKey = registerCreationKey.value;
+        registerStatus.classList.remove("success");
+        if (!/^[A-Za-z0-9_.-]{3,24}$/.test(username)) {
+          registerStatus.textContent = "アカウント名は3〜24文字の英数字・._-で入力してください。";
+          registerUsername.focus();
+          return;
+        }
+        if (password.length < 8) {
+          registerStatus.textContent = "パスワードは8文字以上にしてください。";
+          registerPassword.focus();
+          return;
+        }
+        if (password !== passwordAgain) {
+          registerStatus.textContent = "確認用パスワードが一致していません。";
+          registerPasswordAgain.focus();
+          return;
+        }
+        if (!creationKey) {
+          registerStatus.textContent = "アカウント作成キーを入力してください。";
+          registerCreationKey.focus();
+          return;
+        }
+
+        registerSubmit.disabled = true;
+        registerStatus.textContent = "アカウントを作成しています…";
+        try {
+          const data = await api("register_account", { username, displayName, password, creationKey });
+          rememberAccount(data?.account?.username || username);
+          const session = { token: data.token, account: data.account };
+          setCloudSession(session);
+          sessionStorage.setItem(ACCESS_SESSION_KEY, "cloud");
+          const loaded = await api("load_library", { token: session.token });
+          storeActiveLibrary(loaded.library);
+          registerCreationKey.value = "";
+          registerStatus.textContent = "作成しました。ログインします…";
+          registerStatus.classList.add("success");
+          gate.classList.add("unlocking");
+          setTimeout(() => { gate.remove(); resolve({ role: "cloud", config, session }); }, 170);
+        } catch (error) {
+          registerStatus.textContent = error.message || "アカウントを作成できませんでした。";
+          registerSubmit.disabled = false;
         }
       });
 

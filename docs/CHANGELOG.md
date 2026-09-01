@@ -1,3 +1,15 @@
+## v0.13.2 Self-service account registration / build 20260901-1（2026-09-01）
+
+- ログイン画面へ「＋ 新しいアカウントを作る」を追加。
+- アカウント名 / 表示名 / ログインパスワード / 確認用パスワード / アカウント作成キーを入力して登録できる。
+- 登録成功後は新しいクラウドアカウントへ自動ログインし、空のライブラリから開始する。
+- アカウント作成キーの平文は公開Frontend / GitHub / localStorage / sessionStorageへ保存しない。
+- Supabase Edge Function `lyrictube-api` v3 に未ログイン用 `register_account` Actionを追加し、作成キーをServer-side SHA-256で照合。
+- 作成キー誤入力はHash化した接続元Rate Keyで制限し、5回失敗後は15分間ブロック。
+- DB Migration `add_public_account_registration` でCase-insensitive username unique indexと、Account + initial StateをTransactionで作る `lyrictube_register_account` を追加。
+- ゲストモードは従来どおりRead-only。
+- Data Schema 4 / `lyrictube.library.v3` は変更なし。
+
 ## v0.13.2 Fair Shuffle / build 20260831-1（2026-08-31）
 
 - Shuffleの次曲選択を、現在曲以外から毎回完全ランダムに引く方式から再生履歴を考慮する方式へ変更。
