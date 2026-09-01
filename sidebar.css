@@ -263,3 +263,37 @@
   .sidebar-tools{margin-top:4px!important;padding-top:5px}
   .sidebar-tools .ghost-btn,.sidebar-tools .file-label{min-height:34px!important}
 }
+
+/* Compact desktop guard: keep the primary add-song action inside the rail. */
+@media(min-width:901px) and (max-width:1100px){
+  .brand-row{gap:8px!important}
+  .brand-lockup>div{min-width:0}
+  .brand-subtitle{display:none!important}
+  .brand-logo{width:34px!important;height:34px!important}
+  .brand-row>#addSongBtn{width:34px!important;height:34px!important;flex-basis:34px}
+}
+
+/* When the rail becomes an off-canvas drawer, keep its primary action visible
+   next to the hamburger instead of hiding it with the drawer. */
+@media(max-width:900px){
+  .sidebar{overflow:visible!important}
+  html:not([data-access-role="guest"]) body:not(.mobile-sidebar-open) .sidebar>.brand-row>#addSongBtn{
+    position:absolute!important;
+    top:14px;
+    left:calc(104% + 62px);
+    z-index:135;
+    width:38px!important;
+    height:38px!important;
+    display:grid!important;
+    place-items:center;
+    border:1px solid var(--ui-line-strong)!important;
+    border-radius:11px!important;
+    background:var(--accent)!important;
+    color:var(--ui-accent-on)!important;
+    box-shadow:0 8px 24px rgba(0,0,0,.22);
+    transform:none!important;
+  }
+  html:not([data-access-role="guest"]) body:not(.mobile-sidebar-open) .topbar .now-playing-summary{
+    margin-left:42px;
+  }
+}
