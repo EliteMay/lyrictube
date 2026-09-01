@@ -1,0 +1,34 @@
+name: Temporary Song Form Tag Patch
+
+on:
+  push:
+    branches:
+      - feat/song-form-tags
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/song-form-tags
+          fetch-depth: 0
+      - name: Apply focused patch
+        run: python tools/_tmp_apply_song_form_tags.py
+      - name: Validate focused files
+        run: |
+          node --check app.js
+          node --check tags.js
+          node tests/song-form-tags.test.js
+      - name: Commit final branch state and remove temporary assets
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm tools/_tmp_apply_song_form_tags.py .github/workflows/_tmp-apply-song-form-tags.yml
+          git add app.js tags.js tags.css index.html version.js data/defaults.json README.md docs/CHANGELOG.md tests/song-form-tags.test.js
+          git commit -m "feat: add tags to song form"
+          git push origin HEAD:feat/song-form-tags
