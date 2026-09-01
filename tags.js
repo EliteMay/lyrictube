@@ -25,6 +25,7 @@
   let editorColor = "violet";
   let songTagTargetId = "";
   let songTagDraft = new Set();
+  let songFormTagDraft = new Set();
 
   const $ = id => document.getElementById(id);
 
@@ -112,6 +113,7 @@
     createTagPage();
     createTagEditorDialog();
     createSongTagDialog();
+    createSongFormTagSection();
     ensurePageButton();
     ensureTopTagButton();
     ensureSidebarTags();
@@ -326,6 +328,109 @@
     $("cancelSongTagDialog", dialog).addEventListener("click", () => dialog.close());
     $("saveSongTagsBtn", dialog).addEventListener("click", saveSongTags);
     $("quickCreateTagBtn", dialog).addEventListener("click", quickCreateTag);
+  }
+
+
+  function createSongFormTagSection() {
+    if ($("songFormTagSection")) return;
+    const lyricsBox = document.querySelector("#songForm .lyrics-source-box");
+    if (!lyricsBox?.parentElement) return;
+
+    const section = document.createElement("section");
+    section.id = "songFormTagSection";
+    section.className = "song-form-tag-section";
+    section.innerHTML = `
+      <div class="song-form-tag-head">
+        <div><strong>タグ</strong><span>曲を追加・編集するときに、そのまま分類できます。</span></div>
+        <span id="songFormTagCount" class="song-form-tag-count"></span>
+      </div>
+      <div id="songFormTagList" class="song-form-tag-list"></div>
+      <div class="song-form-tag-create">
+        <input id="songFormQuickTagName" type="text" maxlength="24" placeholder="新しいタグ名">
+        <select id="songFormQuickTagColor" aria-label="新しいタグの色"></select>
+        <button id="songFormQuickCreateTagBtn" class="primary-soft" type="button">作成して選択</button>
+      </div>`;
+    lyricsBox.before(section);
+
+    const select = $("songFormQuickTagColor");
+    for (const preset of COLOR_PRESETS) {
+      const option = document.createElement("option");
+      option.value = preset.id;
+      option.textContent = preset.label;
+      select.appendChild(option);
+    }
+    $("songFormQuickCreateTagBtn")?.addEventListener("click", quickCreateSongFormTag);
+  }
+
+  function renderSongFormTagList() {
+    const list = $("songFormTagList");
+    if (!list) return;
+    list.innerHTML = "";
+
+    if (!tags().length) {
+      const empty = document.createElement("span");
+      empty.className = "song-form-tag-empty";
+      empty.textContent = "タグはまだありません。下から作ると、この曲へそのまま付けられます。";
+      list.appendChild(empty);
+    } else {
+      for (const tag of tags()) {
+        const label = document.createElement("label");
+        label.className = "song-form-tag-option";
+        const input = document.createElement("input");
+        input.type = "checkbox";
+        input.checked = songFormTagDraft.has(tag.id);
+        input.addEventListener("change", () => {
+          if (input.checked) songFormTagDraft.add(tag.id);
+          else songFormTagDraft.delete(tag.id);
+          renderSongFormTagCount();
+        });
+        label.append(input, makeTagPill(tag));
+        list.appendChild(label);
+      }
+    }
+    renderSongFormTagCount();
+  }
+
+  function renderSongFormTagCount() {
+    const count = $("songFormTagCount");
+    if (!count) return;
+    const selected = [...songFormTagDraft].filter(id => tagById(id)).length;
+    count.textContent = selected ? `${selected}個選択` : "未選択";
+  }
+
+  function resetSongFormTags(song = null) {
+    songFormTagDraft = new Set(songTagIds(song));
+    if ($("songFormQuickTagName")) $("songFormQuickTagName").value = "";
+    if ($("songFormQuickTagColor")) $("songFormQuickTagColor").value = "violet";
+    renderSongFormTagList();
+  }
+
+  function quickCreateSongFormTag() {
+    const name = String($("songFormQuickTagName")?.value || "").trim().slice(0, 24);
+    const colorValue = $("songFormQuickTagColor")?.value;
+    const color = COLOR_IDS.has(colorValue) ? colorValue : "violet";
+    if (!name) return safeShowToast("新しいタグ名を入力してください。");
+
+    const duplicate = tags().find(tag =>
+      tag.name.normalize("NFKC").toLowerCase() === name.normalize("NFKC").toLowerCase()
+    );
+    if (duplicate) {
+      songFormTagDraft.add(duplicate.id);
+      renderSongFormTagList();
+      safeShowToast("既存のタグを選択しました。");
+      return;
+    }
+
+    const tag = { id: uid(), name, color };
+    tags().push(tag);
+    songFormTagDraft.add(tag.id);
+    persistLibrary();
+    $("songFormQuickTagName").value = "";
+    renderSongFormTagList();
+    renderTagSidebar();
+    renderTagFilter();
+    renderTagManagerPage();
+    safeShowToast("タグを作成して選択しました。");
   }
 
   function openStandardPage(mode) {
@@ -816,6 +921,15 @@
   function installHooks() {
     const hooks=window.LyricTubeHooks;
     if(!hooks)throw new Error("core/runtime-hooks.js is required before tags.js");
+
+    hooks.on("dialog:song-open", detail => {
+      resetSongFormTags(detail?.song || null);
+    });
+
+    hooks.addFilter("song:before-save", song => ({
+      ...song,
+      tagIds:[...songFormTagDraft].filter(id => tagById(id))
+    }));
 
     hooks.addFilter("songs:view", result => {
       if(!activeTagIds.size)return result;

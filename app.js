@@ -1613,6 +1613,7 @@ function openSongDialog(song=null){
   }else{
     els.initialVersionType.value="original";
   }
+  window.LyricTubeHooks?.emit("dialog:song-open",{song:song||null,editing:Boolean(song)});
   els.songDialog.showModal();
 }
 async function searchLyrics(){
@@ -2006,6 +2007,8 @@ function saveSongForm(){
       updatedAt:nowIso()
     };
   }
+
+  song=window.LyricTubeHooks?.applyFilters("song:before-save",song,{old:old||null,editing:Boolean(old)})||song;
 
   if(old){
     library.songs=library.songs.map(s=>s.id===old.id?song:s);
