@@ -106,6 +106,26 @@
 - Guide candidate: no
 - Guide note: Project固有のMedia playback policyとして保持する。
 
+### PL-F-006 Compact viewportで曲追加の主要ActionがSidebarと一緒に隠れた
+
+- Date: 2026-09-01
+- Status: monitoring
+- Severity: medium
+- Cost: low
+- Symptom: 学校PCのChromeで開いたとき、曲を追加する `＋` ボタンが見えなかった。
+- Expected: 曲追加の主要Actionは、画面幅・Browser Zoom・OS ScalingでResponsive modeが変わっても到達できる。
+- Actual: CSS viewportが900px以下になるとSidebar全体がOff-canvas Drawerへ移るが、曲追加の主要ActionもSidebar内にしか存在しなかったため、Drawerを開くまで見えなくなった。
+- Trigger / Reproduction: 画面幅またはZoom / Windows Scalingにより実効CSS viewportを900px以下にし、Sidebarを閉じた状態でPlayer画面を表示する。
+- Root Cause: Responsive設計でNavigationの代替としてHamburgerは用意した一方、Sidebar headerに置いたPrimary Actionの到達性を別途確認していなかった。
+- Final Fix: 既存の `#addSongBtn` を重複生成せず、900px以下でDrawerが閉じている間だけHamburger横へ見える位置に再配置する。901〜1100pxではBrandを圧縮してButton領域を確保する。GuestはRead-only仕様のまま曲追加を表示しない。
+- Affected files / systems: `sidebar.css`, responsive navigation
+- Detection method: User report + responsive CSS / `site-shell.js` review
+- Regression Guard: `tests/sidebar-layout.test.js`
+- Prevention: Responsive breakpointを作る際はNavigationだけでなくPrimary Action / Search / Save / Add等の重要操作が各modeで到達できるか確認する。特にBrowser ZoomとOS ScalingでBreakpointを跨ぐケースを含める。
+- Related Issue / PR / Commit: compact add-song access fix
+- Guide candidate: yes
+- Guide note: web-project-guide Visual Quality BaselineのResponsive Visual Qualityと「低い解像度 / Zoomで主要Actionを消さない」の実例。
+
 ---
 
 ## Success
@@ -157,3 +177,4 @@
 |---|---|---|---|---|
 | PL-Q-001 | success | 定期的にGuide revisionとProject CIをまとめて確認する仕組み | `guide-audit.yml` | 数回運用し、Issue通知の頻度と実用性を評価する |
 | PL-Q-002 | failure | Visual refresh時にTheme token ownershipを曖昧にすると新旧CSSが混在する | `theme.css`, `tests/theme-consistency.test.js` | web-project-guideのVisual review / Theme ownership例へ還元候補として評価する |
+| PL-Q-003 | failure | Responsive Drawer化でPrimary Actionが隠れる | `sidebar.css`, `tests/sidebar-layout.test.js` | 他ProjectでもBreakpointごとのPrimary Action到達性をReviewする |
