@@ -1,0 +1,168 @@
+name: Temporary Account Register Scroll Fix
+
+on:
+  push:
+    branches:
+      - fix/account-register-scroll
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/account-register-scroll
+      - name: Apply focused registration overflow fix
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          old_build = "20260902-1"
+          new_build = "20260903-1"
+
+          auth = Path("auth-ui.css")
+          text = auth.read_text(encoding="utf-8")
+          marker = "/* account gate low-height overflow guard */"
+          if marker not in text:
+              text += """
+
+/* account gate low-height overflow guard */
+.access-card{
+  max-height:calc(100dvh - 24px);
+  overflow-y:auto;
+  overscroll-behavior-y:contain;
+  scrollbar-gutter:stable;
+  -webkit-overflow-scrolling:touch;
+}
+@supports not (height:100dvh){
+  .access-card{max-height:calc(100vh - 24px)}
+}
+@media(max-height:680px){
+  .access-card{max-height:calc(100dvh - 12px)}
+}
+"""
+          auth.write_text(text, encoding="utf-8")
+
+          version = Path("version.js")
+          text = version.read_text(encoding="utf-8")
+          if f'build: "{old_build}"' not in text:
+              raise SystemExit("version.js old build not found")
+          version.write_text(text.replace(f'build: "{old_build}"', f'build: "{new_build}"', 1), encoding="utf-8")
+
+          defaults = Path("data/defaults.json")
+          text = defaults.read_text(encoding="utf-8")
+          if f'"buildRevision": "{old_build}"' not in text:
+              raise SystemExit("defaults old build not found")
+          defaults.write_text(text.replace(f'"buildRevision": "{old_build}"', f'"buildRevision": "{new_build}"', 1), encoding="utf-8")
+
+          index = Path("index.html")
+          text = index.read_text(encoding="utf-8")
+          count = text.count(old_build)
+          if count < 8:
+              raise SystemExit(f"index build refs unexpectedly low: {count}")
+          index.write_text(text.replace(old_build, new_build), encoding="utf-8")
+
+          shell = Path("site-shell.js")
+          text = shell.read_text(encoding="utf-8")
+          fallback_old = 'const VERSION = window.LyricTubeVersion?.build || "20260901-1";'
+          fallback_new = f'const VERSION = window.LyricTubeVersion?.build || "{new_build}";'
+          if fallback_old in text:
+              text = text.replace(fallback_old, fallback_new, 1)
+          shell.write_text(text, encoding="utf-8")
+
+          readme = Path("README.md")
+          text = readme.read_text(encoding="utf-8")
+          if old_build not in text:
+              raise SystemExit("README old build not found")
+          readme.write_text(text.replace(old_build, new_build), encoding="utf-8")
+
+          changelog = Path("docs/CHANGELOG.md")
+          text = changelog.read_text(encoding="utf-8")
+          entry = f"""## v0.13.2 Account registration overflow fix / build {new_build}（2026-09-03）
+
+- 新規アカウント作成フォームが低い画面・高いZoomでViewportを超えた場合、下部の「作成してログイン」まで到達できない問題を修正。
+- `.access-card` にdynamic viewport height基準の最大高さと縦スクロールを追加。
+- `100dvh` 非対応環境向けに `100vh` fallbackを維持。
+- Login / Guest / Account registrationの機能・Supabase・保存Schemaは変更しない。
+- User-validated Visual Baselineの配色・構造は変更せず、overflow behaviorだけを修正。
+- 実ブラウザでの学校PC相当Viewport確認は未実施。
+
+"""
+          if not text.startswith(entry):
+              changelog.write_text(entry + text, encoding="utf-8")
+
+          learnings = Path("PROJECT_LEARNINGS.md")
+          text = learnings.read_text(encoding="utf-8")
+          learning = """
+
+## PL-F-006 Account registration formが低いViewportで最後まで操作できなかった
+
+- **Status:** Resolved
+- **Symptom:** 新規アカウント作成フォームを開くと、画面高さやZoomによって下部の「作成してログイン」までスクロールできない。
+- **Trigger:** Login用の短いCardへ後から長いRegistration Formを追加したが、Card自身にViewport基準のmax-height / overflow contractがなかった。
+- **Root cause:** Desktopの十分な縦解像度だけを前提にし、低いViewport・学校PCの表示Scale・Browser ZoomをRegression対象にしていなかった。
+- **Fix:** `.access-card` に `max-height: calc(100dvh - ...)` と `overflow-y:auto` を持たせ、`100vh` fallbackを追加。
+- **Regression guard:** `tests/account-register-scroll.test.js` でdynamic viewport / overflow / cache revisionを確認する。
+- **Prevention:** Modal / Gateへ内容を追加したときは、横幅だけでなく低ViewportとZoom時にPrimary Actionへ到達できるか確認する。
+"""
+          if "PL-F-006 Account registration form" not in text:
+              learnings.write_text(text.rstrip() + learning + "\n", encoding="utf-8")
+
+          report = Path("作業報告書.md")
+          if report.exists():
+              text = report.read_text(encoding="utf-8")
+              entry = f"""## 2026-09-03 Account registration scroll fix
+
+- User report: 新規アカウント作成画面で下まで移動できない。
+- Cause: Registration Form追加後もAccess Cardに低Viewport時の縦Scroll contractがなかった。
+- Fix: `auth-ui.css` の `.access-card` にdynamic viewport max-height + overflow-yを追加。
+- Build: `{new_build}`
+- Storage / Schema / Supabase: 変更なし。
+- Visual verification: 実ブラウザ未確認。CI / Pages後にユーザー環境で確認予定。
+
+"""
+              if not text.startswith(entry):
+                  report.write_text(entry + text, encoding="utf-8")
+
+          test = Path("tests/account-register-scroll.test.js")
+          test.write_text(r'''"use strict";
+const assert=require("node:assert/strict");
+const fs=require("node:fs");
+
+const css=fs.readFileSync("auth-ui.css","utf8");
+const version=fs.readFileSync("version.js","utf8");
+const index=fs.readFileSync("index.html","utf8");
+const build=version.match(/build:\s*"([^"]+)"/)?.[1];
+
+assert(build,"current build metadata missing");
+assert.match(css,/\.access-card\s*\{[\s\S]*max-height:calc\(100dvh - 24px\)/,"access card must be capped to the dynamic viewport");
+assert.match(css,/\.access-card\s*\{[\s\S]*overflow-y:auto/,"access card must scroll vertically when registration content is taller than the viewport");
+assert.match(css,/overscroll-behavior-y:contain/,"registration scroll should stay inside the access card");
+assert.match(css,/@supports not \(height:100dvh\)[\s\S]*100vh/,"100vh fallback is required for older browsers");
+assert(index.includes(`auth-ui.css?v=${build}`),"auth UI cache revision must follow current build metadata");
+console.log("account registration overflow regression guards passed");
+''', encoding="utf-8")
+          PY
+
+          node --check site-shell.js
+          node tests/account-register-scroll.test.js
+          node tests/account-registration.test.js
+          python -m json.tool data/defaults.json >/dev/null
+
+      - name: Commit final branch state and remove temporary workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/_tmp-account-register-scroll.yml
+          git add auth-ui.css version.js data/defaults.json index.html site-shell.js README.md docs/CHANGELOG.md PROJECT_LEARNINGS.md tests/account-register-scroll.test.js
+          if [ -f "作業報告書.md" ]; then git add "作業報告書.md"; fi
+          git diff --cached --check
+          git commit -m "fix: make account registration scrollable"
+          git push origin HEAD:fix/account-register-scroll
