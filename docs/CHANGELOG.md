@@ -1,3 +1,12 @@
+## v0.13.2 Account registration overflow fix / build 20260903-1（2026-09-03）
+
+- 新規アカウント作成フォームが低い画面・高いZoomでViewportを超えた場合、下部の「作成してログイン」まで到達できない問題を修正。
+- `.access-card` にdynamic viewport height基準の最大高さと縦スクロールを追加。
+- `100dvh` 非対応環境向けに `100vh` fallbackを維持。
+- Login / Guest / Account registrationの機能・Supabase・保存Schemaは変更しない。
+- User-validated Visual Baselineの配色・構造は変更せず、overflow behaviorだけを修正。
+- 実ブラウザでの学校PC相当Viewport確認は未実施。
+
 ## v0.13.2 Song form tagging / build 20260902-1（2026-09-02）
 
 - 「曲を追加 / 曲情報を編集」ダイアログへタグ選択欄を追加。
