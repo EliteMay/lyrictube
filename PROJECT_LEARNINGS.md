@@ -170,3 +170,13 @@
 |---|---|---|---|---|
 | PL-Q-001 | success | 定期的にGuide revisionとProject CIをまとめて確認する仕組み | `guide-audit.yml` | 数回運用し、Issue通知の頻度と実用性を評価する |
 | PL-Q-002 | failure | Visual refresh時にTheme token ownershipを曖昧にすると新旧CSSが混在する | `theme.css`, `tests/theme-consistency.test.js` | web-project-guideのVisual review / Theme ownership例へ還元候補として評価する |
+
+## PL-F-006 Account registration formが低いViewportで最後まで操作できなかった
+
+- **Status:** Resolved
+- **Symptom:** 新規アカウント作成フォームを開くと、画面高さやZoomによって下部の「作成してログイン」までスクロールできない。
+- **Trigger:** Login用の短いCardへ後から長いRegistration Formを追加したが、Card自身にViewport基準のmax-height / overflow contractがなかった。
+- **Root cause:** Desktopの十分な縦解像度だけを前提にし、低いViewport・学校PCの表示Scale・Browser ZoomをRegression対象にしていなかった。
+- **Fix:** `.access-card` に `max-height: calc(100dvh - ...)` と `overflow-y:auto` を持たせ、`100vh` fallbackを追加。
+- **Regression guard:** `tests/account-register-scroll.test.js` でdynamic viewport / overflow / cache revisionを確認する。
+- **Prevention:** Modal / Gateへ内容を追加したときは、横幅だけでなく低ViewportとZoom時にPrimary Actionへ到達できるか確認する。
