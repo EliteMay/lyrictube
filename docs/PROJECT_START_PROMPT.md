@@ -1,195 +1,136 @@
-# LyricTube 新プロジェクト開始プロンプト
+# LyricTube 制作開始
 
-GitHub Repository:
+## 基本情報
 
-https://github.com/EliteMay/lyrictube
+サイト / アプリ名：
+`LyricTube`
 
-このChatGPT Projectでは、既存Webアプリ `LyricTube` の継続開発・改善を行う。
+GitHub Repository：
+`EliteMay/lyrictube`
 
-作業を始める前に、必ず最新の `EliteMay/web-project-guide` を確認し、`README.md` と `START_HERE.md` を読んで今回の作業種類に必要なルートだけ参照すること。過去の会話や記憶だけを基準に進めないこと。
+ChatGPT Project：
+`lyrictube`
 
-その後、`EliteMay/lyrictube` の現行Repositoryを確認し、少なくとも今回の作業に関係する次の情報を読むこと。
+## Project概要
 
-- `README.md`
-- `PROJECT_LEARNINGS.md`
-- 関連する `docs/`
-- 関連Issue / PR
-- 必要に応じてRuntime / Schema / Test
+YouTube動画と端末のMP3 / MP4を1つのライブラリで扱い、通常歌詞・同期歌詞・複数再生バージョン・タグ・プレイリスト・クラウド同期を組み合わせて利用するMedia Webアプリ。
 
-既存仕様を無視して作り直さないこと。
+既存Projectのため、新規Rewriteではなく現在のRepositoryを土台に継続改善する。
 
----
+## 目的
 
-## LyricTubeの目的
+自分の音楽・動画を、再生Sourceを意識せず1つのLibraryで管理・再生し、歌詞を見ながら快適に利用できる環境を作る。
 
-LyricTubeは、YouTube動画と端末のMP3 / MP4を1つのライブラリで管理し、通常歌詞・同期歌詞・複数再生バージョン・タグ・プレイリスト・クラウド同期を組み合わせて利用するMedia Webアプリ。
+## 想定利用者
 
-中心となるProduct構造は、
+主に個人利用。PC / Smartphoneの両方から利用する。
 
-`Library → Player → Lyrics`
+## 確定要件
 
-とする。
+- Productの中心構造は `Library → Player → Lyrics` とする
+- YouTubeとLocal Mediaを同一Library / Player体験で扱う
+- 通常歌詞・同期歌詞・手動編集・同期Editorを維持する
+- 1曲にMV / Cover / Live等の複数再生Versionを持てる
+- Cloud account利用時は曲情報等をSupabase同期する
+- Local Media本体は端末内に保持し、GitHub / SupabaseへUploadしない
+- Guest dataとCloud account dataを混在させない
+- 既存Library dataとの互換性を維持する
 
----
+## 主な機能
 
-## 現在の機能強化ロードマップ
+現在実装済みの主要機能はRepositoryの `README.md` を正本として確認する。
 
-GitHub Issue #11を現在の機能強化ロードマップとして扱う。
+今後の機能強化はGitHub Issue #11をRoadmapとして扱い、次の順で進める。
 
-優先順位:
+1. A1: 再生体験の強化
+2. A2: 歌詞体験の強化
+3. A3: ライブラリ管理の強化
 
-1. **A1: 再生体験の強化**
-2. **A2: 歌詞体験の強化**
-3. **A3: ライブラリ管理の強化**
+## 重要仕様 / 崩してはいけないこと
 
-### A1: 再生体験
+- GitHub Pagesで動くこと
+- `lyrictube.library.v3` の既存Dataを読み込めること
+- 1曲に複数の再生Versionを持てること
+- YouTubeと端末Fileを混在できること
+- 端末File本体をGitHub / SupabaseへUploadしないこと
+- 曲開始 / 終了 / Skip / Lyrics Offset / 動画専用同期を維持すること
+- 歌詞の手動編集と同期Editorを維持すること
+- GuestとCloud accountのDataを混在させないこと
+- 大きな仕様変更ではSchema / README / 関連Documentationを現行実装と一致させること
 
-候補:
+詳細・最新状態はRepositoryの `README.md`、`PROJECT_LEARNINGS.md`、関連 `docs/`、Issue / PR、Runtimeを確認する。
 
-- 次に再生キュー
+## 禁止事項
+
+- 既存仕様・保存互換性を無視した一括Rewrite
+- Local Media本体のCloud Upload
+- 公開Repository / FrontendへのSecret埋め込み
+- User確認済みのVisual Baselineを、明確な改善理由なく崩すこと
+
+## MVP
+
+現在は既存Projectの次期改善として **A1: 再生体験の強化** を最優先にする。
+
+最低範囲：
+
+- 次に再生Queue
 - 「次に再生」
-- 「キューの最後に追加」
-- Queue並べ替え
-- Queue削除
-- 一時Queue
-- 最近再生した曲
-- 再生履歴
-- しばらく聴いていない曲
-- 未再生優先
-- Fair Shuffleとの統合
-- 前回再生セッション復元
+- 「Queueの最後に追加」
+- Queueの並べ替え
+- Queueから削除
+- YouTube / Local Mediaで同じQueue操作
+- 明示QueueとFair Shuffleの優先関係を定義
+- Queueを使わない既存再生Flowを維持
 
-A1では、実装前に以下を確定する。
-
-- Queueを再読み込み後も残すか
-- QueueをCloud同期するか
-- Playlist再生中の明示Queueの優先順位
-- Repeat / Shuffle / Queueの関係
-- 明示QueueとFair Shuffleの優先順位
+## 将来候補
 
 ### A2: 歌詞体験
 
-候補:
-
 - 歌詞内検索
-- 原文 / 日本語訳 / 読みの切替
-- 原文 + 翻訳の2段表示
-- `[Intro] [Verse] [Chorus]` 等の区間
-- 区間ジャンプ
-- 同期ズレの簡易修正
-- 動画バージョンごとの同期調整
-- カラオケ風の現在行強調
-- 歌詞クリックSeek改善
+- 原文 / 翻訳 / 読み表示
+- Section / Chorus等の区間表現
+- 同期調整改善
 - Provider比較
-- 採用歌詞の記憶
 
-### A3: ライブラリ管理
+### A3: Library管理
 
-候補:
-
-- お気に入り
-- 評価
-- 最近追加
-- 最近再生
-- 未再生
-- 再生回数順
-- 長期間未再生
-- YouTube / MP3 / MP4フィルター
-- タグ複数条件検索
-- スマートプレイリスト
-- 重複曲検出
-- MV / Live / Cover等の整理支援
+- お気に入り / 評価
+- 最近追加 / 最近再生 / 未再生
+- 複合Filter
+- Smart Playlist
+- 重複整理
 - 再生統計
 
----
+詳細候補はGitHub Issue #11を参照する。
 
-## 崩してはいけない仕様
+## 完成条件
 
-1. GitHub Pagesで動くこと
-2. 公開RepositoryへSecretを保存しないこと
-3. `lyrictube.library.v3` の既存データを読み込めること
-4. 1曲に複数の再生バージョンを持てること
-5. YouTubeと端末ファイルを混在できること
-6. 端末ファイル本体をGitHub / Supabaseへアップロードしないこと
-7. 曲開始 / 終了 / スキップ / 歌詞オフセット / 動画専用同期を維持すること
-8. 歌詞の手動編集と同期エディタを維持すること
-9. ゲストとクラウドアカウントのデータを混在させないこと
-10. 大きな仕様変更時はSchema / README / 関連docs / 作業報告を同時更新すること
+A1について最低限、次を満たす。
 
----
+- YouTube / Local Mediaの両方でQueue主要操作が同じ意味で動く
+- 「次に再生」「最後に追加」「並べ替え」「削除」が利用できる
+- Queue / Shuffle / Repeat / Playlistの優先関係が仕様として明確
+- Queue未使用時の既存Playback Flowを壊さない
+- 既存Library Data互換を維持する、または必要なMigrationを定義する
+- Desktop / Mobileから主要Queue操作へ到達できる
+- 必要なTest / Regression確認と実BrowserでのMedia確認を行う
 
-## Architecture上の重要方針
+## 未確定事項
 
-- YouTube / Local Media共通操作は `core/player-controller.js` の契約を優先する
-- UIからProvider固有APIへ直接依存を増やさない
-- Cloud Writerを無秩序に増やさない
-- Local Media本体はIndexedDBに保持し、Cloudへ送らない
-- `app.js` は一括Rewriteせず段階分割する
-- Theme / Layoutは現行の正本を尊重する
-- Legacy CSSへの場当たり的な上書きを増やさない
+A1実装前に次を確定する。
 
----
+- QueueをPage reload後も保持するか
+- QueueをCloud同期するか
+- Playlist再生中に手動Queueへ追加した場合の順序
+- Repeat / Shuffle / Queueの関係
+- 明示QueueとFair Shuffleの優先順位
 
-## UI / Visual方針
+## 制作開始時
 
-LyricTubeは `MEDIA + TOOL` として扱う。
+このChatGPT Projectでは、GitHub Repository `EliteMay/web-project-workflow` の最新 `DEVELOPMENT_PROJECT.md` を共通Project設定の正本として扱う。
 
-- DesktopはLibrary rail + Player + LyricsのMedia Workspaceを中心にする
-- Marketing風の巨大Heroは置かない
-- 同じ強さのCardを大量に並べない
-- Gradient / Glow / Glassを理由なく常用しない
-- 装飾より、Hierarchy / Density / Typography / State設計を優先する
-- 既存5ThemeのToken体系を崩さない
-- 大きな見た目変更では、最新 `web-project-guide` のDomain-first Visual Researchを先に行う
-- 見た目変更後はBrowser / Screenshotで最終状態を確認する
+Web制作ルールは `EliteMay/web-project-guide` の最新版をSource of Truthとする。
 
----
+対象Repositoryは既に存在するため、作業開始時に現在のGitHub上の状態を確認してから進める。
 
-## 保存 / Cloud
-
-現在の基本方針:
-
-- 曲 / プレイリスト / 設定: localStorage + Cloud account時はSupabase
-- MP3 / MP4本体: IndexedDB、その端末のみ
-- Login session: sessionStorage
-- Guest / Cloud dataは分離
-
-Schema変更時は、Migration / Import Export互換 / Guest Cloud双方への影響 / Rollback / 別端末整合を先に確認する。
-
----
-
-## Security
-
-- API Secret / Password / Service Role Keyを公開Frontendへ置かない
-- Supabase変更ではRLS / Grant / Edge Function境界を確認する
-- 既存のServer-side registration gateを弱めない
-
----
-
-## MVP / 当面の完成条件
-
-まずA1を優先する。
-
-A1の最低完成条件:
-
-- YouTube / Local Mediaの両方でQueue操作が同じように動く
-- 「次に再生」「最後に追加」「並べ替え」「削除」ができる
-- 明示Queueがある場合はFair Shuffleより優先される
-- Queueを使わない既存再生フローが壊れない
-- 既存Library Schema互換を維持する、またはMigrationが定義される
-- Desktop / Mobileで主要Queue操作へ到達できる
-- Static test / Regression guardに加え、実ブラウザでYouTube / Local Mediaを確認する
-
----
-
-## 作業ルール
-
-- 小規模変更はSmallest Safe Changeを優先する
-- 未確認の挙動を確認済みと書かない
-- GitHub Actions成功だけでMedia実動作やVisual品質まで確認済みとは扱わない
-- 一時Script / WorkflowはCleanup後の最終状態でValidationする
-- 再発防止価値の高い失敗・成功は `PROJECT_LEARNINGS.md` へ残す
-- README / Spec / Runtimeが矛盾する場合は勝手に片方を正しいと決めない
-- 大きな仕様変更、保存互換性破壊、Security影響がある変更はユーザー確認を優先する
-
-このプロジェクトでは、長期的な実装・不具合修正・UI改善を継続してよい。
+古い会話、古いZIP、以前確認したルールだけを現在状態として扱わない。
