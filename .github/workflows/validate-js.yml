@@ -38,12 +38,21 @@ jobs:
           set -euo pipefail
           python -m py_compile tools/*.py
 
-      - name: Run LyricTube logic tests
+      - name: Test A1 playback state
+        run: node tests/playback-state.test.js
+
+      - name: Run runtime regression guards
+        run: node tests/runtime-guards.test.js
+
+      - name: Run remaining LyricTube logic tests
         shell: bash
         run: |
           set -euo pipefail
           for file in tests/*.test.js; do
             [ -e "$file" ] || continue
+            case "$file" in
+              tests/playback-state.test.js|tests/runtime-guards.test.js) continue ;;
+            esac
             echo "node $file"
             node "$file"
           done
