@@ -14,6 +14,17 @@ assert(ui.includes('event.stopImmediatePropagation()'), "legacy select-only row 
 assert(ui.includes('row.dataset.a1SongId'), "song-row identity annotation missing");
 assert(cloud.includes('a1-ui-guards.js'), "A1 UI guard bootstrap missing");
 
+// Autoplay selections must issue media work before the expensive full rerender.
+assert(ui.includes('function runAutoplaySelectionFirst'), "fast autoplay selection path missing");
+assert(ui.includes('window.renderAll = () => { renderRequested = true; }'), "full render must be deferrable during autoplay selection");
+assert(ui.includes('scheduleDeferredFullRender()'), "deferred visual refresh missing");
+assert(ui.includes('requestAnimationFrame'), "autoplay render should yield before full visual rebuild");
+assert(ui.includes('function ensureAutoplayStarted'), "YouTube readiness follow-up missing");
+assert(ui.includes('core.play?.()'), "pending autoplay must retry through the player controller");
+assert(ui.includes('maxWaitMs = 5000'), "pending autoplay retries need a bounded timeout");
+assert(ui.includes('https://www.youtube.com'), "YouTube preconnect is missing");
+assert(ui.includes('https://i.ytimg.com'), "thumbnail origin preconnect is missing");
+
 // The row has primary content + playlist action + More action on one line.
 assert(/#songList \.song-row\s*\{[\s\S]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s+30px\s+30px/i.test(css), "sidebar song row must reserve three horizontal columns");
 assert(css.includes('text-overflow: ellipsis'), "long sidebar metadata must truncate instead of wrapping actions");
