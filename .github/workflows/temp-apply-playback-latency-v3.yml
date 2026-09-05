@@ -1,0 +1,46 @@
+name: Temp Apply Playback Latency V3
+
+on:
+  push:
+    branches:
+      - fix/playback-latency-v3
+    paths:
+      - 'tools/apply_playback_latency_v3.py'
+      - '.github/workflows/temp-apply-playback-latency-v3.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/playback-latency-v3
+
+      - name: Apply playback latency v3 fix
+        run: python tools/apply_playback_latency_v3.py
+
+      - name: Validate generated state
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check app.js
+          node --check playback-a1.js
+          node --check a1-ui-guards.js
+          node tests/a1-requirements.test.js
+          node tests/runtime-guards.test.js
+          python tools/validate_static.py
+
+      - name: Commit generated changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app.js playback-a1.js a1-ui-guards.js tests/a1-requirements.test.js version.js index.html site-shell.js README.md data/defaults.json docs/CHANGELOG.md PROJECT_LEARNINGS.md docs/WORK_REPORT_2026-09-05_PLAYBACK_LATENCY_V3.md
+          git commit -m 'fix: remove A1 playback startup contention'
+          git push origin HEAD:fix/playback-latency-v3
