@@ -1,7 +1,7 @@
 # LyricTube
 
 **Current version: v0.13.2**  
-**Build: 20260905-4**  
+**Build: 20260905-5**  
 **公開サイト:** [https://elitemay.github.io/lyrictube/](https://elitemay.github.io/lyrictube/)
 
 YouTube動画、端末のMP3/MP4、通常歌詞、同期歌詞を1つのライブラリで管理するWebアプリです。
@@ -70,7 +70,7 @@ index.html
 ## バージョン管理
 
 - 表示Version: `v0.13.2`
-- Build: `20260905-4`
+- Build: `20260905-5`
 - Data Schema: `4`
 
 正本は `version.js` です。旧 `v35 / v36` 等の開発番号は現行UIのVersionとして使用しません。
@@ -106,7 +106,7 @@ YouTube IFrame Player APIを使用します。YouTube Data APIキーは通常再
 
 ## タグ
 
-タグ管理画面・サイドバー・曲一覧からの編集に加えて、Build `20260905-4` からは「曲を追加 / 曲情報を編集」ダイアログ内でも既存タグを選択できます。タグが無い場合は、その場で新しいタグを作成して選択できます。保存形式は既存の `song.tagIds` / `settings.tags` をそのまま利用し、Data Schema 4は変更しません。
+タグ管理画面・サイドバー・曲一覧からの編集に加えて、Build `20260905-5` からは「曲を追加 / 曲情報を編集」ダイアログ内でも既存タグを選択できます。タグが無い場合は、その場で新しいタグを作成して選択できます。保存形式は既存の `song.tagIds` / `settings.tags` をそのまま利用し、Data Schema 4は変更しません。
 
 ## 歌詞
 
