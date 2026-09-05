@@ -180,3 +180,14 @@
 - **Fix:** `.access-card` に `max-height: calc(100dvh - ...)` と `overflow-y:auto` を持たせ、`100vh` fallbackを追加。
 - **Regression guard:** `tests/account-register-scroll.test.js` でdynamic viewport / overflow / cache revisionを確認する。
 - **Prevention:** Modal / Gateへ内容を追加したときは、横幅だけでなく低ViewportとZoom時にPrimary Actionへ到達できるか確認する。
+
+
+## PL-F-007 Playback高速化を同一Cache revisionで配信し、初回YouTube requestも保持していなかった
+
+- **Date:** 2026-09-05
+- **Status:** Resolved
+- **Symptom:** 曲を押してから動画開始まで約5秒待つ体感が残った。
+- **Root cause:** 高速化Patchを入れてもBuild revisionを更新しておらず、GitHub Pages / Browser cacheで旧JSが残り得た。さらにYouTube IFrame PlayerがReadyになる前のAutoplay要求をPlayer本体が保持していなかった。
+- **Fix:** Cache revisionを `20260905-2` へ更新。YouTube APIをAccess Gate中から先行ロードし、最新の動画Requestを保持してPlayer `onReady`で適用する。曲選択時はFull Renderより先に動画読込を開始する。
+- **Regression guard:** `tests/a1-requirements.test.js` と `tools/validate_static.py` でpending request / early API warm / build revision整合を確認。
+- **Prevention:** 公開済みRuntimeの性能・挙動を変える場合は、コード変更だけでなくCache revisionまで同じ変更単位で更新する。初期化待ちの外部PlayerではUser Intentを明示的に保持する。

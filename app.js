@@ -11,6 +11,8 @@ let selectedVersionId = null;
 let currentView = { type: "all", playlistId: null };
 let ytPlayer = null;
 let ytReady = false;
+let pendingYoutubeRequest = null;
+let youtubeRequestGeneration = 0;
 let syncTimer = null;
 let activeLyricIndex = -1;
 let pendingLyricsResults = [];
@@ -603,12 +605,56 @@ function clearLyricHighlightClasses(){
   });
 }
 
-function selectSong(id,autoplay=false){selectedSongId=id;const song=getSong();selectedVersionId=song?.versions[0]?.id||null;beginLyricVideoSwitch();renderAll();loadSelectedVideo(autoplay)}
+function makeYoutubeRequest(v,autoplay=false){
+  return{
+    generation:++youtubeRequestGeneration,
+    videoId:String(v?.videoId||""),
+    startSeconds:Math.max(0,Number(v?.startTime)||0),
+    autoplay:Boolean(autoplay)
+  };
+}
+function clearPendingYoutubeRequest(){
+  youtubeRequestGeneration+=1;
+  pendingYoutubeRequest=null;
+}
+function applyPendingYoutubeRequest(request=pendingYoutubeRequest){
+  if(!request?.videoId||!ytPlayer||!ytReady)return false;
+  if(pendingYoutubeRequest&&request.generation!==pendingYoutubeRequest.generation)return false;
+  const selected=getVersion();
+  if(!selected?.videoId||String(selected.videoId)!==String(request.videoId))return false;
+  const arg={videoId:request.videoId,startSeconds:request.startSeconds};
+  try{
+    request.autoplay?ytPlayer.loadVideoById(arg):ytPlayer.cueVideoById(arg);
+    if(pendingYoutubeRequest?.generation===request.generation)pendingYoutubeRequest=null;
+    return true;
+  }catch(error){
+    console.warn("[LyricTube] YouTube request failed",error);
+    return false;
+  }
+}
+function selectSong(id,autoplay=false){
+  selectedSongId=id;
+  const song=getSong();
+  selectedVersionId=song?.versions[0]?.id||null;
+  beginLyricVideoSwitch();
+  if(autoplay){
+    // Issue the media request in the click task before rebuilding Library/Browse/Lyrics.
+    loadSelectedVideo(true);
+    const targetSongId=String(id||"");
+    requestAnimationFrame(()=>{
+      if(String(selectedSongId||"")===targetSongId)renderAll();
+    });
+    return;
+  }
+  renderAll();
+  loadSelectedVideo(false);
+}
 function selectVersion(id,autoplay=false){selectedVersionId=id;beginLyricVideoSwitch();renderSelectedSong();renderLibrary();loadSelectedVideo(autoplay)}
 function loadSelectedVideo(autoplay=false){
   const v=getVersion();
   beginLyricVideoSwitch();
   if(v?.source==="localmedia"){
+    clearPendingYoutubeRequest();
     syncPlayerAdapter(v);
     try{ytPlayer?.pauseVideo?.()}catch{}
     els.playerPlaceholder.classList.add("hidden");
@@ -627,21 +673,23 @@ function loadSelectedVideo(autoplay=false){
   window.LyricTubeLocalMedia?.deactivate?.();
   syncPlayerAdapter(v);
   if(!v?.videoId){
+    clearPendingYoutubeRequest();
     els.playerPlaceholder.classList.remove("hidden");
     lyricVideoSwitchPending=false;
     resetLyricsViewport();
     return;
   }
   els.playerPlaceholder.classList.add("hidden");
-  const start=Math.max(0,Number(v.startTime)||0);
+  const request=makeYoutubeRequest(v,autoplay);
+  pendingYoutubeRequest=request;
   if(ytReady&&ytPlayer){
-    const arg={videoId:v.videoId,startSeconds:start};
-    try{autoplay?ytPlayer.loadVideoById(arg):ytPlayer.cueVideoById(arg)}catch{}
+    applyPendingYoutubeRequest(request);
   }else if(window.YT?.Player&&!ytPlayer){
-    createYoutubePlayer(v.videoId);
+    createYoutubePlayer(request.videoId);
+  }else{
+    loadYoutubeApi();
   }
 }
-
 
 function selectedLocalMediaStatus(song=getSong(),v=getVersion(song)){
   try{return window.LyricTubeLocalMedia?.status?.(song,v)||null}catch{return null}
@@ -1017,9 +1065,68 @@ function updateModeButtons(){
   els.toggleAutoScrollBtn.classList.toggle("paused",library.settings.autoScroll&&autoScrollManualPaused);
 }
 
-function createYoutubePlayer(videoId){if(!window.YT?.Player||ytPlayer)return;const v=getVersion();ytPlayer=new YT.Player("player",{width:"100%",height:"100%",videoId,playerVars:{playsinline:1,rel:0,start:Math.floor(Number(v?.startTime)||0),origin:window.location.origin},events:{onReady:()=>{ytReady=true;try{ytPlayer.setVolume?.(clamp(Number(library.settings.volume??80),0,100))}catch{}const current=getVersion();if(current?.videoId&&current.videoId!==videoId)ytPlayer.cueVideoById({videoId:current.videoId,startSeconds:Number(current.startTime)||0});resetLyricsViewport();updateBottomPlayer()},onStateChange:e=>{if(e.data===1)markPlayed();if(e.data===0)handleTrackEnd("youtube");updateBottomPlayer()},onError:e=>showToast(e.data===101||e.data===150?"この動画は投稿者の設定でサイト内再生できません。":"YouTube動画を再生できませんでした。")}})}
-window.onYouTubeIframeAPIReady=()=>{ytReady=true;const v=getVersion();if(v?.videoId)createYoutubePlayer(v.videoId)}
-function loadYoutubeApi(){if(window.YT?.Player){window.onYouTubeIframeAPIReady();return}const s=document.createElement("script");s.src="https://www.youtube.com/iframe_api";s.async=true;document.head.appendChild(s)}
+function createYoutubePlayer(videoId){
+  if(!window.YT?.Player||ytPlayer)return;
+  const v=getVersion();
+  const initial=pendingYoutubeRequest;
+  const initialVideoId=String(initial?.videoId||videoId||v?.videoId||"");
+  if(!initialVideoId)return;
+  ytReady=false;
+  ytPlayer=new YT.Player("player",{
+    width:"100%",
+    height:"100%",
+    videoId:initialVideoId,
+    playerVars:{
+      playsinline:1,
+      rel:0,
+      start:Math.floor(Number(initial?.startSeconds??v?.startTime)||0),
+      autoplay:initial?.autoplay?1:0,
+      origin:window.location.origin
+    },
+    events:{
+      onReady:()=>{
+        ytReady=true;
+        try{ytPlayer.setVolume?.(clamp(Number(library.settings.volume??80),0,100))}catch{}
+        const pending=pendingYoutubeRequest;
+        if(pending?.videoId){
+          applyPendingYoutubeRequest(pending);
+        }else{
+          const current=getVersion();
+          const playerId=playerVideoIdSafe();
+          if(current?.videoId&&playerId!==String(current.videoId)){
+            try{ytPlayer.cueVideoById({videoId:current.videoId,startSeconds:Number(current.startTime)||0})}catch{}
+          }
+        }
+        resetLyricsViewport();
+        updateBottomPlayer();
+      },
+      onStateChange:e=>{
+        if(e.data===1){
+          const currentId=playerVideoIdSafe();
+          if(pendingYoutubeRequest?.videoId===currentId)pendingYoutubeRequest=null;
+          markPlayed();
+        }
+        if(e.data===0)handleTrackEnd("youtube");
+        updateBottomPlayer();
+      },
+      onError:e=>showToast(e.data===101||e.data===150?"この動画は投稿者の設定でサイト内再生できません。":"YouTube動画を再生できませんでした。")
+    }
+  });
+}
+window.onYouTubeIframeAPIReady=()=>{
+  const v=getVersion();
+  const requested=pendingYoutubeRequest?.videoId||v?.videoId||"";
+  if(requested)createYoutubePlayer(requested);
+};
+function loadYoutubeApi(){
+  if(window.YT?.Player){window.onYouTubeIframeAPIReady();return}
+  if(document.querySelector('script[src*="youtube.com/iframe_api"]'))return;
+  const s=document.createElement("script");
+  s.src="https://www.youtube.com/iframe_api";
+  s.async=true;
+  s.dataset.lyrictubeYoutubeApi="";
+  document.head.appendChild(s);
+}
 function markPlayed(){const song=getSong();if(!song||lastCountedSongId===song.id)return;lastCountedSongId=song.id;song.playCount=(Number(song.playCount)||0)+1;song.lastPlayedAt=nowIso();persistLibrary();renderViewNav();if(currentView.type==="recent")renderLibrary();if(els.nowPlayCount)els.nowPlayCount.textContent=`${song.playCount}回再生`;setTimeout(()=>{if(lastCountedSongId===song.id)lastCountedSongId=null},15000)}
 
 function detectVideoType(title=""){

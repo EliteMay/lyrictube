@@ -14,6 +14,13 @@
       link.crossOrigin = "anonymous";
       document.head.appendChild(link);
     }
+    if (!window.YT?.Player && !document.querySelector('script[src*="youtube.com/iframe_api"]')) {
+      const script = document.createElement("script");
+      script.src = "https://www.youtube.com/iframe_api";
+      script.async = true;
+      script.dataset.lyrictubeEarlyYoutubeApi = "";
+      document.head.appendChild(script);
+    }
   }
 
   function visibleSongs() {
