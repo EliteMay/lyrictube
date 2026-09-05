@@ -67,6 +67,7 @@ A1では、次に再生する曲を明示できるQueue、再生セッション�
 - Cloud Accountの再生履歴同期
 - 曲一覧の曲行クリック / タップによる即時再生
 - Sidebar曲行 / 補助操作 / Footer toolsのVisual整理
+- 歌詞検索のstale result無効化と検索結果Dialogの再表示防止
 
 ### A1では後回し
 
@@ -661,6 +662,16 @@ Context終端後はShuffle / Repeat設定に従う
 - 再生記録リセット
 - Cloud複数端末統合
 
+### Lyrics Search / 非同期状態
+
+- 検索開始 → 結果Dialogを閉じる → 遅延結果が返ってもDialogが再表示されない
+- 検索A開始 → 検索B開始 → Aが後から返ってもBの結果 / UIを上書きしない
+- 曲Aで検索開始 → 曲Bへ移動 → Aの結果で曲BのUIを変更しない
+- 曲追加 / 編集Dialogから検索開始 → 元Dialogを閉じる → 遅延結果で検索結果Dialogを勝手に開かない
+- staleな検索の結果 / 進捗 / Toast / Errorが現在UIへ出ない
+- 有効な検索は従来どおり結果Dialogを1回だけ表示する
+- 閉じた後にユーザーが明示的に再検索した場合は、新しい検索結果を正常に表示できる
+
 ### Visual / 実ブラウザ
 
 - Desktop
@@ -698,6 +709,9 @@ Context終端後はShuffle / Repeat設定に従う
 - [ ] Sidebarの曲1件が1つの横長行として成立し、More actionだけが別段へ落ちない
 - [ ] Sidebarの大きく独立した三点ボタン表現が整理され、補助操作として適切な視覚強度になる
 - [ ] Sidebar Footer toolsが同じ高さ / Alignmentで整列し、`?` だけが浮いて見えない
+- [ ] 歌詞検索結果Dialogを閉じたあと、同じ検索の遅延結果で自動再表示されない
+- [ ] 新しい歌詞検索 / 別曲への移動後、古い検索結果が現在UIを上書きしない
+- [ ] staleな歌詞検索の結果 / 進捗 / Toast / Errorを現在UIへ反映しない
 - [ ] Library Schema 4互換を維持する、または実装上変更が不可避ならMigration / Backup / Rollbackを先に定義してユーザー確認する
 - [ ] 必要なStatic Test / Regression Guardが成功する
 - [ ] 実ブラウザでYouTube / Local Mediaを確認する
@@ -721,6 +735,7 @@ Context終端後はShuffle / Repeat設定に従う
 - 現在のVisual Baselineを大きく変更する
 - 曲行クリックを「選択だけ」に戻す
 - More / Playlist追加 / Queue追加等の補助Actionを曲本体クリックと同じEventとして扱う
+- 歌詞検索結果Dialogを閉じたあと、同じ古い検索結果で自動的に再表示する挙動を許可する
 - A2 / A3機能をA1へ無断で追加する
 
 ## 25. 実装前確認
@@ -736,10 +751,48 @@ Context終端後はShuffle / Repeat設定に従う
 7. `docs/CLOUD.md`
 8. `docs/DATA_SCHEMA.md`
 9. `docs/VISUAL_BASELINE.md`
-10. `core/player-controller.js`
-11. `core/fair-shuffle.js`
-12. `profile-data.js` / `cloud-sync.js`
-13. Queue / History / Playbackに関係する既存Tests
-14. Sidebar曲行 / Sidebar tools / 曲一覧click handlerに関係するCSS・JS・Tests
+10. `docs/LYRICS.md`
+11. `core/player-controller.js`
+12. `core/fair-shuffle.js`
+13. `profile-data.js` / `cloud-sync.js`
+14. Queue / History / Playbackに関係する既存Tests
+15. Sidebar曲行 / Sidebar tools / 曲一覧click handlerに関係するCSS・JS・Tests
+16. 歌詞検索 / 検索Dialog / 非同期Request lifecycleに関係する `app.js` とTests
 
 実際のコードがこの要件作成時点から更新されている場合、現在のGitHub状態を優先して差分を確認する。ただし、このファイルの確定要件と衝突する破壊的変更はユーザー確認なしに確定しない。
+
+## 26. 歌詞検索の非同期結果とDialog再表示
+
+歌詞検索は複数Provider / 複数Attemptを非同期で実行するため、検索開始時点と結果返却時点でユーザーの状態が変わる可能性がある。
+
+A1では、**古い検索結果が現在UIへ後から割り込まないこと**を必須要件とする。
+
+### 26.1 有効な検索の判定
+
+- 各検索にRequest ID / generation token等を持たせる
+- UI更新できるのは現在も有効な最新検索だけ
+- 新しい検索開始時点で、それ以前の検索はstale扱いにする
+- 曲名 / アーティスト / 対象Songが変わった場合も、以前の検索結果を現在UIへ適用しない
+
+### 26.2 Dialogを閉じた場合
+
+ユーザーが歌詞検索結果Dialogを閉じたら、その検索Sessionについて以後の自動再表示を無効化する。
+
+- Provider応答が数秒後に返っても再表示しない
+- 検索進捗が後から変化しても再表示しない
+- Rate limit / Error / timeoutが後から発生しても、そのstale検索由来のToastやError表示で現在の操作を邪魔しない
+- 曲追加 / 編集Dialog自体を閉じた場合も同様に古い検索結果を自動表示しない
+
+### 26.3 別の曲 / 新しい検索へ移動した場合
+
+- 曲Aで開始した検索が、曲Bへ移動した後に曲Bの歌詞UIを上書きしない
+- 検索Aの後に検索Bを開始した場合、AがBより遅く完了してもBの結果を上書きしない
+- stale検索は `pendingLyricsResults`、検索進捗、Toast、Dialog表示、歌詞採用状態を更新しない
+
+### 26.4 通信Cancel
+
+AbortController等で通信自体をCancelできる場合はCancelしてよい。
+
+ただしProvider側の都合でCancelできない場合でも、stale result guardによってUIへの反映を防ぐことを必須とする。
+
+詳細なLyrics Provider仕様は `docs/LYRICS.md` を参照する。
