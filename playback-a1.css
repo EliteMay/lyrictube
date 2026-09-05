@@ -114,6 +114,72 @@
 .a1-history-badges { display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end; }
 .a1-history-badges span { padding: 4px 6px; border: 1px solid var(--border); border-radius: 999px; background: var(--panel); }
 
+/* A1 requirement completion: keep thumbnail, metadata, playlist action and
+   More action on one stable horizontal song row. */
+#songList .song-row {
+  grid-template-columns: minmax(0, 1fr) 30px 30px !important;
+  align-items: center;
+  gap: 2px !important;
+  min-width: 0;
+}
+#songList .song-item,
+#songList .song-meta { min-width: 0; }
+#songList .song-meta strong,
+#songList .song-meta span {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#songList .a1-song-menu-btn {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--ui-text-3, var(--muted));
+  font-size: 16px;
+  opacity: .58;
+  box-shadow: none;
+}
+#songList .song-row:hover .a1-song-menu-btn,
+#songList .a1-song-menu-btn:focus-visible {
+  opacity: 1;
+  border-color: transparent;
+  background: var(--ui-surface-2, var(--panel2));
+  color: var(--ui-text, var(--text));
+}
+
+/* Keep all four footer tools on the same visual baseline, including the ? button. */
+.sidebar-tools { align-items: stretch !important; }
+.sidebar-tools .ghost-btn,
+.sidebar-tools .file-label,
+.sidebar-tools .help-icon-btn {
+  height: 38px !important;
+  min-height: 38px !important;
+  padding: 0 6px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  box-sizing: border-box;
+}
+.sidebar-tools .help-icon-btn {
+  width: auto !important;
+  min-width: 36px !important;
+  border-color: transparent !important;
+  border-radius: 7px !important;
+  background: transparent !important;
+  color: var(--ui-text-2, var(--muted)) !important;
+}
+.sidebar-tools .help-icon-btn:hover,
+.sidebar-tools .help-icon-btn:focus-visible {
+  background: var(--ui-surface-2, var(--panel2)) !important;
+  color: var(--ui-text, var(--text)) !important;
+}
+
 @media (max-width: 720px) {
   .a1-queue-dialog[open] {
     inset: auto 0 0;
@@ -128,6 +194,14 @@
   .a1-queue-actions .a1-queue-wide { width: auto; }
   .a1-history-row { grid-template-columns: 1fr; }
   .a1-history-badges { justify-content: flex-start; }
+  #songList .song-row { grid-template-columns: minmax(0, 1fr) 34px 34px !important; }
+  #songList .song-playlist-add,
+  #songList .a1-song-menu-btn { width: 34px !important; height: 34px !important; }
+  #songList .a1-song-menu-btn { opacity: .82; }
+}
+
+@media (hover: none) {
+  #songList .a1-song-menu-btn { opacity: .82; }
 }
 
 @media (prefers-reduced-motion: reduce) {

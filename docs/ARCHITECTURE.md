@@ -16,8 +16,9 @@ LyricTube v0.13.2 の現行構成です。
 10. `lyrics-providers.js`
 11. `local-media.js`
 12. `tags.js`
-13. ログイン / ゲスト確定後に `site-shell.js` が `core/fair-shuffle.js` を読み込む
-14. 続けて `site-shell.js` が `app.js` を読み込む
+13. `cloud-sync.js` が `core/playback-state.js` → `playback-a1.js` → `a1-ui-guards.js` を動的読込する。App未起動時は各A1 moduleが `lyrictube:app-ready` まで初期化を待つ
+14. ログイン / ゲスト確定後に `site-shell.js` が `core/fair-shuffle.js` を読み込む
+15. 続けて `site-shell.js` が `app.js` を読み込む
 
 ## 責務
 
@@ -57,6 +58,16 @@ LyricTube v0.13.2 の現行構成です。
 - 既存 `lastPlayedAt` だけを使うためShuffle専用Storage / Schemaは持たない
 - Queueの範囲そのものは `app.js` の既存 `queueSongs()` が決定する
 
+### core/playback-state.js
+
+A1再生機能のDOM非依存ロジックです。
+
+- 手動Queueの追加 / 並び替え / 削除 / 500件上限
+- 有効再生判定（10秒または曲長の10%）
+- 詳細履歴の500件上限とMerge
+- 未再生 / 30日以上未再生判定
+- Playback Sessionの30日TTLと正規化
+
 ### library-schema.js
 
 - 保存データの正規化
@@ -83,8 +94,12 @@ LyricTube v0.13.2 の現行構成です。
 - Song単位差分
 - Playlist単位差分
 - Settings / state差分
+- A1 Playback history event差分
 - 失敗時Retry
 - 同期待ちQueueの永続化
+- 現行A1 Runtime (`core/playback-state.js` / `playback-a1.js` / `a1-ui-guards.js`) のbootstrap
+
+A1 bootstrapは既存IndexのAsset revisionを崩さず段階導入するための現行構成です。将来 `app.js` bootstrapを分割する段階で、正式な起動入口へ統合する候補とします。
 
 ### site-shell.js
 
@@ -100,6 +115,20 @@ Cloudの保存処理は持ちません。
 ### lyrics-providers.js
 
 既存LRCLIB検索を拡張し、SyncLRC / lyrics.ovh候補を統合します。
+
+非同期検索はgeneration単位で所有し、検索開始時の曲名 / アーティスト / 編集対象 / 現在Songをsnapshotします。新しい検索、対象変更、元DialogのClose、結果DialogのCloseで古い検索をstale化し、staleなProvider応答は結果・進捗・Toast・Dialogへ反映しません。
+
+### playback-a1.js
+
+A1の再生Session / 手動Queue / Previous・Next / 詳細再生履歴 / Smart Viewを既存Playerへ統合します。QueueとSessionは端末ローカル、Cloud accountの詳細履歴だけは `cloud-sync.js` 経由でSupabaseへ同期します。
+
+### a1-ui-guards.js
+
+A1で追加されたSidebarの主操作契約を担当します。
+
+- Sidebarの `.song-item` クリック / タップを「選択のみ」ではなく「選択 + 即再生」にする
+- Playlist追加やMore等の補助操作はSibling Actionとして主操作と分離する
+- 再Render後の曲行へSong ID / accessible labelを再付与する
 
 ### local-media.js
 
