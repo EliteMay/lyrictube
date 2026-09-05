@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## v0.13.2 Playback diagnostics cleanup / build 20260906-2（2026-09-06）
+
+- 再生遅延調査で使用した通常画面の「再生診断」パネルと自動計測を削除。
+- `playback-diagnostics.html` / `playback-diagnostics.js` の専用検査ページを削除。
+- 過去の再生診断localStorageを起動時に削除。
+- Sidebarの1クリック即時再生、YouTube接続warm-up、A1再生安定化処理は維持。
+- 再生遅延そのものはYouTube Provider側の待ちが支配的という調査結果であり、この変更では再生経路を変更しない。
+
 ## v0.13.2 YouTube privacy-enhanced embed experiment / build 20260906-1（2026-09-06）
 
 - User実測で `loadVideoById` 発行は1ms、PLAYINGは約4.5秒後となり、Provider側待ちが支配的と確認。
