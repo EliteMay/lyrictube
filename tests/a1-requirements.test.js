@@ -22,7 +22,7 @@ assert(app.includes('loadSelectedVideo(true);'), "autoplay selection must reques
 assert(app.includes('let pendingYoutubeRequest = null'), "pending YouTube request state missing");
 assert(app.includes('function applyPendingYoutubeRequest'), "pending YouTube request replay missing");
 assert(app.includes('pendingYoutubeRequest=request'), "latest YouTube selection must be retained while player is not ready");
-assert(app.includes('autoplay:initial?.autoplay?1:0'), "initial iframe creation must preserve autoplay intent");
+assert(app.includes('autoplay:initial?.autoplay?"1":"0"'), "initial iframe creation must preserve autoplay intent");
 assert(app.includes('if(playerId===String(pending.videoId))'), "initial YouTube onReady must avoid reloading the same video");
 assert(app.includes('let initialAutoplayProgressed=false'), "initial YouTube autoplay progress guard missing");
 assert(app.includes('if(initial?.autoplay&&(e.data===3||e.data===1))initialAutoplayProgressed=true'), "initial autoplay progress must be observed before onReady fallback");
@@ -36,6 +36,12 @@ assert(ui.includes('PerformanceObserver'), "long-task playback diagnostics missi
 assert(ui.includes('script.src = "https://www.youtube.com/iframe_api"'), "YouTube API must warm during the access gate");
 assert(ui.includes('https://www.youtube.com'), "YouTube preconnect is missing");
 assert(ui.includes('https://i.ytimg.com'), "thumbnail origin preconnect is missing");
+assert(ui.includes('https://www.youtube-nocookie.com'), "privacy-enhanced YouTube embed preconnect is missing");
+assert(app.includes('const embedHost="https://www.youtube-nocookie.com"'), "YouTube player must use the official privacy-enhanced embed host");
+assert(app.includes('iframe.referrerPolicy="strict-origin-when-cross-origin"'), "YouTube iframe must preserve recommended referrer identity");
+assert(app.includes('enablejsapi:"1"'), "privacy-enhanced iframe must keep IFrame API control enabled");
+assert(app.includes('origin:window.location.origin'), "privacy-enhanced iframe must identify the embedding origin");
+assert(app.includes('embedHost:playerEmbedHostSafe()'), "YouTube diagnostics must record the actual embed host");
 const wrappedSelect = playback.slice(playback.indexOf('window.selectSong = function'), playback.indexOf('window.selectVersion = function'));
 assert(wrappedSelect.indexOf('original.selectSong(id, autoplay)') < wrappedSelect.indexOf('captureContext(id'), "A1 context persistence must happen after the media request");
 assert(wrappedSelect.includes('deferEffects: Boolean(autoplay)'), "old-track finalization side effects must defer during autoplay");

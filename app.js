@@ -522,6 +522,9 @@ function renderSkipList(v=getVersion()){els.skipList.innerHTML="";if(!v?.skipSeg
 function playerVideoIdSafe(){
   try{return String(ytPlayer?.getVideoData?.()?.video_id||"")}catch{return""}
 }
+function playerEmbedHostSafe(){
+  try{return new URL(ytPlayer?.getIframe?.()?.src||"",window.location.href).hostname||""}catch{return""}
+}
 function setLyricsScrollTopInstant(top=0){
   const view=els.lyricsView;
   if(!view)return;
@@ -1088,22 +1091,37 @@ function createYoutubePlayer(videoId){
   // second playVideo() call. The duplicate command can reset the first load.
   let initialAutoplayProgressed=false;
   ytReady=false;
-  emitPlaybackDiagnosticStage("PLAYER_CREATE",{videoId:initialVideoId,autoplay:Boolean(initial?.autoplay)});
-  ytPlayer=new YT.Player("player",{
-    width:"100%",
-    height:"100%",
-    videoId:initialVideoId,
-    playerVars:{
-      playsinline:1,
-      rel:0,
-      start:Math.floor(Number(initial?.startSeconds??v?.startTime)||0),
-      autoplay:initial?.autoplay?1:0,
+  const embedHost="https://www.youtube-nocookie.com";
+  const startSeconds=Math.floor(Number(initial?.startSeconds??v?.startTime)||0);
+  const target=document.getElementById("player");
+  if(target?.tagName!=="IFRAME"){
+    const params=new URLSearchParams({
+      enablejsapi:"1",
+      playsinline:"1",
+      rel:"0",
+      start:String(startSeconds),
+      autoplay:initial?.autoplay?"1":"0",
       origin:window.location.origin
-    },
+    });
+    const iframe=document.createElement("iframe");
+    iframe.id="player";
+    iframe.width="100%";
+    iframe.height="100%";
+    iframe.src=`${embedHost}/embed/${encodeURIComponent(initialVideoId)}?${params.toString()}`;
+    iframe.title="YouTube video player";
+    iframe.frameBorder="0";
+    iframe.allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+    iframe.allowFullscreen=true;
+    iframe.loading="eager";
+    iframe.referrerPolicy="strict-origin-when-cross-origin";
+    target?.replaceWith(iframe);
+  }
+  emitPlaybackDiagnosticStage("PLAYER_CREATE",{videoId:initialVideoId,autoplay:Boolean(initial?.autoplay),embedHost:"www.youtube-nocookie.com"});
+  ytPlayer=new YT.Player("player",{
     events:{
       onReady:()=>{
         ytReady=true;
-        emitPlaybackDiagnosticStage("PLAYER_READY",{videoId:playerVideoIdSafe(),pendingVideoId:String(pendingYoutubeRequest?.videoId||"")});
+        emitPlaybackDiagnosticStage("PLAYER_READY",{videoId:playerVideoIdSafe(),pendingVideoId:String(pendingYoutubeRequest?.videoId||""),embedHost:playerEmbedHostSafe()});
         try{ytPlayer.setVolume?.(clamp(Number(library.settings.volume??80),0,100))}catch{}
         const pending=pendingYoutubeRequest;
         const playerId=playerVideoIdSafe();
@@ -1128,7 +1146,7 @@ function createYoutubePlayer(videoId){
       onStateChange:e=>{
         let loadedFraction=null;
         try{loadedFraction=Number(ytPlayer?.getVideoLoadedFraction?.())}catch{}
-        emitPlaybackDiagnosticStage("YT_STATE",{state:Number(e.data),videoId:playerVideoIdSafe(),loadedFraction});
+        emitPlaybackDiagnosticStage("YT_STATE",{state:Number(e.data),videoId:playerVideoIdSafe(),loadedFraction,embedHost:playerEmbedHostSafe()});
         if(initial?.autoplay&&(e.data===3||e.data===1))initialAutoplayProgressed=true;
         if(e.data===1){
           const currentId=playerVideoIdSafe();
@@ -1139,10 +1157,10 @@ function createYoutubePlayer(videoId){
         updateBottomPlayer();
       },
       onAutoplayBlocked:()=>{
-        emitPlaybackDiagnosticStage("AUTOPLAY_BLOCKED",{videoId:playerVideoIdSafe()});
+        emitPlaybackDiagnosticStage("AUTOPLAY_BLOCKED",{videoId:playerVideoIdSafe(),embedHost:playerEmbedHostSafe()});
       },
       onError:e=>{
-        emitPlaybackDiagnosticStage("YT_ERROR",{code:Number(e.data),videoId:playerVideoIdSafe()});
+        emitPlaybackDiagnosticStage("YT_ERROR",{code:Number(e.data),videoId:playerVideoIdSafe(),embedHost:playerEmbedHostSafe()});
         showToast(e.data===101||e.data===150?"この動画は投稿者の設定でサイト内再生できません。":"YouTube動画を再生できませんでした。");
       }
     }

@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## v0.13.2 YouTube privacy-enhanced embed experiment / build 20260906-1（2026-09-06）
+
+- User実測で `loadVideoById` 発行は1ms、PLAYINGは約4.5秒後となり、Provider側待ちが支配的と確認。
+- YouTube公式のprivacy-enhanced embed (`youtube-nocookie.com`) を明示iframeで使用。
+- `enablejsapi=1` / `origin` / `strict-origin-when-cross-origin` を明示し、IFrame API契約とClient identificationを維持。
+- `youtube-nocookie.com` へのpreconnectを追加。
+- 再生診断へ実際のembed hostを追加し、標準hostとのA/B比較を可能にした。
+- 非表示Playerの自動先読みはYouTube Developer Policiesのbackground playback / visibility要件に反するため採用しない。
+
 ## v0.13.2 Playback stale-restore cancellation / build 20260905-6（2026-09-05）
 
 - Playback Session復元の220/650/1400/2600ms遅延Seekを中央管理し、手動選曲後は即キャンセルする。

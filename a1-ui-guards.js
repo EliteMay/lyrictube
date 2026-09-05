@@ -26,7 +26,7 @@
   }
 
   function warmYoutubeConnections() {
-    for (const href of ["https://www.youtube.com", "https://i.ytimg.com"]) {
+    for (const href of ["https://www.youtube.com", "https://www.youtube-nocookie.com", "https://i.ytimg.com"]) {
       if (document.head.querySelector(`link[rel="preconnect"][href="${href}"]`)) continue;
       const link = document.createElement("link");
       link.rel = "preconnect";
@@ -167,6 +167,7 @@
       if(Number.isFinite(item.startSeconds))extra.push(`start=${item.startSeconds}`);
       if(item.ytReady!==undefined)extra.push(`ready=${item.ytReady}`);
       if(item.hasPlayer!==undefined)extra.push(`player=${item.hasPlayer}`);
+      if(item.embedHost)extra.push(`host=${item.embedHost}`);
       if(item.reason)extra.push(`reason=${item.reason}`);
       if(Number.isFinite(item.delay))extra.push(`delay=${item.delay}`);
       if(Number.isFinite(item.target))extra.push(`target=${item.target}`);
