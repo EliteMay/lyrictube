@@ -52,3 +52,23 @@ Autoplay付きの曲切替でも、既存 `app.js` はPlayerへ新しい動画�
 3. 初回起動直後の最初の曲でも再生要求が失われない。
 4. YouTubeとLocal Mediaの両方で既存Queue / Previous / Nextが壊れていない。
 5. 曲切替後のLibrary / Browse / Lyrics表示が次Frameで正しく更新される。
+
+
+## Follow-up — 約5秒待ちが残った件
+
+ユーザー実機で約5秒の待ちが残ったため、初回修正を再調査した。
+
+追加で確認した原因:
+
+1. 前回の高速化後もBuild revisionが `20260903-1` のままで、公開サイトが同じasset URLを使い続けていた。
+2. YouTube IFrame API / Playerの初期化前に押されたAutoplay要求は、`loadSelectedVideo()`内でPlayerがReadyでないとその場では適用されず、後段のRetryに依存していた。
+
+追加修正:
+
+- Build revisionを `20260905-2` へ更新。
+- Access Gate表示中からYouTube IFrame APIを先行ロード。
+- 最新のYouTube動画Requestを保持し、Player `onReady`で適用。
+- Autoplay曲選択はFull Render前に動画要求を発行。
+- YouTube API scriptの二重読み込みを防止。
+
+これによりLyricTube側で発生していた「初期化待ち + stale cache + render先行」の待ちを削減する。YouTube CDN側の実際のbuffering時間そのものはFrontendから保証できない。

@@ -1,3 +1,12 @@
+## v0.13.2 Playback start latency follow-up / build 20260905-2（2026-09-05）
+
+- YouTube IFrame APIをAccess Gate表示中から先行読み込みし、ログイン後の初回Player準備待ちを短縮。
+- 曲行の即時再生では、Library / Browse / LyricsのFull Renderより先に動画読込要求を発行。
+- Player準備中のクリックは最新のYouTube requestとして保持し、`onReady`で選択中の動画へ適用する。
+- YouTube API scriptの二重挿入を防止。
+- Cache revisionを `20260905-2` へ更新し、前BuildのJSが残る問題を解消。
+- Data Schema 4 / Queue / Session / Cloud履歴 / Local Media保存形式は変更なし。
+
 ## v0.13.2 Account registration overflow fix / build 20260903-1（2026-09-03）
 
 - 新規アカウント作成フォームが低い画面・高いZoomでViewportを超えた場合、下部の「作成してログイン」まで到達できない問題を修正。
