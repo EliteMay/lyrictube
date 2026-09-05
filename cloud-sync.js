@@ -2,6 +2,7 @@
   "use strict";
 
   const API_URL = "https://ctktkyxuzkrsigwoswoc.supabase.co/functions/v1/lyrictube-api";
+  const HISTORY_API_URL = "https://ctktkyxuzkrsigwoswoc.supabase.co/functions/v1/lyrictube-play-history-api";
   const RETRY_MS = 3500;
   const QUEUE_PREFIX = "lyrictube.cloudSyncQueue.v1.";
   let timer = null;
@@ -16,17 +17,16 @@
     playlists: new Map(),
     deletedPlaylists: new Set(),
     state: null,
+    playHistory: new Map(),
   };
 
   function profiles() { return window.LyricTubeProfiles || null; }
-  function currentSession() {
-    try { return profiles()?.readCloudSession?.() || null; } catch { return null; }
-  }
+  function currentSession() { try { return profiles()?.readCloudSession?.() || null; } catch { return null; } }
   function accountId() { return String(currentSession()?.account?.id || ""); }
   function queueKey() { const id = accountId(); return id ? `${QUEUE_PREFIX}${id}` : ""; }
 
-  async function api(action, payload = {}, keepalive = false) {
-    const res = await fetch(API_URL, {
+  async function request(url, action, payload = {}, keepalive = false) {
+    const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "text/plain" },
       body: JSON.stringify({ action, ...payload }),
@@ -38,6 +38,9 @@
     return data;
   }
 
+  const api = (action, payload = {}, keepalive = false) => request(API_URL, action, payload, keepalive);
+  const historyApi = (action, payload = {}, keepalive = false) => request(HISTORY_API_URL, action, payload, keepalive);
+
   function snapshotPending() {
     return {
       replaceLibrary: pending.replaceLibrary,
@@ -46,7 +49,16 @@
       upsertPlaylists: [...pending.playlists.values()],
       deletePlaylistIds: [...pending.deletedPlaylists],
       state: pending.state,
+      playHistory: [...pending.playHistory.values()],
     };
+  }
+
+  function hasPending() {
+    return !!pending.replaceLibrary || pending.songs.size > 0 || pending.deletedSongs.size > 0 || pending.playlists.size > 0 || pending.deletedPlaylists.size > 0 || !!pending.state || pending.playHistory.size > 0;
+  }
+
+  function hasLibraryPending(snapshot) {
+    return !!snapshot.replaceLibrary || snapshot.upsertSongs.length > 0 || snapshot.deleteSongIds.length > 0 || snapshot.upsertPlaylists.length > 0 || snapshot.deletePlaylistIds.length > 0 || !!snapshot.state;
   }
 
   function persistQueue() {
@@ -58,19 +70,18 @@
     } catch {}
   }
 
-  function hydrateQueue() {
-    const id = accountId();
-    if (!id || hydratedFor === id) return;
-    hydratedFor = id;
-    const key = queueKey();
-    try {
-      const raw = localStorage.getItem(key);
-      if (raw) mergeDelta(JSON.parse(raw), false);
-    } catch {}
+  function mergeHistory(events) {
+    for (const item of events || []) {
+      const eventId = String(item?.eventId || "");
+      const songId = String(item?.songId || "");
+      if (!eventId || !songId) continue;
+      pending.playHistory.set(eventId, { ...(pending.playHistory.get(eventId) || {}), ...item, eventId, songId });
+    }
   }
 
   function mergeDelta(delta, persist = true) {
     if (!delta || typeof delta !== "object") return;
+    mergeHistory(delta.playHistory || delta.events || []);
     if (delta.replaceLibrary) {
       pending.replaceLibrary = delta.replaceLibrary;
       pending.songs.clear(); pending.deletedSongs.clear();
@@ -79,7 +90,6 @@
       if (persist) persistQueue();
       return;
     }
-
     if (pending.replaceLibrary) {
       const p = profiles();
       const raw = p?.nativeGetItem?.(localStorage, p.roleStorageKey?.());
@@ -87,37 +97,38 @@
       if (persist) persistQueue();
       return;
     }
-
     for (const item of delta.upsertSongs || []) {
       const id = String(item?.song?.id || "");
       if (!id) continue;
-      pending.songs.set(id, item);
-      pending.deletedSongs.delete(id);
+      pending.songs.set(id, item); pending.deletedSongs.delete(id);
     }
-    for (const idValue of delta.deleteSongIds || []) {
-      const id = String(idValue || "");
+    for (const value of delta.deleteSongIds || []) {
+      const id = String(value || "");
       if (!id) continue;
-      pending.songs.delete(id);
-      pending.deletedSongs.add(id);
+      pending.songs.delete(id); pending.deletedSongs.add(id);
     }
     for (const item of delta.upsertPlaylists || []) {
       const id = String(item?.playlist?.id || "");
       if (!id) continue;
-      pending.playlists.set(id, item);
-      pending.deletedPlaylists.delete(id);
+      pending.playlists.set(id, item); pending.deletedPlaylists.delete(id);
     }
-    for (const idValue of delta.deletePlaylistIds || []) {
-      const id = String(idValue || "");
+    for (const value of delta.deletePlaylistIds || []) {
+      const id = String(value || "");
       if (!id) continue;
-      pending.playlists.delete(id);
-      pending.deletedPlaylists.add(id);
+      pending.playlists.delete(id); pending.deletedPlaylists.add(id);
     }
     if (delta.state) pending.state = delta.state;
     if (persist) persistQueue();
   }
 
-  function hasPending() {
-    return !!pending.replaceLibrary || pending.songs.size > 0 || pending.deletedSongs.size > 0 || pending.playlists.size > 0 || pending.deletedPlaylists.size > 0 || !!pending.state;
+  function hydrateQueue() {
+    const id = accountId();
+    if (!id || hydratedFor === id) return;
+    hydratedFor = id;
+    try {
+      const raw = localStorage.getItem(queueKey());
+      if (raw) mergeDelta(JSON.parse(raw), false);
+    } catch {}
   }
 
   function takePending() {
@@ -126,12 +137,9 @@
     pending.songs.clear(); pending.deletedSongs.clear();
     pending.playlists.clear(); pending.deletedPlaylists.clear();
     pending.state = null;
+    pending.playHistory.clear();
     persistQueue();
     return snapshot;
-  }
-
-  function restoreSnapshot(snapshot) {
-    mergeDelta(snapshot);
   }
 
   function schedule(delay = 900) {
@@ -144,19 +152,19 @@
     if (saving || !hasPending()) return;
     const session = currentSession();
     if (!session?.token || profiles()?.currentRole?.() !== "cloud") return;
-
     const snapshot = takePending();
     saving = true;
     document.documentElement.dataset.cloudSync = "saving";
     try {
       if (snapshot.replaceLibrary) await api("replace_library", { token: session.token, library: snapshot.replaceLibrary }, keepalive);
-      else await api("sync_changes", { token: session.token, changes: snapshot }, keepalive);
+      else if (hasLibraryPending(snapshot)) await api("sync_changes", { token: session.token, changes: snapshot }, keepalive);
+      if (snapshot.playHistory.length) await historyApi("sync_play_history", { token: session.token, events: snapshot.playHistory }, keepalive);
       document.documentElement.dataset.cloudSync = "saved";
       clearTimeout(retryTimer);
       if (hasPending()) schedule(250);
     } catch (error) {
       console.error("[LyricTube] cloud sync failed", error);
-      restoreSnapshot(snapshot);
+      mergeDelta(snapshot);
       document.documentElement.dataset.cloudSync = "error";
       clearTimeout(retryTimer);
       if (!keepalive) retryTimer = setTimeout(() => flush(false), RETRY_MS);
@@ -165,22 +173,70 @@
     }
   }
 
+  function applyRemoteStats(stats) {
+    const core = window.LyricTubeCore;
+    const songs = core?.getLibrary?.()?.songs;
+    if (!Array.isArray(songs)) return;
+    const byId = new Map(songs.map(song => [String(song?.id || ""), song]));
+    for (const stat of stats || []) {
+      const song = byId.get(String(stat?.songId || ""));
+      if (!song) continue;
+      song.playCount = Math.max(Number(song.playCount) || 0, Number(stat.playCount) || 0);
+      const localTime = Date.parse(String(song.lastPlayedAt || ""));
+      const remoteTime = Date.parse(String(stat.lastPlayedAt || ""));
+      if (Number.isFinite(remoteTime) && (!Number.isFinite(localTime) || remoteTime > localTime)) song.lastPlayedAt = stat.lastPlayedAt;
+    }
+  }
+
+  async function loadPlaybackHistory() {
+    const session = currentSession();
+    if (!session?.token || profiles()?.currentRole?.() !== "cloud") return { history: [], stats: [] };
+    const result = await historyApi("load_play_history", { token: session.token });
+    applyRemoteStats(result?.stats);
+    return result;
+  }
+
+  async function clearPlaybackHistory({ resetStats = false } = {}) {
+    const session = currentSession();
+    if (!session?.token || profiles()?.currentRole?.() !== "cloud") return { ok: true, localOnly: true };
+    const started = Date.now();
+    while (saving && Date.now() - started < 8000) await new Promise(resolve => setTimeout(resolve, 50));
+    pending.playHistory.clear();
+    persistQueue();
+    return historyApi(resetStats ? "reset_play_history" : "clear_play_history", { token: session.token });
+  }
+
   document.addEventListener("lyrictube:cloud-library-delta", event => {
     if (profiles()?.currentRole?.() !== "cloud") return;
-    hydrateQueue();
-    mergeDelta(event.detail);
-    schedule();
+    hydrateQueue(); mergeDelta(event.detail); schedule();
   });
-
-  document.addEventListener("lyrictube:cloud-session-ready", () => {
-    hydrateQueue();
-    if (hasPending()) schedule(100);
+  document.addEventListener("lyrictube:cloud-play-history-delta", event => {
+    if (profiles()?.currentRole?.() !== "cloud") return;
+    hydrateQueue(); mergeDelta({ playHistory: event.detail?.events || [] }); schedule(350);
   });
+  document.addEventListener("lyrictube:cloud-session-ready", () => { hydrateQueue(); if (hasPending()) schedule(100); });
   window.addEventListener("online", () => { hydrateQueue(); if (hasPending()) schedule(100); });
-  document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "hidden" && hasPending()) flush(true);
-  });
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden" && hasPending()) flush(true); });
   window.addEventListener("pagehide", () => { if (hasPending()) flush(true); });
 
-  window.LyricTubeCloudSync = Object.freeze({ flush: () => flush(false), hasPending, hydrateQueue });
+  window.LyricTubeCloudSync = Object.freeze({ flush: () => flush(false), hasPending, hydrateQueue, loadPlaybackHistory, clearPlaybackHistory });
+
+  function loadPlaybackA1() {
+    if (document.querySelector('script[data-lyrictube-playback-a1]')) return;
+    const loadIntegration = () => {
+      if (document.querySelector('script[data-lyrictube-playback-a1]')) return;
+      const integration = document.createElement("script");
+      integration.src = `playback-a1.js?v=${encodeURIComponent(window.LyricTubeVersion?.build || "a1")}`;
+      integration.async = false;
+      integration.dataset.lyrictubePlaybackA1 = "";
+      document.body.appendChild(integration);
+    };
+    if (window.LyricTubePlaybackState) return loadIntegration();
+    const state = document.createElement("script");
+    state.src = `core/playback-state.js?v=${encodeURIComponent(window.LyricTubeVersion?.build || "a1")}`;
+    state.async = false;
+    state.onload = loadIntegration;
+    document.body.appendChild(state);
+  }
+  loadPlaybackA1();
 })();

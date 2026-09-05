@@ -1,0 +1,135 @@
+/* LyricTube A1 playback queue / history. Uses the existing theme tokens and
+   preserves the verified Media Workspace visual baseline. */
+
+.a1-song-menu-btn {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--panel2);
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+.a1-song-menu-btn:hover,
+.a1-song-menu-btn:focus-visible { color: var(--text); border-color: var(--accent); }
+.browse-card { position: relative; }
+.a1-browse-menu-btn { position: absolute; top: 9px; right: 9px; z-index: 3; }
+
+.a1-song-menu-dialog { width: min(430px, calc(100vw - 24px)); }
+.a1-song-menu-actions { display: grid; gap: 8px; margin-top: 14px; }
+.a1-song-menu-actions button { width: 100%; text-align: left; justify-content: flex-start; }
+
+.a1-queue-dialog[open] {
+  position: fixed;
+  inset: 0 0 0 auto;
+  margin: 0;
+  width: min(440px, calc(100vw - 32px));
+  height: 100dvh;
+  max-height: none;
+  border-radius: 18px 0 0 18px;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.a1-queue-dialog::backdrop { background: rgb(0 0 0 / .48); }
+.a1-queue-current {
+  display: grid;
+  gap: 3px;
+  padding: 11px 12px;
+  margin: 10px 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel2);
+}
+.a1-queue-current strong { font-size: 13px; }
+.a1-queue-current > span:last-child { color: var(--muted); font-size: 10px; }
+.a1-queue-kicker { color: var(--muted); font-size: 9px; font-weight: 800; letter-spacing: .11em; }
+.a1-queue-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 10px 0; }
+.a1-queue-toolbar > span { color: var(--muted); font-size: 10px; }
+.a1-queue-toolbar button { font-size: 10px; }
+.a1-queue-empty,
+.a1-history-empty {
+  display: grid;
+  gap: 5px;
+  padding: 22px 14px;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  color: var(--muted);
+  text-align: center;
+}
+.a1-queue-empty strong { color: var(--text); font-size: 12px; }
+.a1-queue-empty span { font-size: 10px; line-height: 1.55; }
+.a1-queue-row {
+  display: grid;
+  grid-template-columns: 62px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 9px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel2);
+}
+.a1-queue-row + .a1-queue-row { margin-top: 7px; }
+.a1-queue-row.unavailable { opacity: .72; }
+.a1-queue-thumb { width: 62px; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; background: var(--panel); }
+.a1-queue-copy { min-width: 0; display: grid; gap: 3px; }
+.a1-queue-copy strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
+.a1-queue-copy span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font-size: 9px; }
+.a1-queue-copy .a1-queue-warning { color: var(--danger, var(--muted)); white-space: normal; }
+.a1-queue-actions { display: grid; grid-template-columns: repeat(4, 30px); gap: 4px; justify-content: end; }
+.a1-queue-actions button {
+  min-width: 0;
+  height: 28px;
+  padding: 0 6px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--text);
+  cursor: pointer;
+}
+.a1-queue-actions button:disabled { opacity: .35; cursor: default; }
+.a1-queue-actions .a1-queue-play { background: var(--accentSoft); border-color: var(--accent); }
+.a1-queue-actions .a1-queue-wide { grid-column: 1 / -1; width: 100%; font-size: 9px; }
+
+.a1-history-dialog { width: min(760px, calc(100vw - 24px)); max-height: min(84dvh, 780px); }
+.a1-history-toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+.a1-history-list { display: grid; gap: 7px; max-height: 54dvh; overflow: auto; overscroll-behavior: contain; }
+.a1-history-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 11px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel2);
+}
+.a1-history-row > div:first-child { min-width: 0; display: grid; gap: 3px; }
+.a1-history-row strong { font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.a1-history-row span { color: var(--muted); font-size: 9px; }
+.a1-history-badges { display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end; }
+.a1-history-badges span { padding: 4px 6px; border: 1px solid var(--border); border-radius: 999px; background: var(--panel); }
+
+@media (max-width: 720px) {
+  .a1-queue-dialog[open] {
+    inset: auto 0 0;
+    width: 100%;
+    height: min(78dvh, 680px);
+    max-width: none;
+    border-radius: 18px 18px 0 0;
+  }
+  .a1-queue-row { grid-template-columns: 54px minmax(0, 1fr); }
+  .a1-queue-thumb { width: 54px; }
+  .a1-queue-actions { grid-column: 1 / -1; display: flex; justify-content: flex-end; }
+  .a1-queue-actions .a1-queue-wide { width: auto; }
+  .a1-history-row { grid-template-columns: 1fr; }
+  .a1-history-badges { justify-content: flex-start; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .a1-queue-dialog[open] { scroll-behavior: auto; }
+}
