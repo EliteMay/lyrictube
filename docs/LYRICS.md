@@ -40,11 +40,22 @@ LyricTubeは1つの検索ボタンから複数Providerを利用します。
 - AbortController等で実通信をCancelできる場合はCancelしてよい。ただしCancel不能なProviderがあっても、stale result guardによってUI再表示を防ぐこと
 - 検索結果Dialogを再び表示してよいのは、ユーザーが新しく歌詞検索を実行した場合、または現在も有効な検索の結果表示が初めて行われる場合だけ
 
-### 現在確認されている不具合
+### 実装状態
 
-現行Runtimeでは、非同期検索終了後に検索がまだ有効かを確認せず検索結果を描画し、検索結果Dialogを開く経路がある。そのため、ユーザーが一度閉じても遅れて検索が完了すると検索結果Dialogが再表示されることがある。
+2026-09-05から `lyrics-providers.js` が検索Sessionをgeneration単位で所有します。
 
-実装では「Dialogを閉じる」ことを単なる見た目のCloseとして扱わず、少なくともその検索Sessionについて**以後の自動再表示を無効化する操作**として扱う。
+- 新しい検索を開始するとgenerationを進め、以前の検索をstale化する
+- SyncLRC / lyrics.ovhは可能な範囲でAbortControllerでも中止する
+- LRCLIBのように外部からCancelできない既存Requestも、各`await`後のcurrent-search判定でUI更新を止める
+- 検索開始時の曲名 / アーティスト / 編集対象Song / 現在Songをsnapshotし、途中で変わった場合はstale化する
+- 曲追加 / 編集Dialogが検索中に閉じた場合は、その検索結果を表示しない
+- Provider候補は有効な検索だけが`pendingLyricsResults`へ反映できる
+- 検索結果Dialogは、現在も有効な検索についてProvider検索が揃った後に1回だけ開く
+- 検索結果Dialogを閉じると、その検索Sessionを無効化する
+- staleな検索は結果、進捗、Toast、Error、Dialog表示を更新しない
+- 検索中も再検索でき、新しい検索が古い検索を即座に置き換える
+
+このContractの再発防止は `tests/a1-requirements.test.js` で静的Guardを持ち、実ブラウザでは下記の遅延応答ケースを確認する。
 
 ### Regression / 実Browser確認
 
