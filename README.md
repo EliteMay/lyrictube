@@ -1,7 +1,8 @@
 # LyricTube
 
 **Current version: v0.13.2**  
-**Build: 20260903-1**
+**Build: 20260903-1**  
+**公開サイト:** [https://elitemay.github.io/lyrictube/](https://elitemay.github.io/lyrictube/)
 
 YouTube動画、端末のMP3/MP4、通常歌詞、同期歌詞を1つのライブラリで管理するWebアプリです。
 
@@ -37,7 +38,7 @@ LyricTubeは `MEDIA + TOOL` として、**Library → Player → Lyrics** の作
 - Typography: compact product UI。大きさだけでなくWeight / Spacing / Contrastで階層を作る
 - Theme: Dark / Light / Synthwave / Midnight / Sepiaの5種類。ThemeごとのPage / Navigation / Surface / Text / Border / Accentは同じToken体系で切り替える
 - Components: 曲一覧はList、曲を探す画面はMedia Grid、編集設定はSection / Divider中心
-- Decorative effects: ShadowはPlayer / OverlayなどElevationが必要な場所だけ。Gradient / Glowの常用は避ける
+- Decorative effects: ShadowはPlayer / OverlayなどElevationが必要な場所だけ。Gradient / Glowの常用を避ける
 - Signature: 再生領域と同期歌詞を並べて使うMedia Workspaceそのもの
 
 Visual compositionは `workspace.css`、Sidebarの構造は `sidebar.css`、Theme Colorの正本は `theme.css` です。Legacy CSSにTheme指定が残っていても、現行UIの配色判断は `theme.css` のTokenを基準にします。
