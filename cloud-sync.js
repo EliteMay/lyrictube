@@ -2,6 +2,7 @@
   "use strict";
 
   const API_URL = "https://ctktkyxuzkrsigwoswoc.supabase.co/functions/v1/lyrictube-api";
+  const HISTORY_API_URL = "https://ctktkyxuzkrsigwoswoc.supabase.co/functions/v1/lyrictube-play-history-api";
   const RETRY_MS = 3500;
   const QUEUE_PREFIX = "lyrictube.cloudSyncQueue.v1.";
   let timer = null;
@@ -24,8 +25,8 @@
   function accountId() { return String(currentSession()?.account?.id || ""); }
   function queueKey() { const id = accountId(); return id ? `${QUEUE_PREFIX}${id}` : ""; }
 
-  async function api(action, payload = {}, keepalive = false) {
-    const res = await fetch(API_URL, {
+  async function request(url, action, payload = {}, keepalive = false) {
+    const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "text/plain" },
       body: JSON.stringify({ action, ...payload }),
@@ -36,6 +37,9 @@
     if (!res.ok || !data?.ok) throw new Error(data?.error || `HTTP ${res.status}`);
     return data;
   }
+
+  const api = (action, payload = {}, keepalive = false) => request(API_URL, action, payload, keepalive);
+  const historyApi = (action, payload = {}, keepalive = false) => request(HISTORY_API_URL, action, payload, keepalive);
 
   function snapshotPending() {
     return {
@@ -154,7 +158,7 @@
     try {
       if (snapshot.replaceLibrary) await api("replace_library", { token: session.token, library: snapshot.replaceLibrary }, keepalive);
       else if (hasLibraryPending(snapshot)) await api("sync_changes", { token: session.token, changes: snapshot }, keepalive);
-      if (snapshot.playHistory.length) await api("sync_play_history", { token: session.token, events: snapshot.playHistory }, keepalive);
+      if (snapshot.playHistory.length) await historyApi("sync_play_history", { token: session.token, events: snapshot.playHistory }, keepalive);
       document.documentElement.dataset.cloudSync = "saved";
       clearTimeout(retryTimer);
       if (hasPending()) schedule(250);
@@ -169,10 +173,27 @@
     }
   }
 
+  function applyRemoteStats(stats) {
+    const core = window.LyricTubeCore;
+    const songs = core?.getLibrary?.()?.songs;
+    if (!Array.isArray(songs)) return;
+    const byId = new Map(songs.map(song => [String(song?.id || ""), song]));
+    for (const stat of stats || []) {
+      const song = byId.get(String(stat?.songId || ""));
+      if (!song) continue;
+      song.playCount = Math.max(Number(song.playCount) || 0, Number(stat.playCount) || 0);
+      const localTime = Date.parse(String(song.lastPlayedAt || ""));
+      const remoteTime = Date.parse(String(stat.lastPlayedAt || ""));
+      if (Number.isFinite(remoteTime) && (!Number.isFinite(localTime) || remoteTime > localTime)) song.lastPlayedAt = stat.lastPlayedAt;
+    }
+  }
+
   async function loadPlaybackHistory() {
     const session = currentSession();
-    if (!session?.token || profiles()?.currentRole?.() !== "cloud") return { history: [] };
-    return api("load_play_history", { token: session.token });
+    if (!session?.token || profiles()?.currentRole?.() !== "cloud") return { history: [], stats: [] };
+    const result = await historyApi("load_play_history", { token: session.token });
+    applyRemoteStats(result?.stats);
+    return result;
   }
 
   async function clearPlaybackHistory({ resetStats = false } = {}) {
@@ -182,7 +203,7 @@
     while (saving && Date.now() - started < 8000) await new Promise(resolve => setTimeout(resolve, 50));
     pending.playHistory.clear();
     persistQueue();
-    return api(resetStats ? "reset_play_history" : "clear_play_history", { token: session.token });
+    return historyApi(resetStats ? "reset_play_history" : "clear_play_history", { token: session.token });
   }
 
   document.addEventListener("lyrictube:cloud-library-delta", event => {
@@ -200,8 +221,6 @@
 
   window.LyricTubeCloudSync = Object.freeze({ flush: () => flush(false), hasPending, hydrateQueue, loadPlaybackHistory, clearPlaybackHistory });
 
-  // A1 is loaded here so the existing HTML/bootstrap order remains unchanged.
-  // The integration still waits for LyricTubeCore before patching playback.
   function loadPlaybackA1() {
     if (document.querySelector('script[data-lyrictube-playback-a1]')) return;
     const loadIntegration = () => {
