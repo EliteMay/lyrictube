@@ -3,6 +3,7 @@ const assert = require("assert");
 
 const ui = fs.readFileSync("a1-ui-guards.js", "utf8");
 const app = fs.readFileSync("app.js", "utf8");
+const playback = fs.readFileSync("playback-a1.js", "utf8");
 const css = fs.readFileSync("playback-a1.css", "utf8");
 const cloud = fs.readFileSync("cloud-sync.js", "utf8");
 const lyrics = fs.readFileSync("lyrics-providers.js", "utf8");
@@ -15,18 +16,26 @@ assert(ui.includes('event.stopImmediatePropagation()'), "legacy select-only row 
 assert(ui.includes('row.dataset.a1SongId'), "song-row identity annotation missing");
 assert(cloud.includes('a1-ui-guards.js'), "A1 UI guard bootstrap missing");
 
-// Autoplay selections must issue media work before the expensive full rerender,
-// and a click made while the YouTube iframe is still booting must not be lost.
+// A single click must have one autoplay control path. The old A1 guard retried
+// play() for five seconds and could contend with the actual YouTube loader.
 assert(app.includes('loadSelectedVideo(true);'), "autoplay selection must request media immediately");
-assert(app.includes('requestAnimationFrame(()=>{'), "full visual render must yield until after the media request");
 assert(app.includes('let pendingYoutubeRequest = null'), "pending YouTube request state missing");
 assert(app.includes('function applyPendingYoutubeRequest'), "pending YouTube request replay missing");
 assert(app.includes('pendingYoutubeRequest=request'), "latest YouTube selection must be retained while player is not ready");
 assert(app.includes('autoplay:initial?.autoplay?1:0'), "initial iframe creation must preserve autoplay intent");
-assert(app.includes("if(document.querySelector('script[src*=\"youtube.com/iframe_api\"]'))return;"), "duplicate YouTube API loads must be prevented");
+assert(app.includes('if(playerId===String(pending.videoId))'), "initial YouTube onReady must avoid reloading the same video");
+assert(!ui.includes('maxWaitMs = 5000'), "five-second autoplay retry loop must not return");
+assert(!ui.includes('function ensureAutoplayStarted'), "A1 UI must not own a second autoplay controller");
+assert(!ui.includes('core.play?.()'), "A1 UI must not repeatedly call PlayerController.play");
+assert(ui.includes('lyrictube.playbackDiagnostics.v1'), "local playback-start diagnostics missing");
 assert(ui.includes('script.src = "https://www.youtube.com/iframe_api"'), "YouTube API must warm during the access gate");
 assert(ui.includes('https://www.youtube.com'), "YouTube preconnect is missing");
 assert(ui.includes('https://i.ytimg.com'), "thumbnail origin preconnect is missing");
+const wrappedSelect = playback.slice(playback.indexOf('window.selectSong = function'), playback.indexOf('window.selectVersion = function'));
+assert(wrappedSelect.indexOf('original.selectSong(id, autoplay)') < wrappedSelect.indexOf('captureContext(id'), "A1 context persistence must happen after the media request");
+assert(wrappedSelect.includes('deferEffects: Boolean(autoplay)'), "old-track finalization side effects must defer during autoplay");
+const bootstrap = app.slice(app.indexOf('function bootstrapCore()'), app.indexOf('// Stable façade'));
+assert(bootstrap.indexOf('loadSelectedVideo(false)') < bootstrap.indexOf('renderAll()'), "initial YouTube player warm must begin before the first full render");
 
 // The row has primary content + playlist action + More action on one line.
 assert(/#songList \.song-row\s*\{[\s\S]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s+30px\s+30px/i.test(css), "sidebar song row must reserve three horizontal columns");

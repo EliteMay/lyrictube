@@ -118,12 +118,12 @@
     return refs;
   }
 
-  function captureContext(selectedSongId = "") {
+  function captureContext(selectedSongId = "", { save = true } = {}) {
     playbackContext = queueSnapshotFromCurrentView(selectedSongId);
     const selected = String(selectedSongId || currentSong()?.id || "");
     contextIndex = playbackContext.findIndex(item => String(item.songId) === selected);
     if (contextIndex < 0 && playbackContext.length) contextIndex = 0;
-    scheduleSessionSave(true);
+    if (save) scheduleSessionSave(true);
   }
 
   function cleanStateReferences() {
@@ -281,25 +281,31 @@
     refreshPlaybackStatsUi(song);
   }
 
-  function finalizeTracker({ completed = false, skipped = false } = {}) {
+  function finalizeTracker({ completed = false, skipped = false, deferEffects = false } = {}) {
     if (!tracker) return;
     const t = accrueTracker(performance.now(), true) || tracker;
-    if (!t.counted && helper.isEligiblePlay(t.playedSeconds, t.duration)) markEligible(t);
-    if (t.counted && t.eventId) {
-      const existing = history.find(item => String(item.eventId) === String(t.eventId)) || {};
-      upsertHistoryEntry({
-        ...existing,
-        eventId: t.eventId,
-        songId: t.songId,
-        versionId: t.versionId || "",
-        playedAt: existing.playedAt || t.startedAt,
-        completed: Boolean(completed || existing.completed),
-        skipped: Boolean(skipped && !completed),
-        playedSeconds: Math.round(Math.max(asNumber(existing.playedSeconds), t.playedSeconds) * 10) / 10,
-      }, true);
-    }
     tracker = null;
-    scheduleSessionSave(true);
+
+    const commit = () => {
+      if (!t.counted && helper.isEligiblePlay(t.playedSeconds, t.duration)) markEligible(t);
+      if (t.counted && t.eventId) {
+        const existing = history.find(item => String(item.eventId) === String(t.eventId)) || {};
+        upsertHistoryEntry({
+          ...existing,
+          eventId: t.eventId,
+          songId: t.songId,
+          versionId: t.versionId || "",
+          playedAt: existing.playedAt || t.startedAt,
+          completed: Boolean(completed || existing.completed),
+          skipped: Boolean(skipped && !completed),
+          playedSeconds: Math.round(Math.max(asNumber(existing.playedSeconds), t.playedSeconds) * 10) / 10,
+        }, true);
+      }
+      scheduleSessionSave(true);
+    };
+
+    if (deferEffects) queueMicrotask(commit);
+    else commit();
   }
 
   function trackerTick() {
@@ -987,17 +993,21 @@
       const before = currentRef();
       const changed = before?.songId && String(before.songId) !== String(id || "");
       if (changed) {
-        finalizeTracker({ skipped: true });
+        // Only cheap bookkeeping stays before the media request. History/session/UI
+        // writes are committed in a microtask after autoplay has been dispatched.
+        finalizeTracker({ skipped: true, deferEffects: Boolean(autoplay) });
         pushNavigation(before);
-        captureContext(id);
-      } else if (!playbackContext.length) {
-        captureContext(id);
       }
+
+      const needsContext = changed || !playbackContext.length;
       const result = original.selectSong(id, autoplay);
+
+      if (needsContext) captureContext(id, { save: !autoplay });
       const after = currentRef();
       if (after) rememberVersion(after.songId, after.versionId);
       tracker = null;
-      scheduleSessionSave(true);
+      if (autoplay) queueMicrotask(() => scheduleSessionSave(true));
+      else scheduleSessionSave(true);
       queueMicrotask(() => { injectSongMenus(); updateSmartViewUi(); });
       return result;
     };

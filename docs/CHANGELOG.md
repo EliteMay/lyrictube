@@ -1,3 +1,13 @@
+## v0.13.2 Playback latency v3 / build 20260905-3（2026-09-05）
+
+- User再確認でbuild `20260905-2` 後も曲クリックから再生開始まで約5秒の体感が変わっていないことを確認。
+- A1の曲選択Wrapperが履歴確定・Context作成・Session保存を本体再生要求より前に行う順序を修正し、Autoplay時はPlayerへの要求を先に発行。
+- `a1-ui-guards.js` に残っていた最大5秒の `play()` 再試行Loopを削除し、再生開始制御を本体Player経路へ一本化。
+- 初期選択動画のYouTube Player warm-upをFull Renderより前へ移動。
+- YouTube `onReady` で初期動画と同じPending requestを `loadVideoById` し直さないよう修正。
+- Local-onlyの再生開始Timing ring buffer（最大20件）を追加し、次回再発時にクリック→PLAYINGの実測値を残せるようにした。
+- Cache revisionを `20260905-3` へ更新。Data Schema 4 / Queue / Cloud履歴 / Local Media保存形式は変更なし。
+
 ## v0.13.2 Playback start latency follow-up / build 20260905-2（2026-09-05）
 
 - YouTube IFrame APIをAccess Gate表示中から先行読み込みし、ログイン後の初回Player準備待ちを短縮。
