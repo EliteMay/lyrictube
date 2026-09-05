@@ -38,24 +38,32 @@ jobs:
           set -euo pipefail
           python -m py_compile tools/*.py
 
+      - name: Test account register scroll
+        run: node tests/account-register-scroll.test.js
+      - name: Test account registration
+        run: node tests/account-registration.test.js
+      - name: Test app utilities
+        run: node tests/app-utils.test.js
+      - name: Test fair shuffle integration
+        run: node tests/fair-shuffle-integration.test.js
+      - name: Test fair shuffle
+        run: node tests/fair-shuffle.test.js
+      - name: Test library schema
+        run: node tests/library-schema.test.js
       - name: Test A1 playback state
         run: node tests/playback-state.test.js
-
+      - name: Test player controller
+        run: node tests/player-controller.test.js
       - name: Run runtime regression guards
         run: node tests/runtime-guards.test.js
-
-      - name: Run remaining LyricTube logic tests
-        shell: bash
-        run: |
-          set -euo pipefail
-          for file in tests/*.test.js; do
-            [ -e "$file" ] || continue
-            case "$file" in
-              tests/playback-state.test.js|tests/runtime-guards.test.js) continue ;;
-            esac
-            echo "node $file"
-            node "$file"
-          done
+      - name: Test runtime hooks
+        run: node tests/runtime-hooks.test.js
+      - name: Test sidebar layout
+        run: node tests/sidebar-layout.test.js
+      - name: Test song form tags
+        run: node tests/song-form-tags.test.js
+      - name: Test sync interpolation
+        run: node tests/sync-interpolation.test.js
 
       - name: Validate JSON and local asset links
         run: python tools/validate_static.py
