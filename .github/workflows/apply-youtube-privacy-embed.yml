@@ -6,6 +6,7 @@ on:
       - fix/youtube-privacy-embed-path
     paths:
       - tools/apply_youtube_privacy_embed.py
+      - tools/fix_youtube_privacy_test.py
       - .github/workflows/apply-youtube-privacy-embed.yml
 
 permissions:
@@ -19,7 +20,9 @@ jobs:
         with:
           ref: fix/youtube-privacy-embed-path
       - name: Apply patch
-        run: python tools/apply_youtube_privacy_embed.py
+        run: |
+          python tools/apply_youtube_privacy_embed.py
+          python tools/fix_youtube_privacy_test.py
       - name: Validate
         run: |
           node --check app.js
