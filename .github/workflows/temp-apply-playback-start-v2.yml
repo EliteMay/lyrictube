@@ -1,0 +1,45 @@
+name: Temp Apply Playback Start V2
+
+on:
+  push:
+    branches:
+      - fix/playback-start-v2
+    paths:
+      - 'tools/apply_playback_start_v2.py'
+      - '.github/workflows/temp-apply-playback-start-v2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/playback-start-v2
+
+      - name: Apply playback start fix
+        run: python tools/apply_playback_start_v2.py
+
+      - name: Validate generated state
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check app.js
+          node --check a1-ui-guards.js
+          node tests/a1-requirements.test.js
+          node tests/runtime-guards.test.js
+          python tools/validate_static.py
+
+      - name: Commit generated changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app.js a1-ui-guards.js version.js index.html site-shell.js data/defaults.json README.md tests/a1-requirements.test.js docs/CHANGELOG.md PROJECT_LEARNINGS.md docs/WORK_REPORT_2026-09-05_PLAYBACK_START.md
+          git commit -m 'fix: preserve playback intent while YouTube initializes'
+          git push origin HEAD:fix/playback-start-v2
