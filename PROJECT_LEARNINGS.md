@@ -216,3 +216,22 @@
 - **Regression Guard:** `tests/a1-requirements.test.js` でtimer centralization、manual cancellation、expected ref guard、旧unguarded restore retryの不在を確認。
 - **Prevention:** User操作より後に実行するSeek/Play/Restore retryには必ずgenerationまたはAbort相当のownershipを持たせ、対象Entityを再確認してからTransportへ触る。
 - **Guide candidate:** yes — Interactive Mediaのstale async action / delayed timer ownershipの実例。
+
+
+### PL-F-009 YouTube埋め込みの動画切替待ちはApp処理ではなくProvider側に残った
+
+- Date: 2026-09-06
+- Status: experiment implemented / User validation pending
+- Severity: major
+- Cost: high
+- Symptom: build `20260905-6` で曲クリックから `loadVideoById` までは1msだが、PLAYINGまで約4.5秒かかる。
+- Expected: 曲行クリック後、YouTube再生が体感上すぐ開始する。
+- Actual: `REQUEST 1ms → loadVideoById 1ms → BUFFERING 74ms → UNSTARTED 389ms → BUFFERING 4526ms → PLAYING 4552ms`。Main Thread Long Taskは0ms。
+- Trigger / Reproduction: 通常ページでYouTube曲を別曲へ切り替える。
+- Root Cause: LyricTube内の同期処理・描画・stale restoreは主要因ではなく、標準YouTube iframeが新しい動画データを取得し始めるまでのProvider待ちがCritical Pathに残った。
+- Experiment: YouTube公式のprivacy-enhanced embed (`youtube-nocookie.com`) を明示iframe + `enablejsapi=1` + `origin` + `strict-origin-when-cross-origin` で構築し、同じ診断で標準hostと比較する。
+- Affected files / systems: `app.js`, `a1-ui-guards.js`, `index.html`, playback diagnostics
+- Detection method: User supplied normal-page runtime diagnostics across builds `20260905-5` and `20260905-6`.
+- Regression Guard: `tests/a1-requirements.test.js` でprivacy-enhanced host / origin / referrer / diagnostic hostを確認する。
+- Prevention: Provider待ちが支配的になった時はApp側の同期処理を繰り返し最適化せず、公式に許可されたProvider構成のA/Bと実測を行う。
+- Guide candidate: yes — MEDIA Profileの外部Provider latency切り分け例。
