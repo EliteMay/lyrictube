@@ -1071,6 +1071,9 @@ function createYoutubePlayer(videoId){
   const initial=pendingYoutubeRequest;
   const initialVideoId=String(initial?.videoId||videoId||v?.videoId||"");
   if(!initialVideoId)return;
+  // If autoplay already reached BUFFERING before onReady, do not issue a
+  // second playVideo() call. The duplicate command can reset the first load.
+  let initialAutoplayProgressed=false;
   ytReady=false;
   ytPlayer=new YT.Player("player",{
     width:"100%",
@@ -1091,7 +1094,9 @@ function createYoutubePlayer(videoId){
         const playerId=playerVideoIdSafe();
         if(pending?.videoId){
           if(playerId===String(pending.videoId)){
-            if(pending.autoplay){try{ytPlayer.playVideo?.()}catch{}}
+            // The constructor already received autoplay=1. Only use playVideo
+            // as a fallback when autoplay never made playback progress.
+            if(pending.autoplay&&!initialAutoplayProgressed){try{ytPlayer.playVideo?.()}catch{}}
             if(pendingYoutubeRequest?.generation===pending.generation)pendingYoutubeRequest=null;
           }else{
             applyPendingYoutubeRequest(pending);
@@ -1106,6 +1111,7 @@ function createYoutubePlayer(videoId){
         updateBottomPlayer();
       },
       onStateChange:e=>{
+        if(initial?.autoplay&&(e.data===3||e.data===1))initialAutoplayProgressed=true;
         if(e.data===1){
           const currentId=playerVideoIdSafe();
           if(pendingYoutubeRequest?.videoId===currentId)pendingYoutubeRequest=null;

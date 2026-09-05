@@ -24,6 +24,9 @@ assert(app.includes('function applyPendingYoutubeRequest'), "pending YouTube req
 assert(app.includes('pendingYoutubeRequest=request'), "latest YouTube selection must be retained while player is not ready");
 assert(app.includes('autoplay:initial?.autoplay?1:0'), "initial iframe creation must preserve autoplay intent");
 assert(app.includes('if(playerId===String(pending.videoId))'), "initial YouTube onReady must avoid reloading the same video");
+assert(app.includes('let initialAutoplayProgressed=false'), "initial YouTube autoplay progress guard missing");
+assert(app.includes('if(initial?.autoplay&&(e.data===3||e.data===1))initialAutoplayProgressed=true'), "initial autoplay progress must be observed before onReady fallback");
+assert(app.includes('pending.autoplay&&!initialAutoplayProgressed'), "onReady must not restart autoplay after buffering already began");
 assert(!ui.includes('maxWaitMs = 5000'), "five-second autoplay retry loop must not return");
 assert(!ui.includes('function ensureAutoplayStarted'), "A1 UI must not own a second autoplay controller");
 assert(!ui.includes('core.play?.()'), "A1 UI must not repeatedly call PlayerController.play");
