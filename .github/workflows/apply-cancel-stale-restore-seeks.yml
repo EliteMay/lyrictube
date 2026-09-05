@@ -1,0 +1,39 @@
+name: Apply stale restore seek fix
+
+on:
+  push:
+    branches:
+      - fix/cancel-stale-restore-seeks
+    paths:
+      - tools/apply_cancel_stale_restore_seeks.py
+      - .github/workflows/apply-cancel-stale-restore-seeks.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/cancel-stale-restore-seeks
+      - name: Apply patch
+        run: python tools/apply_cancel_stale_restore_seeks.py
+      - name: Validate
+        run: |
+          node --check playback-a1.js
+          node --check a1-ui-guards.js
+          node tests/a1-requirements.test.js
+          python tools/validate_static.py
+      - name: Commit generated changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add playback-a1.js a1-ui-guards.js tests/a1-requirements.test.js version.js index.html README.md data/defaults.json PROJECT_LEARNINGS.md docs/CHANGELOG.md docs/WORK_REPORT_2026-09-05_PLAYBACK_START.md
+          if git diff --cached --quiet; then
+            echo "No generated changes"
+            exit 0
+          fi
+          git commit -m "fix: cancel stale playback restore seeks"
+          git push origin HEAD:fix/cancel-stale-restore-seeks
