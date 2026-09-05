@@ -22,7 +22,7 @@ assert(mobile.includes("38px minmax(0,1fr) minmax(0,1fr)!important"), "mobile si
 assert(!app.includes('dataset.lyricTubeReady="v29"'), "legacy internal ready version must not return");
 assert(app.includes("play: () => playMainPlayback()"), "core facade must expose generic playback");
 assert(local.includes("await activateLocalMedia(false)"), "selected Local Media must activate after IndexedDB loads");
-assert(version.includes('version: "v0.14.0"'), "expected v0.14.0");
+assert(version.includes('version: "v0.13.2"'), "expected v0.13.2");
 
 assert(app.includes("window.LyricTubeAppUtils"), "app must consume extracted pure utilities");
 assert(app.includes('applyFilters?.("songs:view"'), "viewSongs must expose the song filter hook");
