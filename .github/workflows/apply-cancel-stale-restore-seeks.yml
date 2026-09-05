@@ -19,7 +19,11 @@ jobs:
         with:
           ref: fix/cancel-stale-restore-seeks
       - name: Apply patch
-        run: python tools/apply_cancel_stale_restore_seeks.py
+        run: |
+          if ! head -n 1 docs/CHANGELOG.md | grep -qx '# CHANGELOG'; then
+            sed -i '1i# CHANGELOG\n' docs/CHANGELOG.md
+          fi
+          python tools/apply_cancel_stale_restore_seeks.py
       - name: Validate
         run: |
           node --check playback-a1.js
