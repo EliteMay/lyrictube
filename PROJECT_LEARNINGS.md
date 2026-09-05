@@ -182,12 +182,19 @@
 - **Prevention:** Modal / Gateへ内容を追加したときは、横幅だけでなく低ViewportとZoom時にPrimary Actionへ到達できるか確認する。
 
 
-## PL-F-007 Playback高速化を同一Cache revisionで配信し、初回YouTube requestも保持していなかった
+## PL-F-007 Playback開始遅延の初回診断が不完全で、A1の前処理と二重Autoplay制御が残った
 
 - **Date:** 2026-09-05
-- **Status:** Resolved
-- **Symptom:** 曲を押してから動画開始まで約5秒待つ体感が残った。
-- **Root cause:** 高速化Patchを入れてもBuild revisionを更新しておらず、GitHub Pages / Browser cacheで旧JSが残り得た。さらにYouTube IFrame PlayerがReadyになる前のAutoplay要求をPlayer本体が保持していなかった。
-- **Fix:** Cache revisionを `20260905-2` へ更新。YouTube APIをAccess Gate中から先行ロードし、最新の動画Requestを保持してPlayer `onReady`で適用する。曲選択時はFull Renderより先に動画読込を開始する。
-- **Regression guard:** `tests/a1-requirements.test.js` と `tools/validate_static.py` でpending request / early API warm / build revision整合を確認。
-- **Prevention:** 公開済みRuntimeの性能・挙動を変える場合は、コード変更だけでなくCache revisionまで同じ変更単位で更新する。初期化待ちの外部PlayerではUser Intentを明示的に保持する。
+- **Status:** v3 implemented / User validation pending
+- **Symptom:** 曲を押してから動画開始まで約5秒待つ。build `20260905-2` を公開後もUser確認で体感が変わらなかった。
+- **Expected:** 曲クリック直後にYouTubeの読込要求を出し、既にReadyなら即座に再生開始へ進む。
+- **Actual:** 本体 `app.js` をmedia-firstへしても、A1 wrapperがその外側で履歴・Context・Session処理を先に実行し、さらにUI guardが最大5秒 `play()` を再試行していた。初期Player `onReady` では同じ動画を再度 `loadVideoById` する経路も残った。
+- **Trigger:** A1導入後のSidebar曲行からの即時再生。特にログイン直後・初回Player準備中。
+- **Root Cause:** Playback ownershipが `app.js` / `playback-a1.js` / `a1-ui-guards.js` の3層へ分散したまま、前回は本体層だけを高速化していた。Cache問題は実在したが、約5秒症状の唯一の原因ではなかった。
+- **Final Fix:** Autoplay時はA1の重いfinalize/session/context side effectをmedia request後へ遅延。UI guardの5秒retryを削除。本体Player warm-upを初回Full Renderより前へ移し、初期 `onReady` の同一動画二重Loadを防止。
+- **Affected files / systems:** `app.js`, `playback-a1.js`, `a1-ui-guards.js`, A1 regression tests, build cache revision
+- **Cost / Severity:** Major。主要操作の体感性能に直結し、前回Fix後も再発。
+- **Detection method:** User実利用による「変わってない」の再確認 + Runtime ownership追跡。
+- **Regression Guard:** `tests/a1-requirements.test.js` で5秒retryの不在、media request前後順序、初期Player warm-up順、同一動画二重Load防止を確認。Local diagnosticsにクリック→PLAYING実測を最大20件保存。
+- **Prevention:** 性能Bugでは内側関数だけでなく、User actionを包む全Wrapper / Hook / Monkey patchを順に追い、外側で同期処理やretryが残っていないか確認する。User確認前にResolvedと断定しない。
+- **Guide candidate:** yes — Interactive Media AppのPerformance調査ではcontrol ownershipとWrapper順序を診断対象にする。

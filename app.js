@@ -1088,11 +1088,16 @@ function createYoutubePlayer(videoId){
         ytReady=true;
         try{ytPlayer.setVolume?.(clamp(Number(library.settings.volume??80),0,100))}catch{}
         const pending=pendingYoutubeRequest;
+        const playerId=playerVideoIdSafe();
         if(pending?.videoId){
-          applyPendingYoutubeRequest(pending);
+          if(playerId===String(pending.videoId)){
+            if(pending.autoplay){try{ytPlayer.playVideo?.()}catch{}}
+            if(pendingYoutubeRequest?.generation===pending.generation)pendingYoutubeRequest=null;
+          }else{
+            applyPendingYoutubeRequest(pending);
+          }
         }else{
           const current=getVersion();
-          const playerId=playerVideoIdSafe();
           if(current?.videoId&&playerId!==String(current.videoId)){
             try{ytPlayer.cueVideoById({videoId:current.videoId,startSeconds:Number(current.startTime)||0})}catch{}
           }
@@ -3302,11 +3307,12 @@ function bootstrapCore(){
   toggleSpotlight();
   mainPage=library.settings.startupPage==="browse"?"browse":"player";
   ensureSelection();
+  // Start warming the selected media before the first full Library/Browse/Lyrics render.
+  if(selectedSongId)loadSelectedVideo(false);
   renderAll();
   updateModeButtons();
   els.browseSearch.value=els.librarySearch.value;
   els.bottomVolume.value=String(clamp(Number(library.settings.volume??80),0,100));
-  if(selectedSongId)loadSelectedVideo(false);
   syncTimer=setInterval(playbackTick,180);
   loadYoutubeApi();
 

@@ -1,9 +1,9 @@
 (() => {
   "use strict";
 
+  const DIAG_KEY = "lyrictube.playbackDiagnostics.v1";
   let initialized = false;
-  let renderFrame = 0;
-  let autoplayGeneration = 0;
+  let timingGeneration = 0;
 
   function warmYoutubeConnections() {
     for (const href of ["https://www.youtube.com", "https://i.ytimg.com"]) {
@@ -44,68 +44,47 @@
     });
   }
 
-  function scheduleDeferredFullRender() {
-    cancelAnimationFrame(renderFrame);
-    renderFrame = requestAnimationFrame(() => {
-      renderFrame = 0;
-      try { window.renderAll?.(); } catch (error) {
-        console.warn("[LyricTube] deferred playback render failed", error);
-      }
-    });
-  }
-
-  function runAutoplaySelectionFirst(select, songId) {
-    const renderAll = window.renderAll;
-    let renderRequested = false;
-
-    if (typeof renderAll !== "function") return select(songId, true);
-
-    // app.js normally rebuilds Library, Browse and Lyrics before it tells the
-    // player to load the new video. During autoplay selections, defer that
-    // expensive visual work for one frame so the media request is issued first.
-    window.renderAll = () => { renderRequested = true; };
+  function readDiagnostics() {
     try {
-      return select(songId, true);
-    } finally {
-      window.renderAll = renderAll;
-      if (renderRequested) scheduleDeferredFullRender();
+      const raw = JSON.parse(localStorage.getItem(DIAG_KEY) || "[]");
+      return Array.isArray(raw) ? raw : [];
+    } catch {
+      return [];
     }
   }
 
-  function ensureAutoplayStarted(songId) {
-    const generation = ++autoplayGeneration;
-    const startedAt = performance.now();
-    const maxWaitMs = 5000;
-
-    const tryStart = () => {
-      if (generation !== autoplayGeneration) return;
-      const core = window.LyricTubeCore;
-      const currentId = String(core?.getSong?.()?.id || "");
-      if (!core || currentId !== String(songId || "")) return;
-      if (Number(core.state?.()) === 1) return;
-
-      // The first attempt still runs in the original click task when possible.
-      // Later attempts cover the YouTube iframe becoming ready after the click.
-      try { core.play?.(); } catch {}
-      if (Number(core.state?.()) === 1) return;
-      if (performance.now() - startedAt < maxWaitMs) setTimeout(tryStart, 120);
-    };
-
-    tryStart();
+  function recordPlaybackTiming(entry) {
+    const items = readDiagnostics();
+    items.unshift(entry);
+    try { localStorage.setItem(DIAG_KEY, JSON.stringify(items.slice(0, 20))); } catch {}
+    document.documentElement.dataset.playbackStartMs = String(entry.elapsedMs);
+    console.info(`[LyricTube] playback started in ${entry.elapsedMs}ms`);
   }
 
-  function installFastAutoplaySelect() {
-    const select = window.selectSong;
-    if (typeof select !== "function" || select.__lyricTubeFastAutoplay) return;
+  function observePlaybackStart(songId, startedAt) {
+    const generation = ++timingGeneration;
+    let sawNonPlaying = Number(window.LyricTubeCore?.state?.()) !== 1;
 
-    const fastSelect = function(songId, autoplay = false) {
-      if (!autoplay) return select(songId, autoplay);
-      const result = runAutoplaySelectionFirst(select, songId);
-      ensureAutoplayStarted(songId);
-      return result;
+    const check = () => {
+      if (generation !== timingGeneration) return;
+      const core = window.LyricTubeCore;
+      if (!core || String(core.getSong?.()?.id || "") !== String(songId || "")) return;
+      const state = Number(core.state?.());
+      if (state !== 1) sawNonPlaying = true;
+      const elapsed = performance.now() - startedAt;
+      if (sawNonPlaying && state === 1) {
+        recordPlaybackTiming({
+          songId: String(songId || ""),
+          elapsedMs: Math.round(elapsed),
+          capturedAt: new Date().toISOString(),
+          build: window.LyricTubeVersion?.build || "",
+        });
+        return;
+      }
+      if (elapsed < 12000) setTimeout(check, 50);
     };
-    Object.defineProperty(fastSelect, "__lyricTubeFastAutoplay", { value: true });
-    window.selectSong = fastSelect;
+
+    setTimeout(check, 0);
   }
 
   function handlePrimarySongClick(event) {
@@ -121,20 +100,23 @@
     }
     if (!songId || typeof window.selectSong !== "function") return;
 
-    // The main row means "play now". Auxiliary actions are siblings of
-    // .song-item and therefore never enter this handler.
     event.preventDefault();
     event.stopImmediatePropagation();
+    const startedAt = performance.now();
     window.selectSong(songId, true);
+    observePlaybackStart(songId, startedAt);
   }
 
   function initialize() {
     if (initialized) return;
     initialized = true;
-    installFastAutoplaySelect();
     annotateSongRows();
     document.addEventListener("click", handlePrimarySongClick, true);
     window.LyricTubeHooks?.on?.("render:all", () => queueMicrotask(annotateSongRows));
+    window.LyricTubePlaybackDiagnostics = Object.freeze({
+      recent: () => readDiagnostics().map(item => ({ ...item })),
+      clear: () => { try { localStorage.removeItem(DIAG_KEY); } catch {} },
+    });
   }
 
   warmYoutubeConnections();
