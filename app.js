@@ -605,6 +605,14 @@ function clearLyricHighlightClasses(){
   });
 }
 
+function emitPlaybackDiagnosticStage(stage,detail={}){
+  try{
+    document.dispatchEvent(new CustomEvent("lyrictube:playback-stage",{
+      detail:{stage:String(stage||""),at:performance.now(),...detail}
+    }));
+  }catch{}
+}
+
 function makeYoutubeRequest(v,autoplay=false){
   return{
     generation:++youtubeRequestGeneration,
@@ -624,6 +632,7 @@ function applyPendingYoutubeRequest(request=pendingYoutubeRequest){
   if(!selected?.videoId||String(selected.videoId)!==String(request.videoId))return false;
   const arg={videoId:request.videoId,startSeconds:request.startSeconds};
   try{
+    emitPlaybackDiagnosticStage(request.autoplay?"loadVideoById":"cueVideoById",{videoId:request.videoId,startSeconds:request.startSeconds,ytReady:Boolean(ytReady)});
     request.autoplay?ytPlayer.loadVideoById(arg):ytPlayer.cueVideoById(arg);
     if(pendingYoutubeRequest?.generation===request.generation)pendingYoutubeRequest=null;
     return true;
@@ -682,6 +691,10 @@ function loadSelectedVideo(autoplay=false){
   els.playerPlaceholder.classList.add("hidden");
   const request=makeYoutubeRequest(v,autoplay);
   pendingYoutubeRequest=request;
+  emitPlaybackDiagnosticStage("REQUEST",{
+    videoId:request.videoId,autoplay:request.autoplay,ytReady:Boolean(ytReady),hasPlayer:Boolean(ytPlayer),
+    playerVideoId:playerVideoIdSafe(),playerState:playerStateSafe()
+  });
   if(ytReady&&ytPlayer){
     applyPendingYoutubeRequest(request);
   }else if(window.YT?.Player&&!ytPlayer){
@@ -1075,6 +1088,7 @@ function createYoutubePlayer(videoId){
   // second playVideo() call. The duplicate command can reset the first load.
   let initialAutoplayProgressed=false;
   ytReady=false;
+  emitPlaybackDiagnosticStage("PLAYER_CREATE",{videoId:initialVideoId,autoplay:Boolean(initial?.autoplay)});
   ytPlayer=new YT.Player("player",{
     width:"100%",
     height:"100%",
@@ -1089,6 +1103,7 @@ function createYoutubePlayer(videoId){
     events:{
       onReady:()=>{
         ytReady=true;
+        emitPlaybackDiagnosticStage("PLAYER_READY",{videoId:playerVideoIdSafe(),pendingVideoId:String(pendingYoutubeRequest?.videoId||"")});
         try{ytPlayer.setVolume?.(clamp(Number(library.settings.volume??80),0,100))}catch{}
         const pending=pendingYoutubeRequest;
         const playerId=playerVideoIdSafe();
@@ -1111,6 +1126,9 @@ function createYoutubePlayer(videoId){
         updateBottomPlayer();
       },
       onStateChange:e=>{
+        let loadedFraction=null;
+        try{loadedFraction=Number(ytPlayer?.getVideoLoadedFraction?.())}catch{}
+        emitPlaybackDiagnosticStage("YT_STATE",{state:Number(e.data),videoId:playerVideoIdSafe(),loadedFraction});
         if(initial?.autoplay&&(e.data===3||e.data===1))initialAutoplayProgressed=true;
         if(e.data===1){
           const currentId=playerVideoIdSafe();
@@ -1120,7 +1138,13 @@ function createYoutubePlayer(videoId){
         if(e.data===0)handleTrackEnd("youtube");
         updateBottomPlayer();
       },
-      onError:e=>showToast(e.data===101||e.data===150?"この動画は投稿者の設定でサイト内再生できません。":"YouTube動画を再生できませんでした。")
+      onAutoplayBlocked:()=>{
+        emitPlaybackDiagnosticStage("AUTOPLAY_BLOCKED",{videoId:playerVideoIdSafe()});
+      },
+      onError:e=>{
+        emitPlaybackDiagnosticStage("YT_ERROR",{code:Number(e.data),videoId:playerVideoIdSafe()});
+        showToast(e.data===101||e.data===150?"この動画は投稿者の設定でサイト内再生できません。":"YouTube動画を再生できませんでした。");
+      }
     }
   });
 }

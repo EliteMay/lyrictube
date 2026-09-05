@@ -5,6 +5,12 @@
   let initialized = false;
   let timingGeneration = 0;
   const longTasks = [];
+  const playbackStages = [];
+  document.addEventListener("lyrictube:playback-stage",event=>{
+    const detail=event.detail||{};
+    playbackStages.push({at:Number(detail.at)||performance.now(),...detail});
+    if(playbackStages.length>200)playbackStages.splice(0,playbackStages.length-200);
+  });
 
   const STATE_NAMES = Object.freeze({
     [-1]: "UNSTARTED",
@@ -154,12 +160,23 @@
 
   function diagnosticText(entry) {
     const states = (entry.states || []).map(item => `${item.name} ${item.atMs}ms`).join(" → ") || "変化なし";
+    const internal=(entry.internalStages||[]).map(item=>{
+      const extra=[];
+      if(item.videoId)extra.push(`video=${item.videoId}`);
+      if(item.autoplay!==undefined)extra.push(`autoplay=${item.autoplay}`);
+      if(item.ytReady!==undefined)extra.push(`ready=${item.ytReady}`);
+      if(item.hasPlayer!==undefined)extra.push(`player=${item.hasPlayer}`);
+      if(Number.isFinite(item.state))extra.push(`state=${item.state}`);
+      if(Number.isFinite(item.loadedFraction))extra.push(`loaded=${item.loadedFraction.toFixed(3)}`);
+      return `${item.stage} ${item.atMs}ms${extra.length?` (${extra.join(", ")})`:""}`;
+    }).join(" → ")||"なし";
     return [
       `LyricTube playback diagnostic build=${entry.build || "unknown"}`,
       `曲クリック→PLAYING: ${formatMs(entry.elapsedMs)}`,
       `selectSong同期処理: ${formatMs(entry.syncMs)}`,
       `次の描画Frame: ${formatMs(entry.frameMs)}`,
       `Player状態: ${states}`,
+      `内部Stages: ${internal}`,
       `Long Task合計: ${formatMs(entry.longTaskTotalMs)} / 最大: ${formatMs(entry.longTaskMaxMs)}`,
       `結果: ${entry.result || "unknown"}`,
     ].join("\n");
@@ -211,6 +228,7 @@
 
   function observePlaybackStart(songId, startedAt, syncMs) {
     const generation = ++timingGeneration;
+    const stageStartIndex=playbackStages.length;
     const initialState = Number(window.LyricTubeCore?.state?.());
     let sawNonPlaying = initialState !== 1;
     let previousState = initialState;
@@ -244,12 +262,14 @@
       if (Math.round(elapsed) % 250 < 30) renderLiveDiagnostic(live);
 
       if (sawNonPlaying && state === 1) {
+        const internalStages=playbackStages.slice(stageStartIndex).filter(item=>item.at>=startedAt&&item.at<=now).map(item=>({...item,atMs:Math.round(item.at-startedAt)}));
         recordPlaybackTiming({
           songId: String(songId || ""),
           elapsedMs: Math.round(elapsed),
           syncMs: Math.round(syncMs),
           frameMs,
           states,
+          internalStages,
           longTaskTotalMs: long.total,
           longTaskMaxMs: long.max,
           capturedAt: new Date().toISOString(),
@@ -260,12 +280,14 @@
       }
 
       if (elapsed >= 12000) {
+        const internalStages=playbackStages.slice(stageStartIndex).filter(item=>item.at>=startedAt&&item.at<=now).map(item=>({...item,atMs:Math.round(item.at-startedAt)}));
         recordPlaybackTiming({
           songId: String(songId || ""),
           elapsedMs: Math.round(elapsed),
           syncMs: Math.round(syncMs),
           frameMs,
           states,
+          internalStages,
           longTaskTotalMs: long.total,
           longTaskMaxMs: long.max,
           capturedAt: new Date().toISOString(),
