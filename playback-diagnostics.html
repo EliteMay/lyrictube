@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LyricTube Playback Diagnostics</title>
+  <style>
+    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0f1115;color:#fff;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    #appFrame{display:block;width:100%;height:100%;border:0;background:#0f1115}
+    #diagPanel{position:fixed;right:12px;top:12px;z-index:999999;width:min(390px,calc(100vw - 24px));box-sizing:border-box;padding:12px;border:1px solid rgba(255,255,255,.2);border-radius:10px;background:rgba(12,14,18,.96);box-shadow:0 12px 32px rgba(0,0,0,.42);font-size:12px;line-height:1.45}
+    #diagHead{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+    #diagHead strong{margin-right:auto;font-size:13px}
+    #diagPanel button{border:1px solid rgba(255,255,255,.18);border-radius:6px;background:transparent;color:inherit;padding:4px 8px;cursor:pointer;font:inherit}
+    #diagResult{white-space:pre-line;word-break:break-word}
+    #diagHint{margin-top:8px;color:#aeb6c2}
+  </style>
+</head>
+<body>
+  <iframe id="appFrame" src="./?playback-diagnostics=1" title="LyricTube"></iframe>
+  <section id="diagPanel" aria-live="polite">
+    <div id="diagHead"><strong>再生速度 検査</strong><button id="copyDiag" type="button">コピー</button></div>
+    <div id="diagResult">LyricTubeを読み込み中…</div>
+    <div id="diagHint">読み込み後、左の曲一覧から別の曲を1回クリックしてください。</div>
+  </section>
+  <script src="playback-diagnostics.js?v=1"></script>
+</body>
+</html>
