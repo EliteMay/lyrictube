@@ -65,6 +65,8 @@ A1では、次に再生する曲を明示できるQueue、再生セッション�
 - しばらく聴いていない曲
 - Guest / Cloud Account分離
 - Cloud Accountの再生履歴同期
+- 曲一覧の曲行クリック / タップによる即時再生
+- Sidebar曲行 / 補助操作 / Footer toolsのVisual整理
 
 ### A1では後回し
 
@@ -509,6 +511,53 @@ Queue UI:
 
 Drag操作だけに依存せず、Mobile / Keyboard等でもQueue操作へ到達できること。
 
+### 曲行クリック / タップは即時再生
+
+曲一覧の主操作は「選択だけ」ではなく「その曲を再生する」とする。
+
+- 曲行本体をクリック / タップしたら、その曲を選択してPlayerへ読み込み、そのまま再生開始する
+- 現在のように詳細画面だけ切り替わり、再生が始まらない状態を通常の曲行操作として残さない
+- 適用対象は少なくとも `すべての曲`、Playlist内、検索結果、Tag / Filter結果、最近再生、未再生、しばらく聴いていない曲
+- 直接再生した場合もSection 8のとおり既存の手動Queueは勝手に消さない
+- YouTube / Local Mediaで同じ意味の操作にする
+
+曲行内の補助操作は曲本体クリックと分離する。
+
+- 三点 / More menu
+- Playlist追加
+- Queue追加
+- その他の右側Action
+
+これらを押した場合はEventが曲行本体へ伝播して意図せず即再生しないこと。
+
+### Sidebar曲行のVisual / Layout
+
+Sidebarの1曲は、サムネイル・曲情報・補助操作を含む**1つの横長行**として成立させる。
+
+- サムネイル、曲名、補足情報、右端Actionが視覚的に同じ曲行へ属すること
+- Actionだけが次の段へ落ちたり、独立した大きいボタンとして曲行の下へ現れたりしないこと
+- 曲名が長い場合は利用可能幅内で省略表示し、Action領域を押し出さないこと
+- Active / Selected状態でも曲行の高さや主要Alignmentを大きく変えないこと
+- Sidebar幅が狭い状態でも曲行同士の間隔と情報Hierarchyを維持すること
+
+現在の大きく独立した「…」ボタン表現は廃止し、補助操作として控えめなMore actionにする。
+
+- DesktopではHover / Focus時に自然に認識できる小さなActionを基本とする
+- Mobile / TouchではHoverに依存せず操作可能にする
+- 常時表示する場合も曲情報より強く見せない
+- More actionを押しても即時再生を発火させない
+- Playlist追加等の他Actionとサイズ・Alignment・Hit areaのルールを揃える
+
+### Sidebar Footer Tools
+
+Sidebar下部の `設定 / ? / 書き出し / 読み込み` は1つのTool rowとして整列させる。
+
+- 各項目の高さ、縦位置、文字Baseline、Hit areaを揃える
+- `?` だけが浮いて見える配置にしない
+- 低いViewportや狭いSidebarでも不自然な改行・はみ出し・Clippingを起こさない
+- 項目数が変わらない限り、通常状態 / Hover / FocusでRow高さを変えない
+- 操作性を落とすほど文字やHit areaを小さくしない
+
 ## 19. Visual Direction
 
 既存のUser確認済み `Library → Player → Lyrics` Media Workspaceを維持する。
@@ -520,6 +569,7 @@ Drag操作だけに依存せず、Mobile / Keyboard等でもQueue操作へ到達
 - Theme Tokenの正本は既存 `theme.css`
 - 現在Visualの正本は `docs/VISUAL_BASELINE.md`
 - Queue Drawer / Bottom Sheetを追加しても5 Themeの一貫性を維持する
+- Sidebar曲行の整理では、機能追加を理由に行高・余白・Actionの視覚強度を不必要に増やさない
 
 ## 20. 主な利用フロー
 
@@ -573,6 +623,9 @@ Context終端後はShuffle / Repeat設定に従う
 - Shuffle ON / OFF
 - 前へ / 次へ
 - Libraryから別曲を即再生
+- `すべての曲` の曲行クリック / タップで即再生
+- Playlist / Search / Tag / Filter / 最近再生 / 未再生等の曲行でも同じ即再生挙動
+- 曲行内のMore / Playlist追加 / Queue追加を押しても曲本体の即再生が誤発火しない
 
 ### 復元 / Profile
 
@@ -618,6 +671,11 @@ Context終端後はShuffle / Repeat設定に従う
 - YouTube実再生
 - Local Media実再生
 - Session復元
+- Sidebar曲行の通常 / Hover / Focus / Active状態
+- 長い曲名でもActionが別段へ落ちないこと
+- More actionが曲情報より強く見えず、Touchでも操作できること
+- Sidebar Footerの `設定 / ? / 書き出し / 読み込み` が同じRowとして整列すること
+- 低いViewport / 狭いSidebarでもFooter toolsと曲行にClipping / 不自然なWrapがないこと
 
 ## 23. A1 完成条件
 
@@ -635,6 +693,11 @@ Context終端後はShuffle / Repeat設定に従う
 - [ ] 複数端末でplayCount更新が失われない
 - [ ] 再生不可Version / 削除済み参照があってもPlayer全体が壊れない
 - [ ] Desktop / Mobileから主要Queue操作へ到達できる
+- [ ] 各主要曲一覧で曲行クリック / タップが選択だけで止まらず即時再生になる
+- [ ] 曲行の補助Action操作が意図せず曲再生を発火しない
+- [ ] Sidebarの曲1件が1つの横長行として成立し、More actionだけが別段へ落ちない
+- [ ] Sidebarの大きく独立した三点ボタン表現が整理され、補助操作として適切な視覚強度になる
+- [ ] Sidebar Footer toolsが同じ高さ / Alignmentで整列し、`?` だけが浮いて見えない
 - [ ] Library Schema 4互換を維持する、または実装上変更が不可避ならMigration / Backup / Rollbackを先に定義してユーザー確認する
 - [ ] 必要なStatic Test / Regression Guardが成功する
 - [ ] 実ブラウザでYouTube / Local Mediaを確認する
@@ -656,6 +719,8 @@ Context終端後はShuffle / Repeat設定に従う
 - Library Schema互換を破壊する
 - Local Media本体をCloudへUploadする
 - 現在のVisual Baselineを大きく変更する
+- 曲行クリックを「選択だけ」に戻す
+- More / Playlist追加 / Queue追加等の補助Actionを曲本体クリックと同じEventとして扱う
 - A2 / A3機能をA1へ無断で追加する
 
 ## 25. 実装前確認
@@ -675,5 +740,6 @@ Context終端後はShuffle / Repeat設定に従う
 11. `core/fair-shuffle.js`
 12. `profile-data.js` / `cloud-sync.js`
 13. Queue / History / Playbackに関係する既存Tests
+14. Sidebar曲行 / Sidebar tools / 曲一覧click handlerに関係するCSS・JS・Tests
 
 実際のコードがこの要件作成時点から更新されている場合、現在のGitHub状態を優先して差分を確認する。ただし、このファイルの確定要件と衝突する破壊的変更はユーザー確認なしに確定しない。
