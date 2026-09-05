@@ -199,4 +199,25 @@
   window.addEventListener("pagehide", () => { if (hasPending()) flush(true); });
 
   window.LyricTubeCloudSync = Object.freeze({ flush: () => flush(false), hasPending, hydrateQueue, loadPlaybackHistory, clearPlaybackHistory });
+
+  // A1 is loaded here so the existing HTML/bootstrap order remains unchanged.
+  // The integration still waits for LyricTubeCore before patching playback.
+  function loadPlaybackA1() {
+    if (document.querySelector('script[data-lyrictube-playback-a1]')) return;
+    const loadIntegration = () => {
+      if (document.querySelector('script[data-lyrictube-playback-a1]')) return;
+      const integration = document.createElement("script");
+      integration.src = `playback-a1.js?v=${encodeURIComponent(window.LyricTubeVersion?.build || "a1")}`;
+      integration.async = false;
+      integration.dataset.lyrictubePlaybackA1 = "";
+      document.body.appendChild(integration);
+    };
+    if (window.LyricTubePlaybackState) return loadIntegration();
+    const state = document.createElement("script");
+    state.src = `core/playback-state.js?v=${encodeURIComponent(window.LyricTubeVersion?.build || "a1")}`;
+    state.async = false;
+    state.onload = loadIntegration;
+    document.body.appendChild(state);
+  }
+  loadPlaybackA1();
 })();
