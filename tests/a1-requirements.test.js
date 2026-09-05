@@ -30,9 +30,10 @@ assert(app.includes('pending.autoplay&&!initialAutoplayProgressed'), "onReady mu
 assert(!ui.includes('maxWaitMs = 5000'), "five-second autoplay retry loop must not return");
 assert(!ui.includes('function ensureAutoplayStarted'), "A1 UI must not own a second autoplay controller");
 assert(!ui.includes('core.play?.()'), "A1 UI must not repeatedly call PlayerController.play");
-assert(ui.includes('lyrictube.playbackDiagnostics.v2'), "local playback-start diagnostics missing");
-assert(ui.includes('playbackDiagnosticPanel'), "visible playback diagnostic panel missing");
-assert(ui.includes('PerformanceObserver'), "long-task playback diagnostics missing");
+assert(!ui.includes('playbackDiagnosticPanel'), "production UI must not recreate the playback diagnostic panel");
+assert(!ui.includes('PerformanceObserver'), "production A1 guard must not run playback timing observers");
+assert(!ui.includes('LyricTubePlaybackDiagnostics ='), "production UI must not expose playback diagnostic controls");
+assert(ui.includes('localStorage.removeItem("lyrictube.playbackDiagnostics.v2")'), "legacy playback diagnostic data should be cleaned up");
 assert(ui.includes('script.src = "https://www.youtube.com/iframe_api"'), "YouTube API must warm during the access gate");
 assert(ui.includes('https://www.youtube.com'), "YouTube preconnect is missing");
 assert(ui.includes('https://i.ytimg.com'), "thumbnail origin preconnect is missing");
@@ -51,8 +52,6 @@ assert(playback.includes('cancelDelayedTransport("select-song")'), "manual song 
 assert(playback.includes('if (!sameRef(currentRef(), expectedRef)) return;'), "delayed restore/version transport must verify the current song/version");
 assert(playback.includes('A1_RESTORE_SEEK'), "restore seek diagnostic breadcrumb missing");
 assert(!playback.includes('setTimeout(() => {\n          if (asNumber(core.state()) === 1) core.pause();\n          core.seek(target, false);\n        }, delay);'), "unguarded restore seek retries must not return");
-assert(ui.includes('const stageStartIndex = playbackStages.length'), "diagnostics must capture synchronous playback stages before selectSong");
-assert(ui.includes('observePlaybackStart(songId, startedAt, syncMs, stageStartIndex)'), "diagnostic stage start must be passed through to the observer");
 const bootstrap = app.slice(app.indexOf('function bootstrapCore()'), app.indexOf('// Stable façade'));
 assert(bootstrap.indexOf('loadSelectedVideo(false)') < bootstrap.indexOf('renderAll()'), "initial YouTube player warm must begin before the first full render");
 

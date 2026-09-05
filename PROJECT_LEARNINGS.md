@@ -221,7 +221,7 @@
 ### PL-F-009 YouTube埋め込みの動画切替待ちはApp処理ではなくProvider側に残った
 
 - Date: 2026-09-06
-- Status: experiment implemented / User validation pending
+- Status: investigation complete / provider-side latency accepted; user-facing diagnostics removed in build `20260906-2`
 - Severity: major
 - Cost: high
 - Symptom: build `20260905-6` で曲クリックから `loadVideoById` までは1msだが、PLAYINGまで約4.5秒かかる。
@@ -234,4 +234,5 @@
 - Detection method: User supplied normal-page runtime diagnostics across builds `20260905-5` and `20260905-6`.
 - Regression Guard: `tests/a1-requirements.test.js` でprivacy-enhanced host / origin / referrer / diagnostic hostを確認する。
 - Prevention: Provider待ちが支配的になった時はApp側の同期処理を繰り返し最適化せず、公式に許可されたProvider構成のA/Bと実測を行う。
+- Final observation: standard host 4552ms、privacy-enhanced host 4596ms、拡張機能無効時6235msで、App同期処理はいずれも1ms。通常UIの再生診断は調査完了後に削除した。
 - Guide candidate: yes — MEDIA Profileの外部Provider latency切り分け例。
