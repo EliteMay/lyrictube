@@ -27,7 +27,9 @@ assert(app.includes('if(playerId===String(pending.videoId))'), "initial YouTube 
 assert(!ui.includes('maxWaitMs = 5000'), "five-second autoplay retry loop must not return");
 assert(!ui.includes('function ensureAutoplayStarted'), "A1 UI must not own a second autoplay controller");
 assert(!ui.includes('core.play?.()'), "A1 UI must not repeatedly call PlayerController.play");
-assert(ui.includes('lyrictube.playbackDiagnostics.v1'), "local playback-start diagnostics missing");
+assert(ui.includes('lyrictube.playbackDiagnostics.v2'), "local playback-start diagnostics missing");
+assert(ui.includes('playbackDiagnosticPanel'), "visible playback diagnostic panel missing");
+assert(ui.includes('PerformanceObserver'), "long-task playback diagnostics missing");
 assert(ui.includes('script.src = "https://www.youtube.com/iframe_api"'), "YouTube API must warm during the access gate");
 assert(ui.includes('https://www.youtube.com'), "YouTube preconnect is missing");
 assert(ui.includes('https://i.ytimg.com'), "thumbnail origin preconnect is missing");
