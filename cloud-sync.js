@@ -222,18 +222,32 @@
   window.LyricTubeCloudSync = Object.freeze({ flush: () => flush(false), hasPending, hydrateQueue, loadPlaybackHistory, clearPlaybackHistory });
 
   function loadPlaybackA1() {
-    if (document.querySelector('script[data-lyrictube-playback-a1]')) return;
+    const build = encodeURIComponent(window.LyricTubeVersion?.build || "a1");
+    const loadUiGuards = () => {
+      if (document.querySelector('script[data-lyrictube-a1-ui-guards]')) return;
+      const guards = document.createElement("script");
+      guards.src = `a1-ui-guards.js?v=${build}`;
+      guards.async = false;
+      guards.dataset.lyrictubeA1UiGuards = "";
+      document.body.appendChild(guards);
+    };
     const loadIntegration = () => {
-      if (document.querySelector('script[data-lyrictube-playback-a1]')) return;
+      const existing = document.querySelector('script[data-lyrictube-playback-a1]');
+      if (existing) {
+        if (window.LyricTubePlaybackA1) loadUiGuards();
+        else existing.addEventListener("load", loadUiGuards, { once: true });
+        return;
+      }
       const integration = document.createElement("script");
-      integration.src = `playback-a1.js?v=${encodeURIComponent(window.LyricTubeVersion?.build || "a1")}`;
+      integration.src = `playback-a1.js?v=${build}`;
       integration.async = false;
       integration.dataset.lyrictubePlaybackA1 = "";
+      integration.onload = loadUiGuards;
       document.body.appendChild(integration);
     };
     if (window.LyricTubePlaybackState) return loadIntegration();
     const state = document.createElement("script");
-    state.src = `core/playback-state.js?v=${encodeURIComponent(window.LyricTubeVersion?.build || "a1")}`;
+    state.src = `core/playback-state.js?v=${build}`;
     state.async = false;
     state.onload = loadIntegration;
     document.body.appendChild(state);
