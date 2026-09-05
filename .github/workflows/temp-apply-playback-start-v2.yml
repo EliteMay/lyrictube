@@ -22,7 +22,25 @@ jobs:
           ref: fix/playback-start-v2
 
       - name: Apply playback start fix
-        run: python tools/apply_playback_start_v2.py
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/apply_playback_start_v2.py
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('tests/a1-requirements.test.js')
+          lines = path.read_text(encoding='utf-8').splitlines()
+          replacement = '''assert(app.includes("if(document.querySelector('script[src*=\\\"youtube.com/iframe_api\\\"]'))return;"), "duplicate YouTube API loads must be prevented");'''
+          found = False
+          for index, line in enumerate(lines):
+              if 'duplicate YouTube API loads must be prevented' in line:
+                  lines[index] = replacement
+                  found = True
+                  break
+          if not found:
+              raise SystemExit('generated duplicate-script assertion was not found')
+          path.write_text('\n'.join(lines) + '\n', encoding='utf-8')
+          PY
 
       - name: Validate generated state
         shell: bash
@@ -30,6 +48,7 @@ jobs:
           set -euo pipefail
           node --check app.js
           node --check a1-ui-guards.js
+          node --check tests/a1-requirements.test.js
           node tests/a1-requirements.test.js
           node tests/runtime-guards.test.js
           python tools/validate_static.py
