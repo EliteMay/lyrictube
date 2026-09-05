@@ -1,0 +1,37 @@
+name: Apply first-play reset fix
+
+on:
+  push:
+    branches:
+      - fix/youtube-first-play-reset
+    paths:
+      - tools/apply_first_play_reset_fix.py
+      - .github/workflows/apply-first-play-reset-fix.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/youtube-first-play-reset
+      - name: Apply targeted patch
+        run: python tools/apply_first_play_reset_fix.py
+      - name: Validate targeted change
+        run: |
+          node --check app.js
+          node tests/a1-requirements.test.js
+      - name: Commit generated changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app.js version.js index.html README.md tests/a1-requirements.test.js
+          if git diff --cached --quiet; then
+            echo "No generated changes"
+            exit 0
+          fi
+          git commit -m "fix: avoid resetting initial YouTube autoplay"
+          git push origin HEAD:fix/youtube-first-play-reset
