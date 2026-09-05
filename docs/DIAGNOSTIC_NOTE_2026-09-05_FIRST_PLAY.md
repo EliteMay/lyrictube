@@ -1,0 +1,1 @@
+Playback diagnostic evidence for issue #18: click→PLAYING 9620ms; selectSong returned in 6ms; first BUFFERING at 136ms; UNSTARTED at 593ms; second BUFFERING at 9578ms; PLAYING at 9620ms. This supports investigating a reset during initial YouTube player readiness rather than app-side rendering delay.
