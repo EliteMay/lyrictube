@@ -198,3 +198,21 @@
 - **Regression Guard:** `tests/a1-requirements.test.js` で5秒retryの不在、media request前後順序、初期Player warm-up順、同一動画二重Load防止を確認。Local diagnosticsにクリック→PLAYING実測を最大20件保存。
 - **Prevention:** 性能Bugでは内側関数だけでなく、User actionを包む全Wrapper / Hook / Monkey patchを順に追い、外側で同期処理やretryが残っていないか確認する。User確認前にResolvedと断定しない。
 - **Guide candidate:** yes — Interactive Media AppのPerformance調査ではcontrol ownershipとWrapper順序を診断対象にする。
+
+
+## PL-F-008 Playback Session復元の遅延Seekが手動選曲後の新しい動画へ残留した
+
+- **Date:** 2026-09-05
+- **Status:** fix implemented / User validation pending
+- **Severity:** Major
+- **Symptom:** 曲クリック後、App同期処理は1ms程度なのにYouTubeが一度BUFFERINGへ入り、約1秒後にUNSTARTEDへ戻ってから約10秒後にPLAYINGになった。
+- **Evidence:** build `20260905-5` の通常ページ診断で `BUFFERING 138ms → UNSTARTED 1138ms → BUFFERING 10383ms → PLAYING 10408ms`。Main Threadは最大59msで、App描画が主因ではなかった。
+- **Expected:** Playback Session復元のSeek retryは復元対象の曲/Versionにだけ作用し、ユーザーが別曲を手動再生した時点で失効する。
+- **Actual:** `restoreSession()` が220/650/1400/2600ms後のSeekを無条件に予約し、User selection後もTimerをcancelせず、実行時の現在PlayerへSeekしていた。
+- **Root Cause:** Restore retryにgeneration / expected song-version guard / timer ownershipが無かった。Async restorationとmanual playbackのownershipが分離されていなかった。
+- **Final Fix:** A1の遅延transportを中央管理し、manual song/version selectionや通常のplayReferenceで既存Timerをcancel。Restore / version-switch retryはgenerationとexpected `songId + versionId` が一致する場合だけ実行する。
+- **Affected files / systems:** `playback-a1.js`, `a1-ui-guards.js`, A1 regression tests, playback diagnostics
+- **Detection method:** User supplied runtime timing + delayed transport code review。
+- **Regression Guard:** `tests/a1-requirements.test.js` でtimer centralization、manual cancellation、expected ref guard、旧unguarded restore retryの不在を確認。
+- **Prevention:** User操作より後に実行するSeek/Play/Restore retryには必ずgenerationまたはAbort相当のownershipを持たせ、対象Entityを再確認してからTransportへ触る。
+- **Guide candidate:** yes — Interactive Mediaのstale async action / delayed timer ownershipの実例。

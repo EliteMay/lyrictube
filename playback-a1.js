@@ -22,6 +22,8 @@
   let activeConsumedQueueItem = null;
   let sessionSaveTimer = null;
   let lastSessionWriteAt = 0;
+  let delayedTransportGeneration = 0;
+  const delayedTransportTimers = new Set();
   let activeSmartView = "";
   let restoring = false;
   let endingGuardUntil = 0;
@@ -30,6 +32,32 @@
   const nowIso = () => new Date().toISOString();
   const asNumber = value => Number.isFinite(Number(value)) ? Number(value) : 0;
   const safeText = value => String(value ?? "");
+
+  function emitPlaybackStage(stage, detail = {}) {
+    try {
+      document.dispatchEvent(new CustomEvent("lyrictube:playback-stage", {
+        detail: { stage: String(stage || ""), at: performance.now(), ...detail }
+      }));
+    } catch {}
+  }
+
+  function cancelDelayedTransport(reason = "") {
+    delayedTransportGeneration += 1;
+    for (const timer of delayedTransportTimers) clearTimeout(timer);
+    delayedTransportTimers.clear();
+    if (reason) emitPlaybackStage("A1_DELAYED_CANCEL", { reason });
+    return delayedTransportGeneration;
+  }
+
+  function scheduleDelayedTransport(delay, generation, callback) {
+    const timer = setTimeout(() => {
+      delayedTransportTimers.delete(timer);
+      if (generation !== delayedTransportGeneration) return;
+      callback();
+    }, delay);
+    delayedTransportTimers.add(timer);
+    return timer;
+  }
 
   function ensureStyle() {
     if (document.querySelector('link[data-lyrictube-playback-a1]')) return;
@@ -326,6 +354,7 @@
   }
 
   function playReference(ref, options = {}) {
+    if (!options.restoring) cancelDelayedTransport("play-reference");
     const song = songById(ref?.songId);
     if (!song) return false;
     const requested = String(ref?.versionId || "");
@@ -956,14 +985,18 @@
     const song = songById(session.songId);
     if (song) {
       const requested = versionById(song, session.versionId) ? session.versionId : preferredVersionId(song);
-      playReference({ songId: song.id, versionId: requested }, { autoplay: false, pushHistory: false, restoring: true });
+      const restoreGeneration = cancelDelayedTransport("restore-start");
+      const expectedRef = { songId: String(song.id), versionId: String(requested || "") };
+      playReference(expectedRef, { autoplay: false, pushHistory: false, restoring: true });
       const target = Math.max(0, session.position);
       const attempts = [220, 650, 1400, 2600];
       for (const delay of attempts) {
-        setTimeout(() => {
+        scheduleDelayedTransport(delay, restoreGeneration, () => {
+          if (!sameRef(currentRef(), expectedRef)) return;
+          emitPlaybackStage("A1_RESTORE_SEEK", { delay, target, songId: expectedRef.songId, versionId: expectedRef.versionId });
           if (asNumber(core.state()) === 1) core.pause();
           core.seek(target, false);
-        }, delay);
+        });
       }
     }
     scheduleSessionSave(true);
@@ -990,6 +1023,7 @@
     };
 
     window.selectSong = function(id, autoplay = false) {
+      cancelDelayedTransport("select-song");
       const before = currentRef();
       const changed = before?.songId && String(before.songId) !== String(id || "");
       if (changed) {
@@ -1013,6 +1047,7 @@
     };
 
     window.selectVersion = function(id, autoplay = false) {
+      const transportGeneration = cancelDelayedTransport("select-version");
       const before = currentRef();
       const oldVersion = currentVersion();
       const oldStart = Math.max(0, asNumber(oldVersion?.startTime));
@@ -1026,11 +1061,22 @@
       tracker = null;
       if (changed && after) {
         const nextVersion = currentVersion();
+        const expectedRef = { ...after };
         const target = Math.max(0, asNumber(nextVersion?.startTime) + relative);
-        setTimeout(() => core.seek(target, Boolean(autoplay || wasPlaying)), 180);
-        setTimeout(() => core.seek(target, Boolean(autoplay || wasPlaying)), 700);
+        for (const delay of [180, 700]) {
+          scheduleDelayedTransport(delay, transportGeneration, () => {
+            if (!sameRef(currentRef(), expectedRef)) return;
+            emitPlaybackStage("A1_VERSION_SEEK", { delay, target, songId: expectedRef.songId, versionId: expectedRef.versionId });
+            core.seek(target, Boolean(autoplay || wasPlaying));
+          });
+        }
       } else if (autoplay) {
-        setTimeout(() => core.play(), 120);
+        const expectedRef = after ? { ...after } : null;
+        scheduleDelayedTransport(120, transportGeneration, () => {
+          if (expectedRef && !sameRef(currentRef(), expectedRef)) return;
+          emitPlaybackStage("A1_VERSION_PLAY", { delay: 120 });
+          core.play();
+        });
       }
       scheduleSessionSave(true);
       return result;

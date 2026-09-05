@@ -164,8 +164,12 @@
       const extra=[];
       if(item.videoId)extra.push(`video=${item.videoId}`);
       if(item.autoplay!==undefined)extra.push(`autoplay=${item.autoplay}`);
+      if(Number.isFinite(item.startSeconds))extra.push(`start=${item.startSeconds}`);
       if(item.ytReady!==undefined)extra.push(`ready=${item.ytReady}`);
       if(item.hasPlayer!==undefined)extra.push(`player=${item.hasPlayer}`);
+      if(item.reason)extra.push(`reason=${item.reason}`);
+      if(Number.isFinite(item.delay))extra.push(`delay=${item.delay}`);
+      if(Number.isFinite(item.target))extra.push(`target=${item.target}`);
       if(Number.isFinite(item.state))extra.push(`state=${item.state}`);
       if(Number.isFinite(item.loadedFraction))extra.push(`loaded=${item.loadedFraction.toFixed(3)}`);
       return `${item.stage} ${item.atMs}ms${extra.length?` (${extra.join(", ")})`:""}`;
@@ -226,9 +230,8 @@
     console.info("[LyricTube] playback diagnostic", entry);
   }
 
-  function observePlaybackStart(songId, startedAt, syncMs) {
+  function observePlaybackStart(songId, startedAt, syncMs, stageStartIndex = playbackStages.length) {
     const generation = ++timingGeneration;
-    const stageStartIndex=playbackStages.length;
     const initialState = Number(window.LyricTubeCore?.state?.());
     let sawNonPlaying = initialState !== 1;
     let previousState = initialState;
@@ -318,10 +321,11 @@
 
     event.preventDefault();
     event.stopImmediatePropagation();
+    const stageStartIndex = playbackStages.length;
     const startedAt = performance.now();
     window.selectSong(songId, true);
     const syncMs = performance.now() - startedAt;
-    observePlaybackStart(songId, startedAt, syncMs);
+    observePlaybackStart(songId, startedAt, syncMs, stageStartIndex);
   }
 
   function initialize() {

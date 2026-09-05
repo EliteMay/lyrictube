@@ -39,6 +39,14 @@ assert(ui.includes('https://i.ytimg.com'), "thumbnail origin preconnect is missi
 const wrappedSelect = playback.slice(playback.indexOf('window.selectSong = function'), playback.indexOf('window.selectVersion = function'));
 assert(wrappedSelect.indexOf('original.selectSong(id, autoplay)') < wrappedSelect.indexOf('captureContext(id'), "A1 context persistence must happen after the media request");
 assert(wrappedSelect.includes('deferEffects: Boolean(autoplay)'), "old-track finalization side effects must defer during autoplay");
+assert(playback.includes('const delayedTransportTimers = new Set()'), "A1 delayed transport timers must be centrally tracked");
+assert(playback.includes('function cancelDelayedTransport'), "A1 delayed transport cancellation helper missing");
+assert(playback.includes('cancelDelayedTransport("select-song")'), "manual song selection must cancel stale restore/version timers");
+assert(playback.includes('if (!sameRef(currentRef(), expectedRef)) return;'), "delayed restore/version transport must verify the current song/version");
+assert(playback.includes('A1_RESTORE_SEEK'), "restore seek diagnostic breadcrumb missing");
+assert(!playback.includes('setTimeout(() => {\n          if (asNumber(core.state()) === 1) core.pause();\n          core.seek(target, false);\n        }, delay);'), "unguarded restore seek retries must not return");
+assert(ui.includes('const stageStartIndex = playbackStages.length'), "diagnostics must capture synchronous playback stages before selectSong");
+assert(ui.includes('observePlaybackStart(songId, startedAt, syncMs, stageStartIndex)'), "diagnostic stage start must be passed through to the observer");
 const bootstrap = app.slice(app.indexOf('function bootstrapCore()'), app.indexOf('// Stable façade'));
 assert(bootstrap.indexOf('loadSelectedVideo(false)') < bootstrap.indexOf('renderAll()'), "initial YouTube player warm must begin before the first full render");
 
