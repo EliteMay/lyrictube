@@ -72,3 +72,12 @@ Autoplay付きの曲切替でも、既存 `app.js` はPlayerへ新しい動画�
 - YouTube API scriptの二重読み込みを防止。
 
 これによりLyricTube側で発生していた「初期化待ち + stale cache + render先行」の待ちを削減する。YouTube CDN側の実際のbuffering時間そのものはFrontendから保証できない。
+
+
+## Follow-up: stale Playback Session restore seek (build 20260905-6)
+
+User実測ではApp同期処理1ms、次Frame50msに対し、YouTube状態が `BUFFERING 138ms → UNSTARTED 1138ms → BUFFERING 10383ms → PLAYING 10408ms` だった。`playback-a1.js` を再確認した結果、Session restoreが220/650/1400/2600ms後に現在Playerへ無条件SeekするTimerを残していた。
+
+対策として遅延transportをgeneration付きで中央管理し、manual selection / non-restoring playback開始で旧Timerをcancelする。Restore / version switchのretryはexpected song/version一致時のみ実行する。診断もselectSong同期中のREQUEST/loadVideoByIdを含めるよう修正した。
+
+実ブラウザでのclick→PLAYING改善値はUser再計測待ち。

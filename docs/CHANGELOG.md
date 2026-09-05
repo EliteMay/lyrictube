@@ -1,3 +1,12 @@
+# CHANGELOG
+
+## v0.13.2 Playback stale-restore cancellation / build 20260905-6（2026-09-05）
+
+- Playback Session復元の220/650/1400/2600ms遅延Seekを中央管理し、手動選曲後は即キャンセルする。
+- Restore / Version切替の遅延transportはgenerationと` songId + versionId `一致時だけ実行する。
+- 通常ページ診断でselectSong同期中のREQUEST/loadVideoByIdも取りこぼさないよう計測開始位置を修正。
+- User実測 `BUFFERING 138ms → UNSTARTED 1138ms → PLAYING 10408ms` を根拠にした修正。
+
 ## v0.13.2 Playback latency v3 / build 20260905-3（2026-09-05）
 
 - User再確認でbuild `20260905-2` 後も曲クリックから再生開始まで約5秒の体感が変わっていないことを確認。
