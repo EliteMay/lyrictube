@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## v0.13.2 Sidebar tag toggle / build 20260906-3（2026-09-06）
+
+- Sidebarのタグ絞り込みをToggle操作へ変更。
+- 現在選択中の同じタグをもう一度押すと、タグ条件だけ解除して一覧へ戻れるよう修正。
+- 検索文字など、タグ以外の独立した絞り込み条件は解除時も維持。
+- 既存の `song.tagIds` / `library.settings.tags` とData Schema 4は変更なし。
+- 回帰Guardを追加し、同じタグを再追加して解除不能になる実装の再混入を防止。
+
 ## v0.13.2 Playback diagnostics cleanup / build 20260906-2（2026-09-06）
 
 - 再生遅延調査で使用した通常画面の「再生診断」パネルと自動計測を削除。

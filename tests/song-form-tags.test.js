@@ -22,4 +22,6 @@ assert(index.includes(`tags.css?v=${build}`),"tag CSS cache revision must match 
 assert(index.includes(`tags.js?v=${build}`),"tag JS cache revision must match current build");
 assert.equal(defaults.dataSchemaVersion,4,"song-form tagging must not bump Data Schema");
 assert.equal(defaults.features.songFormTagging,true,"machine-readable feature flag must be enabled");
+assert.match(tags,/const sameTagOnly = activeTagIds\.size === 1 && activeTagIds\.has\(tag\.id\)/,"sidebar tag must detect a repeated single-tag selection");
+assert.match(tags,/activeTagIds\.clear\(\);\s*if \(!sameTagOnly\) activeTagIds\.add\(tag\.id\)/,"clicking the active sidebar tag must clear the tag filter instead of immediately re-adding it");
 console.log("song-form tag regression checks passed");

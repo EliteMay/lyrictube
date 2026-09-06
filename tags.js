@@ -478,8 +478,9 @@
       count.textContent = String(tagUsageCount(tag.id));
       button.append(left, count);
       button.addEventListener("click", () => {
+        const sameTagOnly = activeTagIds.size === 1 && activeTagIds.has(tag.id);
         activeTagIds.clear();
-        activeTagIds.add(tag.id);
+        if (!sameTagOnly) activeTagIds.add(tag.id);
         openStandardPage("browse");
         renderAll();
       });
