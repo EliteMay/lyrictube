@@ -1,7 +1,7 @@
 # LyricTube
 
 **Current version: v0.13.2**  
-**Build: 20260906-2**  
+**Build: 20260906-3**  
 **公開サイト:** [https://elitemay.github.io/lyrictube/](https://elitemay.github.io/lyrictube/)
 
 YouTube動画、端末のMP3/MP4、通常歌詞、同期歌詞を1つのライブラリで管理するWebアプリです。
@@ -70,7 +70,7 @@ index.html
 ## バージョン管理
 
 - 表示Version: `v0.13.2`
-- Build: `20260906-2`
+- Build: `20260906-3`
 - Data Schema: `4`
 
 正本は `version.js` です。旧 `v35 / v36` 等の開発番号は現行UIのVersionとして使用しません。
