@@ -27,12 +27,12 @@ p.write_text(text, encoding="utf-8")
 # 2) Regression guard in the existing tag test.
 p = Path("tests/song-form-tags.test.js")
 text = p.read_text(encoding="utf-8")
-anchor = 'assert.match(tags,/tagIds:\\.\\[\\.\\.\\.songFormTagDraft\\]/,"song form must preserve selected tag ids");\n'
-addition = anchor + '''assert.match(tags,/const sameTagOnly = activeTagIds\\.size === 1 && activeTagIds\\.has\\(tag\\.id\\)/,"sidebar tag must detect a repeated single-tag selection");
+anchor = 'console.log("song-form tag regression checks passed");\n'
+addition = '''assert.match(tags,/const sameTagOnly = activeTagIds\\.size === 1 && activeTagIds\\.has\\(tag\\.id\\)/,"sidebar tag must detect a repeated single-tag selection");
 assert.match(tags,/activeTagIds\\.clear\\(\\);\\s*if \\(!sameTagOnly\\) activeTagIds\\.add\\(tag\\.id\\)/,"clicking the active sidebar tag must clear the tag filter instead of immediately re-adding it");
-'''
+''' + anchor
 if anchor not in text:
-    raise SystemExit("song-form tag test anchor missing")
+    raise SystemExit("song-form tag test footer missing")
 text = text.replace(anchor, addition, 1)
 p.write_text(text, encoding="utf-8")
 
