@@ -1,7 +1,7 @@
 # LyricTube
 
-**Current version: v0.13.5**  
-**Build: 20261019-3**  
+**Current version: v0.13.6**  
+**Build: 20261019-4**  
 **公開サイト:** [https://elitemay.github.io/lyrictube/](https://elitemay.github.io/lyrictube/)
 
 YouTube動画、端末のMP3/MP4、通常歌詞、同期歌詞を1つのライブラリで管理するWebアプリです。
@@ -60,6 +60,7 @@ index.html
 ├─ core/player-controller.js  YouTube / Local Media共通再生API
 ├─ core/fair-shuffle.js       再生履歴を考慮したShuffle候補選択
 ├─ core/library-sort.js       表示専用・安定ソート
+├─ core/cloud-sync-recovery.js 復元待ちのクラウド差分を再適用
 ├─ core/youtube-search.js     YouTube Data API検索（BYOキー）
 ├─ library-schema.js          ライブラリ正規化・移行
 ├─ sync-interpolation.js      基準点間の歌詞時間自動補間
@@ -76,8 +77,8 @@ index.html
 
 ## バージョン管理
 
-- 表示Version: `v0.13.5`
-- Build: `20261019-3`
+- 表示Version: `v0.13.6`
+- Build: `20261019-4`
 - Data Schema: `4`
 
 正本は `version.js` です。旧 `v35 / v36` 等の開発番号は現行UIのVersionとして使用しません。
