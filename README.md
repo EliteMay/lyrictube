@@ -44,7 +44,9 @@ LyricTubeは `MEDIA + TOOL` として、**Library → Player → Lyrics** の作
 - Listening-first UI: 通常は動画・歌詞・基本再生操作に集中し、再生区間 / スキップ / 歌詞同期調整は折りたたんだ編集パネルから開く
 - Library sorting: サイドバーと「曲を探す」画面を共通の並び順で表示。表示順だけを変更し、Playback Context・Queue・手動プレイリストの順序は変えない
 - Song form: 新規登録時の歌詞・タグ編集は任意セクションへ格納。既存曲の編集では開いた状態で表示する
-- YouTube search: 曲・バージョン追加画面からサイト内検索。Google Cloudで本人が発行したブラウザ制限付きYouTube Data APIキーをsessionStorageにのみ保持。GitHub / Supabase / Library exportには保存せず、URLからの手動登録を維持する
+- YouTube search: 曲・バージョン追加画面からサイト内検索。Google Cloudで本人が発行したブラウザ制限付きYouTube Data APIキーをsessionStorageにのみ保持（ログアウト時に削除）。GitHub / Supabase / Library exportには保存せず、URLからの手動登録を維持する
+- Recovery: Cloud Sync送信中も送信内容をローカルに保管。再ログイン時には未同期の差分をクラウド取得結果に重ねて表示する。複数端末で同じ曲の同時編集はまだ自動競合解決しない
+- Password reset: 本番Supabase migrationを適用済み。パスワード変更後は対象アカウントの全セッションが失効し、変更した本人は再ログインする
 
 Visual compositionは `workspace.css`、Sidebarの構造は `sidebar.css`、Theme Colorの正本は `theme.css` です。Legacy CSSにTheme指定が残っていても、現行UIの配色判断は `theme.css` のTokenを基準にします。
 
