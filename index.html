@@ -10,12 +10,12 @@
   <title>LyricTube</title>
   <link rel="icon" type="image/webp" href="assets/lyrictube-icon.webp">
   <link rel="apple-touch-icon" href="assets/lyrictube-icon.webp">
-  <link rel="stylesheet" href="styles.css?v=20261019-2">
-  <link rel="stylesheet" href="mobile.css?v=20261019-2">
-  <link rel="stylesheet" href="guest.css?v=20261019-2">
-  <link rel="stylesheet" href="auth-ui.css?v=20261019-2">
-  <link rel="stylesheet" href="tags.css?v=20261019-2">
-  <link rel="stylesheet" href="sidebar.css?v=20261019-2">
+  <link rel="stylesheet" href="styles.css?v=20261019-3">
+  <link rel="stylesheet" href="mobile.css?v=20261019-3">
+  <link rel="stylesheet" href="guest.css?v=20261019-3">
+  <link rel="stylesheet" href="auth-ui.css?v=20261019-3">
+  <link rel="stylesheet" href="tags.css?v=20261019-3">
+  <link rel="stylesheet" href="sidebar.css?v=20261019-3">
 </head>
 <body>
   <div class="app-shell">
@@ -24,7 +24,7 @@
         <div class="brand-lockup">
           <img src="assets/lyrictube-icon.webp" class="brand-logo" alt="LyricTube">
           <div>
-            <p class="eyebrow">MY MUSIC · <span data-app-version>v0.13.4</span></p>
+            <p class="eyebrow">MY MUSIC · <span data-app-version>v0.13.5</span></p>
             <div class="brand-title-line"><h1>LyricTube</h1></div>
             <p class="brand-subtitle">YouTube & Local Media · Synced Lyrics</p>
           </div>
@@ -232,7 +232,7 @@
             <input id="youtubeUrl" type="url" placeholder="https://www.youtube.com/watch?v=...">
             <button id="fetchYoutubeInfoBtn" class="ghost-btn" type="button">動画情報を取得</button>
           </div>
-          <small>YouTube URLを貼って「動画情報を取得」を押すと、取得できる範囲でタイトル・投稿者・動画タイプを補完します。</small>
+          <div class="youtube-search-launch"><button id="searchYoutubeForSongBtn" class="primary-soft" type="button">⌕ YouTubeで動画を検索</button><small>検索から選ぶか、今までどおりURLを貼り付けて追加できます。</small></div>
         </label>
         <div class="two-col">
           <label><span>動画タイプ</span><select id="initialVersionType"><option value="original">原曲 / MV</option><option value="cover">歌ってみた / Cover</option><option value="firsttake">FIRST TAKE系</option><option value="live">Live</option><option value="acoustic">Acoustic</option><option value="other">その他</option></select></label>
@@ -288,6 +288,7 @@
           <input id="versionYoutubeUrl" type="url" required placeholder="https://www.youtube.com/watch?v=...">
           <button id="fetchVersionInfoBtn" class="ghost-btn" type="button">動画情報を取得</button>
         </div>
+        <div class="youtube-search-launch"><button id="searchYoutubeForVersionBtn" class="primary-soft" type="button">⌕ YouTubeで動画を検索</button><small>CoverやLiveを選んで追加できます。</small></div>
       </label>
       <div class="two-col">
         <label><span>タイプ</span><select id="versionType"><option value="original">原曲 / MV</option><option value="cover">歌ってみた / Cover</option><option value="firsttake">FIRST TAKE系</option><option value="live">Live</option><option value="acoustic">Acoustic</option><option value="other">その他</option></select></label>
@@ -296,6 +297,33 @@
       <label><span>歌唱者 / 投稿者</span><input id="versionPerformer" type="text" placeholder="Coverした人、Live歌唱者など"></label>
       <div class="dialog-actions"><button id="deleteVersionBtn" class="danger-ghost left-action" type="button">この動画を削除</button><button id="cancelVersionBtn" class="ghost-btn" type="button">キャンセル</button><button class="primary-btn" type="submit">保存</button></div>
     </form>
+  </dialog>
+
+  <dialog id="youtubeSearchDialog" class="dialog youtube-search-dialog" aria-labelledby="youtubeSearchHeading">
+    <div class="dialog-head">
+      <div><p class="eyebrow">YOUTUBE</p><h3 id="youtubeSearchHeading">YouTubeで動画を探す</h3></div>
+      <button id="closeYoutubeSearchDialog" class="icon-btn subtle" type="button" aria-label="検索を閉じる">×</button>
+    </div>
+    <form id="youtubeSearchForm" class="youtube-search-form">
+      <label for="youtubeSearchQuery">曲名・アーティスト・動画名</label>
+      <div class="youtube-search-query">
+        <input id="youtubeSearchQuery" type="search" maxlength="100" placeholder="例: スパークル RADWIMPS MV" autocomplete="off" required>
+        <button id="youtubeSearchSubmit" class="primary-btn" type="submit">検索</button>
+      </div>
+      <div class="youtube-search-fallback"><button id="youtubeSearchExternal" type="button" class="ghost-btn">YouTubeで直接探す ↗</button><span>API設定前でも使えます。見つけた動画のURLを貼り付けて登録できます。</span></div>
+      <details id="youtubeSearchConfig" class="youtube-search-config">
+        <summary>APIキーの設定（初回のみ）</summary>
+        <p>サイト内検索にはYouTube Data API v3のキーが必要です。キーはこのタブの一時領域にだけ保存し、曲データやGitHubには保存しません。</p>
+        <label for="youtubeSearchApiKey">YouTube Data APIキー</label>
+        <div class="youtube-search-key-row">
+          <input id="youtubeSearchApiKey" type="password" autocomplete="off" spellcheck="false" placeholder="Google Cloudで作成したAPIキー">
+          <button id="youtubeSearchSaveKey" class="primary-soft" type="button">このタブで使う</button>
+        </div>
+        <p class="youtube-search-key-help"><a href="https://console.cloud.google.com/apis/library/youtube.googleapis.com" target="_blank" rel="noopener noreferrer">APIを有効化 ↗</a> · <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer">APIキーを作成 ↗</a><span>「ウェブサイト： https://elitemay.github.io/*」と「YouTube Data API v3」の両方で制限してください。キーは公開・共有しないでください。</span></p>
+      </details>
+      <p id="youtubeSearchStatus" class="youtube-search-status" role="status" aria-live="polite">検索キーワードを入力してください。</p>
+    </form>
+    <div id="youtubeSearchResults" class="youtube-search-results" aria-label="YouTube検索結果"></div>
   </dialog>
 
   <dialog id="settingsDialog" class="dialog settings-dialog">
@@ -312,7 +340,7 @@
         </div>
         <span class="status-pill ready">STATIC</span>
       </div>
-      <p class="muted small">歌詞候補はLRCLIB / SyncLRC / lyrics.ovhから検索します。YouTube動画のサイト内検索には対応していません。</p>
+      <p class="muted small">歌詞はLRCLIB / SyncLRC / lyrics.ovhから検索します。YouTubeのサイト内検索には、別途YouTube Data APIキーの設定が必要です。</p>
     </section>
     <section class="settings-section">
       <div class="settings-title-row">
@@ -572,18 +600,18 @@
   </footer>
 
   <div id="toast" class="toast" aria-live="polite"></div>
-  <script src="version.js?v=20261019-2"></script>
-  <script src="core/app-utils.js?v=20261019-2"></script>
-  <script src="core/runtime-hooks.js?v=20261019-2"></script>
-  <script src="core/player-controller.js?v=20261019-2"></script>
-  <script src="core/library-sort.js?v=20261019-2"></script>
-  <script src="library-schema.js?v=20261019-2"></script>
-  <script src="sync-interpolation.js?v=20261019-2"></script>
-  <script src="profile-data.js?v=20261019-2"></script>
-  <script src="cloud-sync.js?v=20261019-2"></script>
-  <script src="site-shell.js?v=20261019-2"></script>
-  <script src="lyrics-providers.js?v=20261019-2"></script>
-  <script src="local-media.js?v=20261019-2"></script>
-  <script src="tags.js?v=20261019-2"></script>
+  <script src="version.js?v=20261019-3"></script>
+  <script src="core/app-utils.js?v=20261019-3"></script>
+  <script src="core/runtime-hooks.js?v=20261019-3"></script>
+  <script src="core/player-controller.js?v=20261019-3"></script>
+  <script src="core/library-sort.js?v=20261019-3"></script>
+  <script src="library-schema.js?v=20261019-3"></script>
+  <script src="sync-interpolation.js?v=20261019-3"></script>
+  <script src="profile-data.js?v=20261019-3"></script>
+  <script src="cloud-sync.js?v=20261019-3"></script>
+  <script src="site-shell.js?v=20261019-3"></script>
+  <script src="lyrics-providers.js?v=20261019-3"></script>
+  <script src="local-media.js?v=20261019-3"></script>
+  <script src="tags.js?v=20261019-3"></script>
 </body>
 </html>
