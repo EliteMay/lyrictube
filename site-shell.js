@@ -419,6 +419,7 @@
   async function loadMainApp() {
     await loadScript(`core/fair-shuffle.js?v=${VERSION}`, "fair shuffle");
     await loadScript(`app.js?v=${VERSION}`, "app.js");
+    await loadScript(`core/youtube-search.js?v=${VERSION}`, "YouTube search");
   }
 
   function initCloudSync(role, session) {
