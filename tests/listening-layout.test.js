@@ -16,9 +16,9 @@ assert.match(app,/const songs=sortedDisplaySongs\(viewSongs\(\)\)/,"browse sorts
 assert.match(app,/const filtered=sortedDisplaySongs\(viewSongs\(\)\)/,"sidebar sorts its display only");
 assert.match(app,/changeLibrarySort\(els\.librarySort\.value\)/);
 assert.match(app,/changeLibrarySort\(els\.browseSort\.value\)/);
-assert.match(html,/core\/library-sort\.js\?v=20261019-2/);
-assert.match(shell,/workspace\.css\?v=20261019-2/);
-assert.equal(data.appVersion,"v0.13.4");
+assert.match(html,/core\/library-sort\.js\?v=20261019-3/);
+assert.match(shell,/workspace\.css\?v=20261019-3/);
+assert.equal(data.appVersion,"v0.13.5");
 assert.equal(data.dataSchemaVersion,4,"this UI update must not migrate stored data");
 for(const token of ["--ui-line","--ui-surface-2","--ui-text"]){
   assert(css.includes(token),"visual controls need theme tokens: "+token);

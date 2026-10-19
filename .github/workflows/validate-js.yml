@@ -77,6 +77,11 @@ jobs:
       - name: Test listening layout
         run: node tests/listening-layout.test.js
 
+      - name: Test YouTube search API integration
+        run: node tests/youtube-search.test.js
+      - name: Test YouTube search UI contract
+        run: node tests/youtube-search-ui.test.js
+
       - name: Validate JSON and local asset links
         run: python tools/validate_static.py
 

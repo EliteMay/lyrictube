@@ -518,3 +518,48 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 @media(max-width:430px){
   .player-placeholder .placeholder-detail{display:none}
 }
+
+
+/* YouTube discovery lives inside existing Song / Version flows. */
+.youtube-search-launch{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:9px}
+.youtube-search-launch .primary-soft{min-height:38px}
+.youtube-search-launch small{font-size:11px;line-height:1.5}
+.youtube-search-dialog{width:min(780px,calc(100vw - 24px));background:var(--ui-surface);color:var(--ui-text)}
+.youtube-search-dialog>.dialog-head{border-bottom:1px solid var(--ui-line);padding:18px 20px 14px}
+.youtube-search-form{padding:16px 20px 0}
+.youtube-search-form>label{margin-top:0}
+.youtube-search-query{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;margin-top:8px}
+.youtube-search-query input{width:100%;min-width:0;border:1px solid var(--ui-line-strong);border-radius:var(--ui-radius-sm);background:var(--ui-surface-2);color:var(--ui-text);padding:11px 12px}
+.youtube-search-query button{min-width:94px}
+.youtube-search-fallback{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.youtube-search-fallback span{color:var(--ui-text-3);font-size:11px;line-height:1.5}
+.youtube-search-config{margin-top:14px;padding:12px 14px;border:1px solid var(--ui-line);border-radius:var(--ui-radius-sm);background:var(--ui-surface-2)}
+.youtube-search-config>summary{color:var(--ui-text-2);font-size:12px;font-weight:750;cursor:pointer}
+.youtube-search-config p{color:var(--ui-text-3);font-size:11px;line-height:1.65;margin-top:9px}
+.youtube-search-config label{display:block;font-size:12px;font-weight:700;margin:13px 0 6px}
+.youtube-search-key-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
+.youtube-search-key-row input{min-width:0;background:var(--ui-surface);color:var(--ui-text);border:1px solid var(--ui-line-strong);border-radius:var(--ui-radius-sm);padding:10px}
+.youtube-search-key-help a{color:var(--accent)}
+.youtube-search-key-help span{display:block;margin-top:4px}
+.youtube-search-status{min-height:36px;display:flex;align-items:center;padding:8px 0;color:var(--ui-text-2);font-size:12px;line-height:1.5}
+.youtube-search-results{display:grid;gap:0;padding:0 20px 20px;max-height:55vh;overflow:auto}
+.youtube-search-result{display:grid;grid-template-columns:124px minmax(0,1fr);align-items:center;gap:14px;padding:13px 0;border-top:1px solid var(--ui-line)}
+.youtube-search-result img{width:124px;aspect-ratio:16/9;object-fit:cover;border-radius:var(--ui-radius-sm);background:var(--ui-surface-2)}
+.youtube-search-result-text{display:grid;gap:5px;min-width:0}
+.youtube-search-result-text strong{font-size:13px;line-height:1.45;color:var(--ui-text);overflow-wrap:anywhere}
+.youtube-search-result-text>span{font-size:11px;color:var(--ui-text-3);overflow-wrap:anywhere}
+.youtube-search-result-actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:3px}
+.youtube-search-result-actions .primary-soft{font-size:11px;min-height:35px}
+.youtube-search-result-actions>a{font-size:11px;color:var(--ui-text-2);text-decoration:underline;text-underline-offset:3px}
+.youtube-search-dialog a:focus-visible,.youtube-search-config>summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+@media(max-width:560px){
+  .youtube-search-dialog>.dialog-head{padding:14px}
+  .youtube-search-form{padding:13px 14px 0}
+  .youtube-search-results{padding:0 14px 16px}
+  .youtube-search-query{grid-template-columns:minmax(0,1fr) auto}
+  .youtube-search-query button{min-width:70px;padding:9px}
+  .youtube-search-key-row{grid-template-columns:1fr}
+  .youtube-search-result{grid-template-columns:95px minmax(0,1fr);gap:10px}
+  .youtube-search-result img{width:95px}
+  .youtube-search-result-actions{gap:7px}
+}

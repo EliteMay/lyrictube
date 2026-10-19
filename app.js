@@ -1,4 +1,4 @@
-const APP_VERSION = window.LyricTubeVersion?.version || "v0.13.4";
+const APP_VERSION = window.LyricTubeVersion?.version || "v0.13.5";
 const STORAGE_KEY = "lyrictube.library.v3";
 const LEGACY_KEY = "lyrictube.songs.v1";
 const RECOVERY_KEY_PREFIX = "lyrictube.library.recovery.";
@@ -3248,6 +3248,28 @@ document.querySelectorAll(".browse-chip").forEach(b=>b.addEventListener("click",
   currentView={type:b.dataset.browseView,playlistId:null};
   renderAll();
 }));
+// Search results only populate the existing form. They do not save or play
+// until the user explicitly submits that form.
+document.addEventListener("lyrictube:youtube-search:select",event=>{
+  const detail=event.detail||{};
+  const target=detail.target==="version"?"version":"song";
+  if(!/^[a-zA-Z0-9_-]{11}$/.test(String(detail.videoId||"")))return;
+  if(target==="song"&&!els.songDialog.open)return;
+  if(target==="version"&&!els.versionDialog.open)return;
+  const exclude=target==="version"
+    ? {excludeSongId:selectedSongId,excludeVersionId:els.editingVersionId.value||""}
+    : {};
+  if(blockDuplicateVideo(detail.videoId,exclude))return;
+  const urlInput=target==="song"?els.youtubeUrl:els.versionYoutubeUrl;
+  urlInput.value="https://www.youtube.com/watch?v="+detail.videoId;
+  urlInput.dispatchEvent(new Event("input",{bubbles:true}));
+  applyYoutubeMetadata({
+    title:String(detail.title||""),
+    author_name:String(detail.channel||""),
+    source:"youtube-search"
+  },target);
+  detail.accepted=true;
+});
 els.youtubeUrl.addEventListener("input",()=>{delete els.youtubeUrl.dataset.rawTitle;delete els.youtubeUrl.dataset.performer;delete els.youtubeUrl.dataset.detectedType;});
 els.versionYoutubeUrl.addEventListener("input",()=>{delete els.versionYoutubeUrl.dataset.rawTitle;delete els.versionYoutubeUrl.dataset.performer;});
 els.exportBtn.addEventListener("click",exportLibrary);els.importInput.addEventListener("change",()=>{const f=els.importInput.files?.[0];if(f)importLibrary(f);els.importInput.value=""});
