@@ -27,4 +27,10 @@ assert.match(cloud,/restoreFailedBatch\(snapshot\)/);
 assert.match(index,/src="core\/cloud-sync-recovery.js\?v=20261019-4"/);
 assert(!/lyrictube\.cloudSyncQueue\.v1.*removeItem/.test(shell));
 assert.match(local,/function cleanupOrphans\(\)/);
+
+const migration=fs.readFileSync("supabase/migrations/20261019_revoke_sessions_after_password_change.sql","utf8");
+assert.match(migration,/DELETE FROM public\.lyrictube_sessions WHERE account_id = p_account_id/);
+assert.match(migration,/char_length\(coalesce\(p_password, ''\)\) < 8/);
+assert.match(shell,/account\.id === session\.account\.id/);
+assert.match(shell,/await logout\(null\)/);
 console.log("Data integrity regression contracts passed");
