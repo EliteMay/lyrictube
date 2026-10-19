@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## v0.13.3 Empty-state onboarding / build 20261019-1（2026-10-19）
+
+- 曲がまだないときの動画プレーヤー内に「＋ 曲を追加」を追加。初回登録への入口を明確化。
+- 歌詞が未登録の曲では「歌詞を追加・検索」、未選曲状態では「＋ 曲を追加」を歌詞パネル内に表示。
+- 無曲状態と未選択状態を区別し、既存の曲を選択したときはPlayer内の初回登録ボタンを非表示にする。
+- 既存Visual Baselineに合わせて、強い装飾を増やさず見出し・説明・操作の階層と狭い画面の密度を調整。
+- 設定画面の保存先と歌詞Providerについて、現行のCloud / Local Media仕様に合わない説明を修正。
+- Build / CSSのCache Bustingと、Version文字列に依存しないVisual Regression Guardを更新。
+- 再生ロジック・歌詞データ・Supabase・Schema 4は変更しない。
+- GitHub Actionsによる自動Testと、実ブラウザの最終Visual確認を分けて判定する。
+
 ## v0.13.2 Sidebar tag toggle / build 20260906-3（2026-09-06）
 
 - Sidebarのタグ絞り込みをToggle操作へ変更。
