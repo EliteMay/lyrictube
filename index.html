@@ -10,12 +10,12 @@
   <title>LyricTube</title>
   <link rel="icon" type="image/webp" href="assets/lyrictube-icon.webp">
   <link rel="apple-touch-icon" href="assets/lyrictube-icon.webp">
-  <link rel="stylesheet" href="styles.css?v=20260906-3">
-  <link rel="stylesheet" href="mobile.css?v=20260906-3">
-  <link rel="stylesheet" href="guest.css?v=20260906-3">
-  <link rel="stylesheet" href="auth-ui.css?v=20260906-3">
-  <link rel="stylesheet" href="tags.css?v=20260906-3">
-  <link rel="stylesheet" href="sidebar.css?v=20260906-3">
+  <link rel="stylesheet" href="styles.css?v=20261019-1">
+  <link rel="stylesheet" href="mobile.css?v=20261019-1">
+  <link rel="stylesheet" href="guest.css?v=20261019-1">
+  <link rel="stylesheet" href="auth-ui.css?v=20261019-1">
+  <link rel="stylesheet" href="tags.css?v=20261019-1">
+  <link rel="stylesheet" href="sidebar.css?v=20261019-1">
 </head>
 <body>
   <div class="app-shell">
@@ -24,7 +24,7 @@
         <div class="brand-lockup">
           <img src="assets/lyrictube-icon.webp" class="brand-logo" alt="LyricTube">
           <div>
-            <p class="eyebrow">MY MUSIC · <span data-app-version>v0.13.2</span></p>
+            <p class="eyebrow">MY MUSIC · <span data-app-version>v0.13.3</span></p>
             <div class="brand-title-line"><h1>LyricTube</h1></div>
             <p class="brand-subtitle">YouTube & Local Media · Synced Lyrics</p>
           </div>
@@ -148,7 +148,12 @@
           </section>
 
           <div class="player-card">
-            <div id="playerPlaceholder" class="player-placeholder"><div class="placeholder-mark">▶</div><p>YouTube動画を登録するとここで再生できます</p></div>
+            <div id="playerPlaceholder" class="player-placeholder">
+              <div class="placeholder-mark" aria-hidden="true">♫</div>
+              <strong class="placeholder-title">最初の曲を追加しよう</strong>
+              <p class="placeholder-detail">YouTube動画や端末の音源を登録すると、歌詞と一緒に再生できます。</p>
+              <button id="playerAddSongBtn" class="primary-btn placeholder-add" type="button">＋ 曲を追加</button>
+            </div>
             <div id="player"></div>
           </div>
 
@@ -289,11 +294,11 @@
       <div class="settings-title-row">
         <div>
           <strong>GitHub Pages版</strong>
-          <p class="muted small">ローカルサーバー不要。曲・歌詞・プレイリストはこのブラウザのlocalStorageへ保存します。</p>
+          <p class="muted small">ローカルサーバー不要。ゲストの曲情報はこの端末に保存し、アカウント利用時はクラウド同期します。端末音源の本体は同期されません。</p>
         </div>
         <span class="status-pill ready">STATIC</span>
       </div>
-      <p class="muted small">自動歌詞検索はLRCLIBへブラウザから直接接続します。YouTube Data APIを使うサイト内動画検索は削除しています。</p>
+      <p class="muted small">歌詞候補はLRCLIB / SyncLRC / lyrics.ovhから検索します。YouTube動画のサイト内検索には対応していません。</p>
     </section>
     <section class="settings-section">
       <div class="settings-title-row">
@@ -553,17 +558,17 @@
   </footer>
 
   <div id="toast" class="toast" aria-live="polite"></div>
-  <script src="version.js?v=20260906-3"></script>
-  <script src="core/app-utils.js?v=20260906-3"></script>
-  <script src="core/runtime-hooks.js?v=20260906-3"></script>
-  <script src="core/player-controller.js?v=20260906-3"></script>
-  <script src="library-schema.js?v=20260906-3"></script>
-  <script src="sync-interpolation.js?v=20260906-3"></script>
-  <script src="profile-data.js?v=20260906-3"></script>
-  <script src="cloud-sync.js?v=20260906-3"></script>
-  <script src="site-shell.js?v=20260906-3"></script>
-  <script src="lyrics-providers.js?v=20260906-3"></script>
-  <script src="local-media.js?v=20260906-3"></script>
-  <script src="tags.js?v=20260906-3"></script>
+  <script src="version.js?v=20261019-1"></script>
+  <script src="core/app-utils.js?v=20261019-1"></script>
+  <script src="core/runtime-hooks.js?v=20261019-1"></script>
+  <script src="core/player-controller.js?v=20261019-1"></script>
+  <script src="library-schema.js?v=20261019-1"></script>
+  <script src="sync-interpolation.js?v=20261019-1"></script>
+  <script src="profile-data.js?v=20261019-1"></script>
+  <script src="cloud-sync.js?v=20261019-1"></script>
+  <script src="site-shell.js?v=20261019-1"></script>
+  <script src="lyrics-providers.js?v=20261019-1"></script>
+  <script src="local-media.js?v=20261019-1"></script>
+  <script src="tags.js?v=20261019-1"></script>
 </body>
 </html>

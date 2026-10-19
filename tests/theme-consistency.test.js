@@ -4,7 +4,7 @@ const assert=require("assert");
 const sidebar=fs.readFileSync("sidebar.css","utf8");
 const theme=fs.readFileSync("theme.css","utf8");
 
-assert(sidebar.startsWith('@import url("workspace.css?v=20260831-design1");\n@import url("theme.css?v=20260831-theme1");'),"canonical theme layer must load after workspace layer");
+assert(/^@import url\("workspace\.css\?v=[^"]+"\);\r?\n@import url\("theme\.css\?v=[^"]+"\);/.test(sidebar),"canonical theme layer must load after workspace layer");
 assert(!sidebar.includes('background:#0c0f13!important'),"sidebar must not be locked to the old dark color");
 assert(sidebar.includes('background:var(--ui-nav-bg)!important'),"sidebar must consume the canonical nav token");
 
