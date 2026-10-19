@@ -567,9 +567,21 @@
         const actions = make("div", "account-row-actions");
         const pass = make("button", "ghost-btn", "パスワード変更"); pass.type = "button";
         pass.addEventListener("click", async () => {
-          const next = prompt(`${account.username} の新しいパスワード`);
-          if (!next) return;
-          try { await api("change_password", { token: session.token, accountId: account.id, password: next }); alert("変更しました。"); } catch (error) { alert(error.message); }
+          const next = prompt(`${account.username} の新しいパスワード（8文字以上）`);
+          if (next === null) return;
+          if (next.length < 8 || next.length > 128) {
+            alert("新しいパスワードは8〜128文字で設定してください。");
+            return;
+          }
+          try {
+            await api("change_password", { token: session.token, accountId: account.id, password: next });
+            if (account.id === session.account.id) {
+              alert("パスワードを変更しました。安全のため再ログインしてください。");
+              await logout(null);
+            } else {
+              alert("変更しました。対象アカウントの以前のセッションは失効しました。");
+            }
+          } catch (error) { alert(error.message); }
         });
         actions.appendChild(pass);
         if (!account.is_admin) {
