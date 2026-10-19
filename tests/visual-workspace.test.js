@@ -4,7 +4,7 @@ const assert=require("assert");
 const workspace=fs.readFileSync("workspace.css","utf8");
 const sidebar=fs.readFileSync("sidebar.css","utf8");
 
-assert(sidebar.startsWith('@import url("workspace.css?v=20260831-design1");'),"workspace visual layer must load from canonical sidebar entry");
+assert(/^@import url\("workspace\.css\?v=[^"]+"\);/.test(sidebar),"workspace visual layer must load from canonical sidebar entry");
 assert(workspace.includes("media workspace"),"visual direction comment missing");
 assert(workspace.includes(".browse-brand-art{display:none}"),"generic browse hero artwork should stay out of the library view");
 assert(/\.browse-hero\{[\s\S]*?border:0;[\s\S]*?background:none;[\s\S]*?box-shadow:none;/.test(workspace),"browse header must remain a flat library header");
