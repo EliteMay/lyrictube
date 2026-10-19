@@ -1,7 +1,7 @@
 # LyricTube
 
-**Current version: v0.13.3**  
-**Build: 20261019-1**  
+**Current version: v0.13.4**  
+**Build: 20261019-2**  
 **公開サイト:** [https://elitemay.github.io/lyrictube/](https://elitemay.github.io/lyrictube/)
 
 YouTube動画、端末のMP3/MP4、通常歌詞、同期歌詞を1つのライブラリで管理するWebアプリです。
@@ -41,6 +41,9 @@ LyricTubeは `MEDIA + TOOL` として、**Library → Player → Lyrics** の作
 - Decorative effects: ShadowはPlayer / OverlayなどElevationが必要な場所だけ。Gradient / Glowの常用は避ける
 - Signature: 再生領域と同期歌詞を並べて使うMedia Workspaceそのもの
 - Empty state: 曲未登録時はPlayerの「＋ 曲を追加」、歌詞未登録時はLyricsの「歌詞を追加・検索」から直接登録画面へ進める。既存再生・同期状態は変更しない
+- Listening-first UI: 通常は動画・歌詞・基本再生操作に集中し、再生区間 / スキップ / 歌詞同期調整は折りたたんだ編集パネルから開く
+- Library sorting: サイドバーと「曲を探す」画面を共通の並び順で表示。表示順だけを変更し、Playback Context・Queue・手動プレイリストの順序は変えない
+- Song form: 新規登録時の歌詞・タグ編集は任意セクションへ格納。既存曲の編集では開いた状態で表示する
 
 Visual compositionは `workspace.css`、Sidebarの構造は `sidebar.css`、Theme Colorの正本は `theme.css` です。Legacy CSSにTheme指定が残っていても、現行UIの配色判断は `theme.css` のTokenを基準にします。
 
@@ -55,6 +58,7 @@ index.html
 ├─ core/runtime-hooks.js      拡張機能用Hook / Filter基盤
 ├─ core/player-controller.js  YouTube / Local Media共通再生API
 ├─ core/fair-shuffle.js       再生履歴を考慮したShuffle候補選択
+├─ core/library-sort.js       表示専用・安定ソート
 ├─ library-schema.js          ライブラリ正規化・移行
 ├─ sync-interpolation.js      基準点間の歌詞時間自動補間
 ├─ profile-data.js            アカウント別localStorageルーティング
@@ -70,8 +74,8 @@ index.html
 
 ## バージョン管理
 
-- 表示Version: `v0.13.2`
-- Build: `20260906-3`
+- 表示Version: `v0.13.4`
+- Build: `20261019-2`
 - Data Schema: `4`
 
 正本は `version.js` です。旧 `v35 / v36` 等の開発番号は現行UIのVersionとして使用しません。
@@ -198,6 +202,7 @@ core/
   runtime-hooks.js
   player-controller.js
   fair-shuffle.js
+  library-sort.js
 
 assets/
   lyrictube-icon.webp
