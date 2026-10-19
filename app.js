@@ -1,4 +1,4 @@
-const APP_VERSION = window.LyricTubeVersion?.version || "v0.13.2";
+const APP_VERSION = window.LyricTubeVersion?.version || "v0.13.4";
 const STORAGE_KEY = "lyrictube.library.v3";
 const LEGACY_KEY = "lyrictube.songs.v1";
 const RECOVERY_KEY_PREFIX = "lyrictube.library.recovery.";
@@ -9,6 +9,7 @@ let library = defaultLibrary();
 let selectedSongId = null;
 let selectedVersionId = null;
 let currentView = { type: "all", playlistId: null };
+let librarySortMode = "default";
 let ytPlayer = null;
 let ytReady = false;
 let pendingYoutubeRequest = null;
@@ -38,13 +39,13 @@ let syncBaseTimes = [];
 
 const $ = id => document.getElementById(id);
 const els = Object.fromEntries([
-  "songList","songCount","librarySearch","addSongBtn","editSongBtn","deleteSongBtn","favoriteBtn","playlistBtn","settingsBtn","exportBtn","importInput","allCount","favoriteCount","needsLyricsCount","needsSyncCount","coverCount","libraryLabel","playlistNav","managePlaylistsBtn",
+  "songList","songCount","librarySearch","librarySort","browseSort","addSongBtn","editSongBtn","deleteSongBtn","favoriteBtn","playlistBtn","settingsBtn","exportBtn","importInput","allCount","favoriteCount","needsLyricsCount","needsSyncCount","coverCount","libraryLabel","playlistNav","managePlaylistsBtn",
   "playerPageBtn","browsePageBtn","browsePage","playerWorkspace","browseSearch","browseAddSongBtn","browseHeading","browseCount","browseGrid",
   "nowTitle","nowArtist","nowThumb","nowVersionBadge","nowPlayCount","playerPlaceholder","playerAddSongBtn","versionTabs","addVersionBtn","editVersionBtn","prevBtn","nextBtn","restartBtn","shuffleBtn","repeatBtn",
   "bottomPlayer","bottomThumb","bottomTitle","bottomArtist","bottomPrevBtn","bottomPlayBtn","bottomNextBtn","bottomCurrentTime","bottomDuration","bottomSeek","bottomQueueBtn","bottomVolume","queueDialog","closeQueueDialog","queueList",
   "startTimeLabel","endTimeLabel","setStartBtn","setEndBtn","resetRangeBtn","autoSkipToggle","markSkipStartBtn","markSkipEndBtn","pendingSkipLabel","skipList",
   "lyricsView","syncStatus","versionSyncStatus","offsetInput","offsetMinus","offsetPlus","openSyncEditorBtn","toggleAutoScrollBtn","fullscreenLyricsBtn","toast",
-  "songDialog","songForm","songDialogTitle","closeSongDialog","cancelSongBtn","editingSongId","initialVideoSection","youtubeUrl","fetchYoutubeInfoBtn","initialVersionType","initialPerformer","trackTitle","artistName","searchLyricsBtn","googleLyricsBtn","pasteLyricsBtn","lyricsInput","lyricsInputHint",
+  "songDialog","songForm","songOptionalDetails","songDialogTitle","closeSongDialog","cancelSongBtn","editingSongId","initialVideoSection","youtubeUrl","fetchYoutubeInfoBtn","initialVersionType","initialPerformer","trackTitle","artistName","searchLyricsBtn","googleLyricsBtn","pasteLyricsBtn","lyricsInput","lyricsInputHint",
   "versionDialog","versionForm","versionDialogTitle","closeVersionDialog","cancelVersionBtn","deleteVersionBtn","editingVersionId","versionYoutubeUrl","fetchVersionInfoBtn","versionType","versionLabel","versionPerformer",
   "settingsDialog","closeSettingsDialog","lyricsSearchDialog","closeLyricsSearchDialog","lyricsSearchProgress","lyricsSearchResults","syncDialog","closeSyncDialog","syncEditorList","syncAssistApplyBtn","syncAssistClearBtn","syncAssistStatus","syncVideoTime","syncVideoDuration","syncRelativeTime","syncSeekBar","syncGoStartBtn","syncBack5Btn","syncBack1Btn","syncPlayPauseBtn","syncForward1Btn","syncForward5Btn","syncAddInterludeBtn","syncUndoBtn","resetSyncBtn","saveSyncBtn","useSharedSyncBtn",
   "helpBtn","lyricsHelpBtn","syncHelpBtn","helpDialog","closeHelpDialog","helpDialogTitle","helpDialogBody","topHelpBtn","openHelpFromSettingsBtn",
@@ -240,6 +241,28 @@ function viewSongs(){
   arr=window.LyricTubeHooks?.applyFilters?.("songs:view",arr,{currentView,query:q,library})||arr;
   return arr
 }
+function sortedDisplaySongs(songs){
+  // Library sorting is presentation-only. Playback context and playlists keep
+  // their original order, so changing a dropdown never reshuffles the queue.
+  if(currentView.type==="playlist")return songs;
+  return window.LyricTubeLibrarySort?.sortSongs(songs,librarySortMode)||[...songs];
+}
+function updateSortControls(){
+  const playlist=currentView.type==="playlist";
+  for(const select of [els.librarySort,els.browseSort]){
+    if(!select)continue;
+    select.value=playlist?"default":librarySortMode;
+    select.disabled=playlist;
+    select.title=playlist?"プレイリストの手動順を維持します":"曲の表示順を変更します（再生順は変わりません）";
+  }
+}
+function changeLibrarySort(mode){
+  if(!window.LyricTubeLibrarySort?.MODES?.includes(mode))return;
+  librarySortMode=mode;
+  updateSortControls();
+  renderLibrary();
+  renderBrowse();
+}
 function queueSongs(){const q=els.librarySearch.value;els.librarySearch.value="";const list=viewSongs();els.librarySearch.value=q;return list.length?list:[...library.songs]}
 
 function currentViewLabel(){
@@ -283,7 +306,7 @@ function playSongFromBrowse(songId){
 }
 function renderBrowse(){
   if(!els.browseGrid)return;
-  const songs=viewSongs();
+  const songs=sortedDisplaySongs(viewSongs());
 
   els.browseHeading.textContent=currentViewLabel();
   els.browseCount.textContent=`${songs.length}曲`;
@@ -393,6 +416,7 @@ function renderAll(){
   ensureSelection();
   applyUiSettings();
   renderViewNav();
+  updateSortControls();
   renderPlaylists();
   renderLibrary();
   renderBrowse();
@@ -412,7 +436,7 @@ function renderViewNav(){
 }
 function renderPlaylists(){els.playlistNav.innerHTML="";for(const p of library.playlists){const b=document.createElement("button");b.type="button";b.className=`playlist-item${currentView.type==="playlist"&&currentView.playlistId===p.id?" active":""}`;b.textContent=`${p.name} · ${p.songIds.length}`;b.addEventListener("click",()=>{currentView={type:"playlist",playlistId:p.id};renderAll()});els.playlistNav.appendChild(b)}}
 function renderLibrary(){
-  const filtered=viewSongs();
+  const filtered=sortedDisplaySongs(viewSongs());
   els.songCount.textContent=`${filtered.length}曲`;
   els.libraryLabel.textContent=currentViewLabel();
   els.songList.innerHTML="";
@@ -1770,6 +1794,7 @@ function closeSettingsDialog(){
 function openSongDialog(song=null){
   leaveLyricsFullscreenForDialog();
   els.songForm.reset();
+  if(els.songOptionalDetails)els.songOptionalDetails.open=Boolean(song);
   delete els.lyricsInput.dataset.lrclibId;
   delete els.lyricsInput.dataset.lyricsSource;
   delete els.youtubeUrl.dataset.rawTitle;
@@ -3190,6 +3215,8 @@ els.settingsDialog.addEventListener("cancel",e=>{e.preventDefault();closeSetting
 
 
 
+els.librarySort.addEventListener("change",()=>changeLibrarySort(els.librarySort.value));
+els.browseSort.addEventListener("change",()=>changeLibrarySort(els.browseSort.value));
 els.addSongBtn.addEventListener("click",()=>openSongDialog());
 els.playerAddSongBtn.addEventListener("click",()=>openSongDialog());
 els.browseAddSongBtn.addEventListener("click",()=>openSongDialog());

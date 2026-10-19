@@ -10,12 +10,12 @@
   <title>LyricTube</title>
   <link rel="icon" type="image/webp" href="assets/lyrictube-icon.webp">
   <link rel="apple-touch-icon" href="assets/lyrictube-icon.webp">
-  <link rel="stylesheet" href="styles.css?v=20261019-1">
-  <link rel="stylesheet" href="mobile.css?v=20261019-1">
-  <link rel="stylesheet" href="guest.css?v=20261019-1">
-  <link rel="stylesheet" href="auth-ui.css?v=20261019-1">
-  <link rel="stylesheet" href="tags.css?v=20261019-1">
-  <link rel="stylesheet" href="sidebar.css?v=20261019-1">
+  <link rel="stylesheet" href="styles.css?v=20261019-2">
+  <link rel="stylesheet" href="mobile.css?v=20261019-2">
+  <link rel="stylesheet" href="guest.css?v=20261019-2">
+  <link rel="stylesheet" href="auth-ui.css?v=20261019-2">
+  <link rel="stylesheet" href="tags.css?v=20261019-2">
+  <link rel="stylesheet" href="sidebar.css?v=20261019-2">
 </head>
 <body>
   <div class="app-shell">
@@ -24,7 +24,7 @@
         <div class="brand-lockup">
           <img src="assets/lyrictube-icon.webp" class="brand-logo" alt="LyricTube">
           <div>
-            <p class="eyebrow">MY MUSIC · <span data-app-version>v0.13.3</span></p>
+            <p class="eyebrow">MY MUSIC · <span data-app-version>v0.13.4</span></p>
             <div class="brand-title-line"><h1>LyricTube</h1></div>
             <p class="brand-subtitle">YouTube & Local Media · Synced Lyrics</p>
           </div>
@@ -57,6 +57,7 @@
       <div id="playlistNav" class="playlist-nav"></div>
 
       <div class="library-head"><span id="libraryLabel">ライブラリ</span><span id="songCount">0曲</span></div>
+      <label class="library-sort-row"><span>並び順</span><select id="librarySort" aria-label="サイドバーの曲の並び順"><option value="default">標準の順序</option><option value="title">曲名順</option><option value="artist">アーティスト順</option><option value="added">追加した順</option><option value="played">最近再生した順</option></select></label>
       <div id="songList" class="song-list"></div>
       </div>
 
@@ -128,7 +129,7 @@
             <p class="eyebrow">MUSIC</p>
             <h3 id="browseHeading">すべての曲</h3>
           </div>
-          <span id="browseCount" class="browse-count">0曲</span>
+          <div class="browse-meta-actions"><span id="browseCount" class="browse-count">0曲</span><label class="browse-sort-row"><span>並び順</span><select id="browseSort" aria-label="曲を探す画面の並び順"><option value="default">標準の順序</option><option value="title">曲名順</option><option value="artist">アーティスト順</option><option value="added">追加した順</option><option value="played">最近再生した順</option></select></label></div>
         </div>
 
         <div id="browseGrid" class="browse-grid"></div>
@@ -165,6 +166,12 @@
             <button id="repeatBtn" class="mode-btn" type="button">リピート OFF</button>
           </div>
 
+          <details id="playbackAdvanced" class="playback-advanced">
+            <summary>
+              <span class="playback-advanced-copy"><strong>再生区間・歌詞同期の調整</strong><span>曲の開始・終了、スキップ、歌詞タイミング</span></span>
+              <span class="playback-advanced-indicator" aria-hidden="true">⌄</span>
+            </summary>
+            <div class="playback-advanced-content">
           <section class="range-card">
             <div class="section-line">
               <div><p class="eyebrow">PLAY RANGE</p><strong>曲として再生する範囲</strong><p class="muted small">FIRST TAKEのトークやMVの前後を除外できます</p></div>
@@ -197,6 +204,8 @@
               <div class="inline-actions"><button id="syncHelpBtn" class="ghost-btn help-launch help-icon-btn" data-help-topic="sync" type="button" title="同期ヘルプ" aria-label="同期ヘルプ">?</button><button id="openSyncEditorBtn" class="ghost-btn" type="button" disabled>この動画専用に歌詞時間を合わせる</button></div>
             </div>
           </section>
+            </div>
+          </details>
         </div>
 
         <section class="lyrics-panel">
@@ -237,6 +246,9 @@
         <label><span>原曲アーティスト</span><input id="artistName" type="text" placeholder="例: 米津玄師"><small>Coverの歌唱者/投稿者とは別です。Cover動画では歌唱者名で自動上書きしません。</small></label>
       </div>
 
+      <details id="songOptionalDetails" class="song-optional-details">
+        <summary><strong>歌詞・タグの設定</strong><span>必要なときだけ開く（あとから編集できます）</span></summary>
+        <div class="song-optional-content">
       <div class="lyrics-source-box">
         <div>
           <strong>歌詞を取得</strong>
@@ -260,6 +272,8 @@
         </div>
       </label>
 
+        </div>
+      </details>
       <div class="dialog-actions"><button id="cancelSongBtn" class="ghost-btn" type="button">キャンセル</button><button class="primary-btn" type="submit">保存</button></div>
     </form>
   </dialog>
@@ -558,17 +572,18 @@
   </footer>
 
   <div id="toast" class="toast" aria-live="polite"></div>
-  <script src="version.js?v=20261019-1"></script>
-  <script src="core/app-utils.js?v=20261019-1"></script>
-  <script src="core/runtime-hooks.js?v=20261019-1"></script>
-  <script src="core/player-controller.js?v=20261019-1"></script>
-  <script src="library-schema.js?v=20261019-1"></script>
-  <script src="sync-interpolation.js?v=20261019-1"></script>
-  <script src="profile-data.js?v=20261019-1"></script>
-  <script src="cloud-sync.js?v=20261019-1"></script>
-  <script src="site-shell.js?v=20261019-1"></script>
-  <script src="lyrics-providers.js?v=20261019-1"></script>
-  <script src="local-media.js?v=20261019-1"></script>
-  <script src="tags.js?v=20261019-1"></script>
+  <script src="version.js?v=20261019-2"></script>
+  <script src="core/app-utils.js?v=20261019-2"></script>
+  <script src="core/runtime-hooks.js?v=20261019-2"></script>
+  <script src="core/player-controller.js?v=20261019-2"></script>
+  <script src="core/library-sort.js?v=20261019-2"></script>
+  <script src="library-schema.js?v=20261019-2"></script>
+  <script src="sync-interpolation.js?v=20261019-2"></script>
+  <script src="profile-data.js?v=20261019-2"></script>
+  <script src="cloud-sync.js?v=20261019-2"></script>
+  <script src="site-shell.js?v=20261019-2"></script>
+  <script src="lyrics-providers.js?v=20261019-2"></script>
+  <script src="local-media.js?v=20261019-2"></script>
+  <script src="tags.js?v=20261019-2"></script>
 </body>
 </html>

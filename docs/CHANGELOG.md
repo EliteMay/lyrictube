@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## v0.13.4 Listening-first workspace / build 20261019-2（2026-10-19）
+
+- 通常再生時はPlayerとLyricsを主役にし、曲開始 / 終了 / スキップ / 歌詞同期をNative detailsの編集パネルへ移動。必要時はそのまま展開できる。
+- 曲一覧と「曲を探す」に共通の表示ソート（標準 / 曲名 / アーティスト / 追加日 / 最近再生）を追加。標準の順序、再生キュー、手動プレイリストの順序は変更しない。
+- 曲追加時の歌詞・タグを任意セクションに収納し、既存曲の編集時には展開する。保存時の歌詞処理・タグHookはそのまま。
+- Theme tokenで開閉・Sort UIの見た目を統一し、狭い画面では縦配置にする。
+- 新規Pure sort utilityと回帰Testを追加。UI制御のみにとどめ、Storage Schema 4 / Provider / Supabase / 再生仕様は変更しない。
+- Build / Cache revisionを更新し、既存Runtime / Visual Testを維持。
+
+
 ## v0.13.3 Empty-state onboarding / build 20261019-1（2026-10-19）
 
 - 曲がまだないときの動画プレーヤー内に「＋ 曲を追加」を追加。初回登録への入口を明確化。
