@@ -127,7 +127,26 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 }
 .player-placeholder{
   background:var(--ui-surface);
+  color:var(--ui-text-2);
+  gap:10px;
+  padding:clamp(12px,2vw,26px);
 }
+.player-placeholder .placeholder-title{
+  color:var(--ui-text);
+  font-size:clamp(16px,1.7vw,21px);
+  font-weight:750;
+  line-height:1.3;
+}
+.player-placeholder .placeholder-detail{
+  max-width:350px;
+  font-size:12px;
+  line-height:1.6;
+}
+.player-placeholder .placeholder-add{
+  min-height:40px;
+  margin-top:4px;
+}
+.player-placeholder .placeholder-add[hidden]{display:none!important}
 .placeholder-mark{
   width:54px;
   height:54px;
@@ -166,6 +185,27 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
   background:var(--ui-surface);
 }
 .status-pill,.chip{border-radius:7px}
+
+.lyrics-view.empty .empty-copy{
+  max-width:420px;
+  gap:10px;
+  padding:clamp(8px,2vw,20px);
+}
+.lyrics-view.empty .empty-copy strong{
+  color:var(--ui-text);
+  font-size:clamp(16px,1.6vw,20px);
+  line-height:1.4;
+}
+.lyrics-view.empty .empty-copy span{
+  color:var(--ui-text-2);
+  font-size:13px;
+  line-height:1.65;
+}
+.lyrics-view.empty .lyrics-empty-action{
+  justify-self:center;
+  min-height:40px;
+  margin-top:5px;
+}
 
 /* Lyrics: a reading surface, not another decorative card. */
 .lyrics-panel{
@@ -378,4 +418,16 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
   .browse-card{padding:0!important}
   .lyrics-view{padding-left:17px!important;padding-right:17px!important}
   .tags-summary{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+
+/* Keep the first-song action visible inside the 16:9 player on narrow screens. */
+@media(max-width:900px){
+  .player-placeholder{gap:6px;padding:10px}
+  .player-placeholder .placeholder-mark{width:36px;height:36px;font-size:17px}
+  .player-placeholder .placeholder-title{font-size:15px}
+  .player-placeholder .placeholder-detail{font-size:11px;line-height:1.4}
+  .player-placeholder .placeholder-add{min-height:36px;margin-top:2px;padding:7px 12px;font-size:12px}
+}
+@media(max-width:430px){
+  .player-placeholder .placeholder-detail{display:none}
 }
