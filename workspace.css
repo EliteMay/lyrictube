@@ -159,6 +159,42 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
   gap:7px;
 }
 .transport-btn{min-width:44px}
+
+/* Playback is the default task. Timeline and sync editing live one level deeper. */
+.playback-advanced{
+  margin-top:2px;
+  border-top:1px solid var(--ui-line);
+}
+.playback-advanced>summary{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:12px 2px;
+  cursor:pointer;
+  list-style:none;
+  color:var(--ui-text-2);
+}
+.playback-advanced>summary::-webkit-details-marker{display:none}
+.playback-advanced>summary:hover{color:var(--ui-text)}
+.playback-advanced>summary:focus-visible{
+  outline:2px solid var(--accent);
+  outline-offset:2px;
+  border-radius:var(--ui-radius-sm);
+}
+.playback-advanced-copy{display:grid;gap:3px}
+.playback-advanced-copy strong{font-size:12px;color:var(--ui-text);font-weight:750}
+.playback-advanced-copy>span{font-size:11px;color:var(--ui-text-3)}
+.playback-advanced-indicator{
+  flex:0 0 26px;
+  text-align:center;
+  font-size:19px;
+  transition:transform .15s ease;
+}
+.playback-advanced[open] .playback-advanced-indicator{transform:rotate(180deg)}
+.playback-advanced[open]>summary{border-bottom:1px solid var(--ui-line)}
+.playback-advanced-content .range-card{border-top:0}
+
 .transport-card .mode-btn{font-size:11px;color:var(--ui-text-2)}
 .range-card,.sync-card{
   padding:16px 0;
@@ -295,6 +331,25 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
   background:var(--ui-surface-2);
 }
 .browse-section-head{margin-bottom:12px}
+.browse-meta-actions{display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-wrap:wrap}
+.library-sort-row,.browse-sort-row{display:flex;align-items:center;gap:7px;min-width:0;color:var(--ui-text-3);font-size:11px}
+.library-sort-row{justify-content:space-between;margin:2px 3px 9px}
+.library-sort-row select,.browse-sort-row select{
+  min-width:0;
+  max-width:100%;
+  padding:7px 23px 7px 9px;
+  font-size:11px;
+  border:1px solid var(--ui-line-strong);
+  border-radius:var(--ui-radius-sm);
+  background:var(--ui-surface-2);
+  color:var(--ui-text);
+  cursor:pointer;
+}
+.library-sort-row select:disabled,.browse-sort-row select:disabled{
+  opacity:.55;
+  cursor:not-allowed;
+}
+
 .browse-section-head h3{font-size:20px}
 .browse-grid{gap:18px 14px}
 .browse-card{
@@ -378,6 +433,32 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
   border-radius:var(--ui-radius-sm);
 }
 
+/* Progressive disclosure for advanced fields when adding a track. */
+.song-optional-details{
+  margin-top:18px;
+  border-top:1px solid var(--ui-line);
+  border-bottom:1px solid var(--ui-line);
+}
+.song-optional-details>summary{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:13px 0;
+  cursor:pointer;
+  list-style:none;
+  color:var(--ui-text);
+}
+.song-optional-details>summary::-webkit-details-marker{display:none}
+.song-optional-details>summary strong{font-size:13px}
+.song-optional-details>summary span{color:var(--ui-text-3);font-size:11px;text-align:right}
+.song-optional-details>summary:focus-visible{
+  outline:2px solid var(--accent);
+  outline-offset:2px;
+}
+.song-optional-details .song-optional-content{padding:0 0 17px}
+.song-optional-details .lyrics-source-box{margin-top:5px}
+
 /* Bottom transport: persistent context, visually quiet. */
 .bottom-player{
   background:rgba(10,12,15,.98);
@@ -401,6 +482,9 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 @media(max-width:900px){
   .topbar{min-height:70px!important;background:rgba(9,11,14,.98)!important}
   .workspace{display:flex!important;flex-direction:column!important;padding:10px 10px 24px!important}
+  .playback-advanced>summary{padding:11px 3px}
+  .song-optional-details>summary{align-items:flex-start;flex-direction:column;gap:3px}
+  .song-optional-details>summary span{text-align:left}
   .version-card{padding-bottom:10px!important}
   .range-card,.sync-card{padding:14px 2px!important;border-radius:0!important}
   .lyrics-panel{border-radius:11px!important}
@@ -415,6 +499,9 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 @media(max-width:560px){
   .topbar{padding:9px 10px!important}
   .browse-grid{gap:14px 9px!important}
+  .browse-section-head{flex-wrap:wrap;gap:10px}
+  .browse-meta-actions{width:100%;justify-content:space-between}
+  .browse-sort-row select{max-width:190px}
   .browse-card{padding:0!important}
   .lyrics-view{padding-left:17px!important;padding-right:17px!important}
   .tags-summary{grid-template-columns:repeat(3,minmax(0,1fr))}
