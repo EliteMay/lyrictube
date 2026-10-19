@@ -66,6 +66,12 @@ jobs:
         run: node tests/song-form-tags.test.js
       - name: Test sync interpolation
         run: node tests/sync-interpolation.test.js
+      - name: Test visual workspace
+        run: node tests/visual-workspace.test.js
+      - name: Test theme consistency
+        run: node tests/theme-consistency.test.js
+      - name: Test first-use actions
+        run: node tests/empty-state-actions.test.js
 
       - name: Validate JSON and local asset links
         run: python tools/validate_static.py
