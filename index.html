@@ -148,7 +148,12 @@
           </section>
 
           <div class="player-card">
-            <div id="playerPlaceholder" class="player-placeholder"><div class="placeholder-mark">▶</div><p>YouTube動画を登録するとここで再生できます</p></div>
+            <div id="playerPlaceholder" class="player-placeholder">
+              <div class="placeholder-mark" aria-hidden="true">♫</div>
+              <strong class="placeholder-title">最初の曲を追加しよう</strong>
+              <p class="placeholder-detail">YouTube動画や端末の音源を登録すると、歌詞と一緒に再生できます。</p>
+              <button id="playerAddSongBtn" class="primary-btn placeholder-add" type="button">＋ 曲を追加</button>
+            </div>
             <div id="player"></div>
           </div>
 
@@ -289,11 +294,11 @@
       <div class="settings-title-row">
         <div>
           <strong>GitHub Pages版</strong>
-          <p class="muted small">ローカルサーバー不要。曲・歌詞・プレイリストはこのブラウザのlocalStorageへ保存します。</p>
+          <p class="muted small">ローカルサーバー不要。ゲストの曲情報はこの端末に保存し、アカウント利用時はクラウド同期します。端末音源の本体は同期されません。</p>
         </div>
         <span class="status-pill ready">STATIC</span>
       </div>
-      <p class="muted small">自動歌詞検索はLRCLIBへブラウザから直接接続します。YouTube Data APIを使うサイト内動画検索は削除しています。</p>
+      <p class="muted small">歌詞候補はLRCLIB / SyncLRC / lyrics.ovhから検索します。YouTube動画のサイト内検索には対応していません。</p>
     </section>
     <section class="settings-section">
       <div class="settings-title-row">
