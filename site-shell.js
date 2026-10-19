@@ -196,7 +196,35 @@
     return data && typeof data === "object" && Array.isArray(data.songs) && Array.isArray(data.playlists || []);
   }
 
+  function pendingCloudQueue(session = getCloudSession()) {
+    const id=String(session?.account?.id||"");
+    if(!id)return "";
+    const p=profiles();
+    const key=window.LyricTubeCloudRecovery.QUEUE_PREFIX+id;
+    return p?.nativeGetItem?.(localStorage,key)||localStorage.getItem(key)||"";
+  }
+
+  function overlayCloudLibrary(remote) {
+    const queue=pendingCloudQueue();
+    if(!queue)return remote;
+    try{
+      return window.LyricTubeCloudRecovery.overlayPendingLibrary(remote,queue);
+    }catch(error){
+      console.error("[LyricTube] pending cloud queue could not be parsed; keeping local cache",error);
+      const p=profiles();
+      const cached=p?.nativeGetItem?.(localStorage,p.roleStorageKey?.());
+      try{
+        const local=cached?JSON.parse(cached):null;
+        if(libraryLooksUsable(local))return local;
+      }catch{}
+      return remote;
+    }
+  }
+
   async function maybeMigratePrimaryLibrary(cloudLibrary, session) {
+    // An empty remote library does not imply an empty local workspace.
+    // Never seed/migrate over a durable offline-edit queue.
+    if(pendingCloudQueue(session))return cloudLibrary;
     if (session?.account?.isAdmin !== true) return cloudLibrary;
     const emptyCloud = !cloudLibrary?.songs?.length && !(cloudLibrary?.playlists || []).length;
     if (!emptyCloud) return cloudLibrary;
@@ -233,10 +261,11 @@
 
   function storeActiveLibrary(library) {
     const p = profiles();
+    const recovered=p?.currentRole?.()==="cloud"?overlayCloudLibrary(library):library;
     if (p?.nativeSetItem && p?.roleStorageKey) {
-      p.nativeSetItem(localStorage, p.roleStorageKey(), JSON.stringify(library));
+      p.nativeSetItem(localStorage, p.roleStorageKey(), JSON.stringify(recovered));
     } else {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(library));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(recovered));
     }
     localStorage.removeItem(LEGACY_KEY);
   }
@@ -477,6 +506,8 @@
 
   async function logout(session) {
     try { if (session?.token) await api("logout", { token: session.token }); } catch {}
+    // A Google API key must not leak into the next account on a shared tab.
+    try{sessionStorage.removeItem("lyrictube.youtubeSearch.key.session")}catch{}
     setCloudSession(null);
     sessionStorage.removeItem(ACCESS_SESSION_KEY);
     location.reload();
