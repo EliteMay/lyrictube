@@ -1,7 +1,7 @@
 # LyricTube
 
-**Current version: v0.13.5**  
-**Build: 20261019-3**  
+**Current version: v0.13.6**  
+**Build: 20261019-4**  
 **公開サイト:** [https://elitemay.github.io/lyrictube/](https://elitemay.github.io/lyrictube/)
 
 YouTube動画、端末のMP3/MP4、通常歌詞、同期歌詞を1つのライブラリで管理するWebアプリです。
@@ -44,7 +44,9 @@ LyricTubeは `MEDIA + TOOL` として、**Library → Player → Lyrics** の作
 - Listening-first UI: 通常は動画・歌詞・基本再生操作に集中し、再生区間 / スキップ / 歌詞同期調整は折りたたんだ編集パネルから開く
 - Library sorting: サイドバーと「曲を探す」画面を共通の並び順で表示。表示順だけを変更し、Playback Context・Queue・手動プレイリストの順序は変えない
 - Song form: 新規登録時の歌詞・タグ編集は任意セクションへ格納。既存曲の編集では開いた状態で表示する
-- YouTube search: 曲・バージョン追加画面からサイト内検索。Google Cloudで本人が発行したブラウザ制限付きYouTube Data APIキーをsessionStorageにのみ保持。GitHub / Supabase / Library exportには保存せず、URLからの手動登録を維持する
+- YouTube search: 曲・バージョン追加画面からサイト内検索。Google Cloudで本人が発行したブラウザ制限付きYouTube Data APIキーをsessionStorageにのみ保持（ログアウト時に削除）。GitHub / Supabase / Library exportには保存せず、URLからの手動登録を維持する
+- Recovery: Cloud Sync送信中も送信内容をローカルに保管。再ログイン時には未同期の差分をクラウド取得結果に重ねて表示する。複数端末で同じ曲の同時編集はまだ自動競合解決しない
+- Password reset: 本番Supabase migrationを適用済み。パスワード変更後は対象アカウントの全セッションが失効し、変更した本人は再ログインする
 
 Visual compositionは `workspace.css`、Sidebarの構造は `sidebar.css`、Theme Colorの正本は `theme.css` です。Legacy CSSにTheme指定が残っていても、現行UIの配色判断は `theme.css` のTokenを基準にします。
 
@@ -60,6 +62,7 @@ index.html
 ├─ core/player-controller.js  YouTube / Local Media共通再生API
 ├─ core/fair-shuffle.js       再生履歴を考慮したShuffle候補選択
 ├─ core/library-sort.js       表示専用・安定ソート
+├─ core/cloud-sync-recovery.js 復元待ちのクラウド差分を再適用
 ├─ core/youtube-search.js     YouTube Data API検索（BYOキー）
 ├─ library-schema.js          ライブラリ正規化・移行
 ├─ sync-interpolation.js      基準点間の歌詞時間自動補間
@@ -76,8 +79,8 @@ index.html
 
 ## バージョン管理
 
-- 表示Version: `v0.13.5`
-- Build: `20261019-3`
+- 表示Version: `v0.13.6`
+- Build: `20261019-4`
 - Data Schema: `4`
 
 正本は `version.js` です。旧 `v35 / v36` 等の開発番号は現行UIのVersionとして使用しません。

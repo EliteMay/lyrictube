@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## v0.13.6 Data integrity fixes / build 20261019-4（2026-10-19）
+
+- Cloud Sync: 未送信Batchを通信中もローカルに保持し、HTTP成功時にのみ破棄する。ネットワーク失敗時は新しい編集を優先して復元。v1 Queueも復元可能。
+- Cloud Login: クラウドから最新データを読んだあと、未同期の端末差分を順序付きで画面に重ねる。未同期時は初回ライブラリ自動移行をしない。
+- JSON Import: YouTube URLを持たない端末MP3/MP4のVersionメタ情報を保持（端末ファイル本体は引き続き再リンクが必要）。
+- Playback Context: Library検索語を書き換えず、検索・フィルタ結果から再生Snapshotを取得。
+- Logout: タブ内のYouTube検索APIキーをクリアする。
+- Password reset: 本番Supabaseの関数を限定的に更新し、パスワード変更時に対象アカウントの既存ログイントークンを失効。自分のパスワード変更時は再ログイン画面へ戻す。
+- Storage Schema v4 / GuestとCloud分離 / Providerの契約は維持。No data migration、No automatic destructive import。
+
+
 ## v0.13.5 YouTube search from song form / build 20261019-3（2026-10-19）
 
 - 曲と別バージョン追加ダイアログに「YouTubeで動画を検索」を追加。検索結果のサムネイル・タイトル・投稿者から動画を選択すると、既存フォームへ自動反映する。

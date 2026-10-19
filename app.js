@@ -1,4 +1,4 @@
-const APP_VERSION = window.LyricTubeVersion?.version || "v0.13.5";
+const APP_VERSION = window.LyricTubeVersion?.version || "v0.13.6";
 const STORAGE_KEY = "lyrictube.library.v3";
 const LEGACY_KEY = "lyrictube.songs.v1";
 const RECOVERY_KEY_PREFIX = "lyrictube.library.recovery.";
@@ -263,7 +263,12 @@ function changeLibrarySort(mode){
   renderLibrary();
   renderBrowse();
 }
-function queueSongs(){const q=els.librarySearch.value;els.librarySearch.value="";const list=viewSongs();els.librarySearch.value=q;return list.length?list:[...library.songs]}
+function queueSongs(){
+  // Playback Context must snapshot the visible search / filter results.
+  // Never mutate an input element as a temporary filter bypass.
+  const list=viewSongs();
+  return list.length?list:[...library.songs];
+}
 
 function currentViewLabel(){
   if(currentView.type==="favorites")return"お気に入り";
@@ -2465,10 +2470,13 @@ function validateImportedLibrary(incoming){
     throw new Error("曲は見つかりましたが、動画データへ変換できませんでした。");
   }
 
-  // Remove completely broken empty video entries, but keep songs that have lyrics only.
+  // Local media has no YouTube URL by design. Preserve its metadata so the
+  // user can relink the audio/video file on this device after importing JSON.
+  // Importing a backup never transfers the actual local media Blob.
   for(const song of validSongs){
     song.versions=(song.versions||[]).filter(v=>
-      v && typeof v==="object" && (v.videoId || v.youtubeUrl)
+      v && typeof v==="object" &&
+      (v.videoId || v.youtubeUrl || v.source==="localmedia" || v.source==="local")
     );
   }
 

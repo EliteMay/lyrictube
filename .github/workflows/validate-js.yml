@@ -82,6 +82,13 @@ jobs:
       - name: Test YouTube search UI contract
         run: node tests/youtube-search-ui.test.js
 
+      - name: Test cloud queue offline recovery
+        run: node tests/cloud-recovery.test.js
+      - name: Test in-flight cloud sync durability
+        run: node tests/cloud-sync-durability.test.js
+      - name: Test data integrity regressions
+        run: node tests/data-integrity-contract.test.js
+
       - name: Validate JSON and local asset links
         run: python tools/validate_static.py
 
