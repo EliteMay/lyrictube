@@ -9,6 +9,7 @@
   let retryTimer = null;
   let saving = false;
   let hydratedFor = "";
+  let inFlight = null; // Durably stored until the server acknowledges the batch.
 
   const pending = {
     replaceLibrary: null,
@@ -63,11 +64,16 @@
 
   function persistQueue() {
     const key = queueKey();
-    if (!key) return;
+    if (!key) return false;
     try {
-      if (!hasPending()) localStorage.removeItem(key);
-      else localStorage.setItem(key, JSON.stringify(snapshotPending()));
-    } catch {}
+      if (!hasPending() && !inFlight) localStorage.removeItem(key);
+      else localStorage.setItem(key, JSON.stringify({version:2,inFlight,pending:snapshotPending()}));
+      return true;
+    } catch (error) {
+      console.error("[LyricTube] cloud queue could not be saved; changes remain in memory",error);
+      document.documentElement.dataset.cloudSync="error";
+      return false;
+    }
   }
 
   function mergeHistory(events) {
@@ -127,19 +133,50 @@
     hydratedFor = id;
     try {
       const raw = localStorage.getItem(queueKey());
-      if (raw) mergeDelta(JSON.parse(raw), false);
-    } catch {}
+      if (raw) {
+        const recovered=window.LyricTubeCloudRecovery.decodeQueue(raw);
+        // The old in-flight batch may have reached the server already.
+        // Replaying it is safe for per-item upserts/deletes and history event IDs.
+        if (recovered.inFlight) mergeDelta(recovered.inFlight,false);
+        if (recovered.pending) mergeDelta(recovered.pending,false);
+        persistQueue();
+      }
+    } catch(error) {
+      console.error("[LyricTube] cloud queue recovery failed; preserving original stored queue",error);
+      document.documentElement.dataset.cloudSync="error";
+    }
   }
 
-  function takePending() {
-    const snapshot = snapshotPending();
+  function clearPending() {
     pending.replaceLibrary = null;
     pending.songs.clear(); pending.deletedSongs.clear();
     pending.playlists.clear(); pending.deletedPlaylists.clear();
     pending.state = null;
     pending.playHistory.clear();
-    persistQueue();
+  }
+
+  function takePending() {
+    const snapshot=snapshotPending();
+    clearPending();
+    inFlight=snapshot;
+    // Never remove unsent data from durable storage before network acknowledgement.
+    if(!persistQueue()){
+      inFlight=null;
+      mergeDelta(snapshot,false);
+      return null;
+    }
     return snapshot;
+  }
+
+  function restoreFailedBatch(snapshot) {
+    // The in-flight batch is older than any edits received while awaiting fetch.
+    // Reapply older changes FIRST so newer local edits always win.
+    const newer=snapshotPending();
+    clearPending();
+    inFlight=null;
+    mergeDelta(snapshot,false);
+    mergeDelta(newer,false);
+    persistQueue();
   }
 
   function schedule(delay = 900) {
@@ -153,18 +190,21 @@
     const session = currentSession();
     if (!session?.token || profiles()?.currentRole?.() !== "cloud") return;
     const snapshot = takePending();
+    if(!snapshot)return;
     saving = true;
     document.documentElement.dataset.cloudSync = "saving";
     try {
       if (snapshot.replaceLibrary) await api("replace_library", { token: session.token, library: snapshot.replaceLibrary }, keepalive);
       else if (hasLibraryPending(snapshot)) await api("sync_changes", { token: session.token, changes: snapshot }, keepalive);
       if (snapshot.playHistory.length) await historyApi("sync_play_history", { token: session.token, events: snapshot.playHistory }, keepalive);
+      inFlight=null;
+      persistQueue();
       document.documentElement.dataset.cloudSync = "saved";
       clearTimeout(retryTimer);
       if (hasPending()) schedule(250);
     } catch (error) {
       console.error("[LyricTube] cloud sync failed", error);
-      mergeDelta(snapshot);
+      restoreFailedBatch(snapshot);
       document.documentElement.dataset.cloudSync = "error";
       clearTimeout(retryTimer);
       if (!keepalive) retryTimer = setTimeout(() => flush(false), RETRY_MS);
