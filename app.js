@@ -40,7 +40,7 @@ const $ = id => document.getElementById(id);
 const els = Object.fromEntries([
   "songList","songCount","librarySearch","addSongBtn","editSongBtn","deleteSongBtn","favoriteBtn","playlistBtn","settingsBtn","exportBtn","importInput","allCount","favoriteCount","needsLyricsCount","needsSyncCount","coverCount","libraryLabel","playlistNav","managePlaylistsBtn",
   "playerPageBtn","browsePageBtn","browsePage","playerWorkspace","browseSearch","browseAddSongBtn","browseHeading","browseCount","browseGrid",
-  "nowTitle","nowArtist","nowThumb","nowVersionBadge","nowPlayCount","playerPlaceholder","versionTabs","addVersionBtn","editVersionBtn","prevBtn","nextBtn","restartBtn","shuffleBtn","repeatBtn",
+  "nowTitle","nowArtist","nowThumb","nowVersionBadge","nowPlayCount","playerPlaceholder","playerAddSongBtn","versionTabs","addVersionBtn","editVersionBtn","prevBtn","nextBtn","restartBtn","shuffleBtn","repeatBtn",
   "bottomPlayer","bottomThumb","bottomTitle","bottomArtist","bottomPrevBtn","bottomPlayBtn","bottomNextBtn","bottomCurrentTime","bottomDuration","bottomSeek","bottomQueueBtn","bottomVolume","queueDialog","closeQueueDialog","queueList",
   "startTimeLabel","endTimeLabel","setStartBtn","setEndBtn","resetRangeBtn","autoSkipToggle","markSkipStartBtn","markSkipEndBtn","pendingSkipLabel","skipList",
   "lyricsView","syncStatus","versionSyncStatus","offsetInput","offsetMinus","offsetPlus","openSyncEditorBtn","toggleAutoScrollBtn","fullscreenLyricsBtn","toast",
@@ -421,7 +421,7 @@ function renderLibrary(){
     const p=document.createElement("p");
     p.className="muted small";
     p.style.padding="10px 6px";
-    p.textContent=library.songs.length?"ここにはまだ曲がありません。":"右上の＋から曲を追加できます。";
+    p.textContent=library.songs.length?"ここにはまだ曲がありません。":"「＋ 曲を追加」から最初の曲を登録できます。";
     els.songList.appendChild(p);
     return;
   }
@@ -484,6 +484,7 @@ function setImageSource(img,url){
 }
 function renderSelectedSong(){
   const song=getSong(),v=getVersion(song),has=Boolean(song);
+  els.playerAddSongBtn.hidden=has;
   for(const k of ["editSongBtn","deleteSongBtn","favoriteBtn","playlistBtn","addVersionBtn"])els[k].disabled=!has;
   els.editVersionBtn.disabled=!v;
   for(const k of ["setStartBtn","setEndBtn","resetRangeBtn","markSkipStartBtn","openSyncEditorBtn"])els[k].disabled=!v;
@@ -728,7 +729,21 @@ function renderLyrics(song=getSong(),v=getVersion()){
 
   if(!song||(!song.syncedLyrics&&!song.plainLyrics)){
     els.lyricsView.className="lyrics-view empty";
-    els.lyricsView.innerHTML='<div class="empty-copy"><strong>歌詞はまだありません</strong><span>曲情報から歌詞を検索するか、手動で入力できます。</span></div>';
+    const empty=document.createElement("div");
+    empty.className="empty-copy";
+    const title=document.createElement("strong");
+    title.textContent=song?"歌詞が未登録です":"歌詞はここに表示されます";
+    const description=document.createElement("span");
+    description.textContent=song
+      ?"歌詞を検索するか、手動で入力できます。"
+      :"最初の曲を追加すると、再生に合わせて歌詞を表示できます。";
+    const action=document.createElement("button");
+    action.type="button";
+    action.className="primary-soft lyrics-empty-action";
+    action.textContent=song?"歌詞を追加・検索":"＋ 曲を追加";
+    action.addEventListener("click",()=>openSongDialog(song||null));
+    empty.append(title,description,action);
+    els.lyricsView.appendChild(empty);
     els.syncStatus.textContent="歌詞なし";
     els.syncStatus.className="status-pill";
     resetLyricsViewport();
@@ -3176,6 +3191,7 @@ els.settingsDialog.addEventListener("cancel",e=>{e.preventDefault();closeSetting
 
 
 els.addSongBtn.addEventListener("click",()=>openSongDialog());
+els.playerAddSongBtn.addEventListener("click",()=>openSongDialog());
 els.browseAddSongBtn.addEventListener("click",()=>openSongDialog());
 els.editSongBtn.addEventListener("click",()=>openSongDialog(getSong()));
 els.deleteSongBtn.addEventListener("click",deleteSong);
