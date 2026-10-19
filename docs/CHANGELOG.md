@@ -7,6 +7,7 @@
 - JSON Import: YouTube URLを持たない端末MP3/MP4のVersionメタ情報を保持（端末ファイル本体は引き続き再リンクが必要）。
 - Playback Context: Library検索語を書き換えず、検索・フィルタ結果から再生Snapshotを取得。
 - Logout: タブ内のYouTube検索APIキーをクリアする。
+- Password reset: 本番Supabaseの関数を限定的に更新し、パスワード変更時に対象アカウントの既存ログイントークンを失効。自分のパスワード変更時は再ログイン画面へ戻す。
 - Storage Schema v4 / GuestとCloud分離 / Providerの契約は維持。No data migration、No automatic destructive import。
 
 
