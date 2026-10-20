@@ -14,4 +14,16 @@ assert(workspace.includes("@media(prefers-reduced-motion:reduce)"),"reduced-moti
 assert(sidebar.includes("grid-template-rows:auto minmax(0,1fr) auto"),"persistent sidebar regions missing");
 assert(sidebar.includes(".sidebar-tools"),"persistent sidebar actions missing");
 
+const art=fs.readFileSync("visual-art.css","utf8");
+const html=fs.readFileSync("index.html","utf8");
+assert(html.includes('href="visual-art.css?v=20261019-4"'),"art stylesheet should load after the canonical theme layers");
+assert(html.indexOf('href="visual-art.css')>html.indexOf('href="sidebar.css'),"art stylesheet must be the last visual layer");
+assert(fs.statSync("assets/lyrictube-wave.webp").size<100000,"artwork should be lightweight");
+assert(art.includes('url("assets/lyrictube-wave.webp")'),"artwork URL missing");
+for(const theme of ["dark","midnight","synthwave","light","sepia"]){
+  assert(art.includes(`body.theme-${theme} .browse-hero`),`browse artwork must support ${theme}`);
+}
+assert(art.includes("pointer-events:none"),"artwork must not capture user input");
+assert(art.includes("linear-gradient"),"artwork needs a text contrast overlay");
+
 console.log("visual workspace regression guards passed");

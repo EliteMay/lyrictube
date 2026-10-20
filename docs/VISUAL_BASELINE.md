@@ -82,3 +82,11 @@ SidebarだけDark固定、MainだけLight、Hoverだけ旧Theme色のような�
 5. 必要ならこの文書のBaseline commitを更新
 
 単なる「新しく見える」「派手になる」だけではBaselineを更新しません。
+
+## 2026-10-20 Artwork Overlay (User-Approved Direction)
+
+- 以前の常時Aurora/Glowを復活させない。今回の画像は生成済み抽象背景を軽量WebPにしたもの。
+- `visual-art.css` は「曲を探す」の小さなヘッダーを主な装飾面として扱い、再生中の上部バーと歌詞面には弱い背景だけ適用する。
+- 既存の Library → Player → Lyrics、操作群、5テーマのトークン体系と、編集/再生機能は変更しない。
+- 明暗テーマは別の覆い色で文字の可読性を保持し、狭い画面では余白・画像濃度を下げる。
+- これは従来Baselineからの意図的な限定変更。画面の比較・モバイル実機検証は別途必要。
