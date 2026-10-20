@@ -48,7 +48,7 @@ LyricTubeは `MEDIA + TOOL` として、**Library → Player → Lyrics** の作
 - Recovery: Cloud Sync送信中も送信内容をローカルに保管。再ログイン時には未同期の差分をクラウド取得結果に重ねて表示する。複数端末で同じ曲の同時編集はまだ自動競合解決しない
 - Password reset: 本番Supabase migrationを適用済み。パスワード変更後は対象アカウントの全セッションが失効し、変更した本人は再ログインする
 
-Visual compositionは `workspace.css`、Sidebarの構造は `sidebar.css`、Theme Colorの正本は `theme.css` です。Legacy CSSにTheme指定が残っていても、現行UIの配色判断は `theme.css` のTokenを基準にします。
+Visual compositionは `workspace.css`、Sidebarの構造は `sidebar.css`、Theme Colorの正本は `theme.css` です。生成背景素材 `assets/lyrictube-wave.webp` の適用のみ `visual-art.css` が担当します（5テーマで濃度を調整）。Legacy CSSにTheme指定が残っていても、現行UIの配色判断は `theme.css` のTokenを基準にします。
 
 現在の見た目はユーザー確認済みのVisual Referenceとして [`docs/VISUAL_BASELINE.md`](docs/VISUAL_BASELINE.md) に固定しています。今後のUI変更では、明確な改善理由がない限りこのHierarchy / Density / Theme consistencyを悪化させません。
 
