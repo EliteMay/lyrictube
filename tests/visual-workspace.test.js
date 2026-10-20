@@ -16,7 +16,7 @@ assert(sidebar.includes(".sidebar-tools"),"persistent sidebar actions missing");
 
 const art=fs.readFileSync("visual-art-v3.css","utf8");
 const html=fs.readFileSync("index.html","utf8");
-assert(html.includes('href="visual-art-v3.css?v=20261019-4"'),"art stylesheet should load after the canonical theme layers");
+assert(html.includes('href="visual-art-v3.css?v=20261019-4&palette=ocean2"'),"art stylesheet should load after the canonical theme layers");
 assert(html.indexOf('href="visual-art-v3.css')>html.indexOf('href="sidebar.css'),"art stylesheet must be the last visual layer");
 assert(fs.statSync("assets/lyrictube-wave-v2.svg").size<60000,"artwork should be lightweight");
 assert(art.includes('url("assets/lyrictube-wave-v2.svg")'),"artwork URL missing");
@@ -25,7 +25,7 @@ assert(svg.startsWith("<svg ")&&svg.includes("viewBox="),"vector artwork must be
 assert(svg.includes("linearGradient")&&svg.includes("<path"),"waveforms and tonal depth are required");
 assert(!/<script\b|<foreignObject\b|onload=/i.test(svg),"decorative asset may not contain executable elements");
 assert(svg.length<60000,"vector artwork should stay lightweight");
-for(const theme of ["dark","midnight","synthwave","light","sepia"]){
+for(const theme of ["dark","ocean","midnight","synthwave","light","sepia"]){
   assert(art.includes(`body.theme-${theme} .browse-hero`),`browse artwork must support ${theme}`);
 }
 assert(art.includes("pointer-events:none"),"artwork must not capture user input");
@@ -34,9 +34,10 @@ assert(art.includes("prefers-reduced-motion"),"animations must respect motion pr
 assert(art.includes("page-switch-btn.active"),"selected navigation needs a visible state");
 assert(art.includes("lyrics-panel::before"),"lyrics art must be purely decorative");
 assert(!/https?:\/\//i.test(art),"new artwork must be served locally");
-assert(art.includes("body.theme-dark .main"),"ocean-colored workspace must be styled");
-assert(art.includes("body.theme-dark .lyrics-panel"),"lyrics surface must not be black");
-assert(art.includes("body.theme-dark .sidebar"),"sidebar should take blue surfaces");
+assert(art.includes("body.theme-ocean .main"),"ocean-colored workspace must be styled");
+assert(art.includes("body.theme-ocean .lyrics-panel"),"Ocean lyrics should use its blue palette");
+assert(art.includes("body.theme-ocean .sidebar"),"Ocean sidebar should use blue surfaces");
+assert(!art.slice(art.indexOf(" * Ocean Blue:")).includes("body.theme-dark .main"),"bright blue override must not affect Dark");
 
 
 console.log("visual workspace regression guards passed");

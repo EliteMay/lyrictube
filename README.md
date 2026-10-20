@@ -36,7 +36,7 @@ LyricTubeは `MEDIA + TOOL` として、**Library → Player → Lyrics** の作
 - Layout: Desktopは左Library rail + Player + Lyricsのmaster-detail構成
 - Density: medium-high。日常操作を優先し、Marketing的な大Heroは置かない
 - Typography: compact product UI。大きさだけでなくWeight / Spacing / Contrastで階層を作る
-- Theme: Dark（Ocean Blue・標準）/ Light / Synthwave / Midnight（黒に近い配色）/ Sepiaの5種類。ThemeごとのPage / Navigation / Surface / Text / Border / Accentは同じToken体系で切り替える
+- Theme: Dark（暗い標準配色）/ Ocean（以前の鮮やかな青い配色）/ Light / Synthwave / Midnight（さらに暗い紺）/ Sepiaの6種類。設定から切り替え、選んだテーマをライブラリ設定として保存する。ThemeごとのPage / Navigation / Surface / Text / Border / Accentは同じToken体系で切り替える
 - Components: 曲一覧はList、曲を探す画面はMedia Grid、編集設定はSection / Divider中心
 - Decorative effects: ShadowはPlayer / OverlayなどElevationが必要な場所だけ。Gradient / Glowの常用は避ける
 - Signature: 再生領域と同期歌詞を並べて使うMedia Workspaceそのもの

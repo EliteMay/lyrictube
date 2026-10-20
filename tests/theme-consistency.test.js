@@ -8,7 +8,7 @@ assert(/^@import url\("workspace\.css\?v=[^"]+"\);\r?\n@import url\("theme\.css\
 assert(!sidebar.includes('background:#0c0f13!important'),"sidebar must not be locked to the old dark color");
 assert(sidebar.includes('background:var(--ui-nav-bg)!important'),"sidebar must consume the canonical nav token");
 
-for(const name of ["dark","light","synthwave","midnight","sepia"]){
+for(const name of ["dark","ocean","light","synthwave","midnight","sepia"]){
   assert(theme.includes(`body.theme-${name}{`),`theme token block missing: ${name}`);
 }
 
@@ -26,11 +26,21 @@ assert(theme.includes('-webkit-text-fill-color:currentColor!important'),"legacy 
 assert(theme.includes('background:var(--ui-surface-3)!important'),"theme-aware hover surface guard missing");
 assert(theme.includes('content:none!important'),"legacy ambient background layer guard missing");
 
-const darkStart=theme.indexOf("body.theme-dark{");
-const darkBlock=theme.slice(darkStart,theme.indexOf("\n}",darkStart)+2);
-const midnightStart=theme.indexOf("body.theme-midnight{");
-const midnightBlock=theme.slice(midnightStart,theme.indexOf("\n}",midnightStart)+2);
-assert(darkBlock.includes("--ui-bg:#1c315f"),"default Dark needs blue canvas, not near-black");
-assert(midnightBlock.includes("--ui-bg:#050a15"),"Midnight must retain dark alternative");
-assert(!darkBlock.includes("--ui-bg:#090b0e"),"legacy black base must not return to Dark");
+function blockFor(name) {
+  const start=theme.indexOf(`body.theme-${name}{`);
+  assert(start>=0,`theme block missing: ${name}`);
+  return theme.slice(start,theme.indexOf("\n}",start)+2);
+}
+const darkBlock=blockFor("dark");
+const oceanBlock=blockFor("ocean");
+const midnightBlock=blockFor("midnight");
+assert(darkBlock.includes("--ui-bg:#090b0e"),"Dark should use a genuine dark surface");
+assert(!darkBlock.includes("--ui-bg:#1c315f"),"Ocean colors must not leak into Dark");
+assert(oceanBlock.includes("--ui-bg:#1c315f"),"Ocean should preserve the blue palette");
+assert(oceanBlock.includes("--ui-surface:#294475"),"Ocean panel color should stay blue");
+assert(midnightBlock.includes("--ui-bg:#050a15"),"Midnight should be untouched");
+assert(theme.includes("body.theme-ocean .lyrics-panel"),"Ocean must share theme normalization with other themes");
+assert(theme.includes("body.theme-ocean .bottom-player"),"Ocean must theme the mini player");
+assert(theme.includes("body.theme-ocean .dialog"),"Ocean must theme dialogs consistently");
+
 console.log("theme consistency regression guards passed");

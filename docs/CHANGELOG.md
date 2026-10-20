@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 未リリース UIテーマ分離（2026-10-20）
+
+- 前回Darkに統合したOcean Blueの配色を新しいOceanテーマへ移動。Darkを元の暗い配色に復元。
+- 設定のテーマ選択は6種類。Oceanの選択・保存・再読み込みは既存`settings.theme`で処理し、Schema変更は不要。
+- Oceanもダイアログ、再生バー、歌詞、サイドバーなど既存Themeの共通CSS契約へ追加。
+- 既存の音波アートを共用し、明るい青の背景面はOceanのみへ限定。
+- 既存曲データ、プレイヤー、Cloud Sync、YouTube/Local media再生には変更なし。
+
+
 ## v0.13.6 Data integrity fixes / build 20261019-4（2026-10-19）
 
 - Cloud Sync: 未送信Batchを通信中もローカルに保持し、HTTP成功時にのみ破棄する。ネットワーク失敗時は新しい編集を優先して復元。v1 Queueも復元可能。

@@ -26,7 +26,25 @@
 }
 
 body.theme-dark{
-  /* Ocean Blue: distinct from near-black Midnight. */
+  --ui-bg:#090b0e;
+  --ui-nav-bg:#0c0f13;
+  --ui-topbar-bg:#0b0e12;
+  --ui-bottom-bg:#0a0d11;
+  --ui-surface:#0f1216;
+  --ui-surface-2:#14181d;
+  --ui-surface-3:#1a1f25;
+  --ui-line:rgba(255,255,255,.075);
+  --ui-line-strong:rgba(255,255,255,.12);
+  --ui-text:#f4f6f8;
+  --ui-text-2:#a7afb9;
+  --ui-text-3:#727b87;
+  --ui-accent-text:hsl(var(--accent-h) 82% 88%);
+  --ui-accent-on:#101217;
+  color-scheme:dark;
+}
+
+body.theme-ocean{
+  /* Ocean: preserves the previously selected blue design. */
   --ui-bg:#1c315f;
   --ui-nav-bg:#1b2f62;
   --ui-topbar-bg:#24447e;
@@ -41,6 +59,7 @@ body.theme-dark{
   --ui-text-3:#b8cbea;
   --ui-accent-text:hsl(var(--accent-h) 82% 91%);
   --ui-accent-on:#111d42;
+  --accent-h:220;
   color-scheme:dark;
 }
 
@@ -118,6 +137,7 @@ body.theme-sepia{
   color-scheme:light;
 }
 
+body.theme-ocean,
 body.theme-dark,
 body.theme-light,
 body.theme-synthwave,
@@ -139,7 +159,9 @@ body.theme-sepia{
 
 /* Decorative legacy background layers were designed before the workspace UI.
    They are disabled so one theme cannot leak a second background behind it. */
+body.theme-ocean::before,
 body.theme-dark::before,
+body.theme-ocean::after,
 body.theme-dark::after,
 body.theme-light::before,
 body.theme-light::after,
@@ -153,21 +175,25 @@ body.theme-sepia::after{
   display:none!important;
 }
 
+body.theme-ocean .main,
 body.theme-dark .main,
 body.theme-light .main,
 body.theme-synthwave .main,
 body.theme-midnight .main,
 body.theme-sepia .main,
+body.theme-ocean .workspace,
 body.theme-dark .workspace,
 body.theme-light .workspace,
 body.theme-synthwave .workspace,
 body.theme-midnight .workspace,
 body.theme-sepia .workspace,
+body.theme-ocean .browse-page,
 body.theme-dark .browse-page,
 body.theme-light .browse-page,
 body.theme-synthwave .browse-page,
 body.theme-midnight .browse-page,
 body.theme-sepia .browse-page,
+body.theme-ocean .tags-page,
 body.theme-dark .tags-page,
 body.theme-light .tags-page,
 body.theme-synthwave .tags-page,
@@ -177,6 +203,7 @@ body.theme-sepia .tags-page{
   color:var(--ui-text)!important;
 }
 
+body.theme-ocean .topbar,
 body.theme-dark .topbar,
 body.theme-light .topbar,
 body.theme-synthwave .topbar,
@@ -189,6 +216,7 @@ body.theme-sepia .topbar{
   backdrop-filter:none!important;
 }
 
+body.theme-ocean .bottom-player,
 body.theme-dark .bottom-player,
 body.theme-light .bottom-player,
 body.theme-synthwave .bottom-player,
@@ -200,6 +228,7 @@ body.theme-sepia .bottom-player{
   box-shadow:none!important;
   backdrop-filter:none!important;
 }
+body.theme-ocean .bottom-player::before,
 body.theme-dark .bottom-player::before,
 body.theme-light .bottom-player::before,
 body.theme-synthwave .bottom-player::before,
@@ -207,9 +236,13 @@ body.theme-midnight .bottom-player::before,
 body.theme-sepia .bottom-player::before{display:none!important}
 
 /* Secondary controls are sections, not five separate theme-specific cards. */
+body.theme-ocean .version-card,
 body.theme-dark .version-card,
+body.theme-ocean .transport-card,
 body.theme-dark .transport-card,
+body.theme-ocean .range-card,
 body.theme-dark .range-card,
+body.theme-ocean .sync-card,
 body.theme-dark .sync-card,
 body.theme-light .version-card,
 body.theme-light .transport-card,
@@ -233,11 +266,13 @@ body.theme-sepia .sync-card{
   backdrop-filter:none!important;
 }
 
+body.theme-ocean .lyrics-panel,
 body.theme-dark .lyrics-panel,
 body.theme-light .lyrics-panel,
 body.theme-synthwave .lyrics-panel,
 body.theme-midnight .lyrics-panel,
 body.theme-sepia .lyrics-panel,
+body.theme-ocean .lyrics-head,
 body.theme-dark .lyrics-head,
 body.theme-light .lyrics-head,
 body.theme-synthwave .lyrics-head,
@@ -250,6 +285,7 @@ body.theme-sepia .lyrics-head{
   backdrop-filter:none!important;
 }
 
+body.theme-ocean .player-card,
 body.theme-dark .player-card,
 body.theme-light .player-card,
 body.theme-synthwave .player-card,
@@ -259,11 +295,13 @@ body.theme-sepia .player-card{
   border-color:var(--ui-line-strong)!important;
 }
 
+body.theme-ocean .browse-hero,
 body.theme-dark .browse-hero,
 body.theme-light .browse-hero,
 body.theme-synthwave .browse-hero,
 body.theme-midnight .browse-hero,
 body.theme-sepia .browse-hero,
+body.theme-ocean .tags-hero,
 body.theme-dark .tags-hero,
 body.theme-light .tags-hero,
 body.theme-synthwave .tags-hero,
@@ -274,6 +312,7 @@ body.theme-sepia .tags-hero{
   box-shadow:none!important;
 }
 
+body.theme-ocean .browse-card,
 body.theme-dark .browse-card,
 body.theme-light .browse-card,
 body.theme-synthwave .browse-card,
@@ -284,16 +323,19 @@ body.theme-sepia .browse-card{
   box-shadow:none!important;
 }
 
+body.theme-ocean .dialog,
 body.theme-dark .dialog,
 body.theme-light .dialog,
 body.theme-synthwave .dialog,
 body.theme-midnight .dialog,
 body.theme-sepia .dialog,
+body.theme-ocean .tag-filter-popover,
 body.theme-dark .tag-filter-popover,
 body.theme-light .tag-filter-popover,
 body.theme-synthwave .tag-filter-popover,
 body.theme-midnight .tag-filter-popover,
 body.theme-sepia .tag-filter-popover,
+body.theme-ocean .tag-manager-panel,
 body.theme-dark .tag-manager-panel,
 body.theme-light .tag-manager-panel,
 body.theme-synthwave .tag-manager-panel,
@@ -304,8 +346,11 @@ body.theme-sepia .tag-manager-panel{
   color:var(--ui-text)!important;
 }
 
+body.theme-ocean .dialog input,
 body.theme-dark .dialog input,
+body.theme-ocean .dialog textarea,
 body.theme-dark .dialog textarea,
+body.theme-ocean .dialog select,
 body.theme-dark .dialog select,
 body.theme-light .dialog input,
 body.theme-light .dialog textarea,
@@ -324,18 +369,31 @@ body.theme-sepia .dialog select{
   color:var(--ui-text)!important;
 }
 
+body.theme-ocean .range-box,
 body.theme-dark .range-box,
+body.theme-ocean .skip-row,
 body.theme-dark .skip-row,
+body.theme-ocean .version-tab,
 body.theme-dark .version-tab,
+body.theme-ocean .result-item,
 body.theme-dark .result-item,
+body.theme-ocean .sync-editor-row,
 body.theme-dark .sync-editor-row,
+body.theme-ocean .playlist-manage-row,
 body.theme-dark .playlist-manage-row,
+body.theme-ocean .help-block,
 body.theme-dark .help-block,
+body.theme-ocean .settings-section,
 body.theme-dark .settings-section,
+body.theme-ocean .queue-item,
 body.theme-dark .queue-item,
+body.theme-ocean .tag-manager-item,
 body.theme-dark .tag-manager-item,
+body.theme-ocean .tag-song-search,
 body.theme-dark .tag-song-search,
+body.theme-ocean .tag-song-check-row,
 body.theme-dark .tag-song-check-row,
+body.theme-ocean .tag-editor-preview,
 body.theme-dark .tag-editor-preview,
 body.theme-light .range-box,
 body.theme-light .skip-row,
@@ -396,11 +454,17 @@ body.theme-sepia .tag-editor-preview{
 }
 
 /* Ordinary controls must never switch to an unrelated dark surface on hover. */
+body.theme-ocean .ghost-btn:hover,
 body.theme-dark .ghost-btn:hover,
+body.theme-ocean .icon-btn:hover,
 body.theme-dark .icon-btn:hover,
+body.theme-ocean .mode-btn:hover,
 body.theme-dark .mode-btn:hover,
+body.theme-ocean .transport-btn:hover,
 body.theme-dark .transport-btn:hover,
+body.theme-ocean .chip:hover,
 body.theme-dark .chip:hover,
+body.theme-ocean .mini-icon:hover,
 body.theme-dark .mini-icon:hover,
 body.theme-light .ghost-btn:hover,
 body.theme-light .icon-btn:hover,
@@ -432,9 +496,13 @@ body.theme-sepia .mini-icon:hover{
   box-shadow:none!important;
 }
 
+body.theme-ocean .ghost-btn,
 body.theme-dark .ghost-btn,
+body.theme-ocean .mode-btn,
 body.theme-dark .mode-btn,
+body.theme-ocean .transport-btn,
 body.theme-dark .transport-btn,
+body.theme-ocean .chip,
 body.theme-dark .chip,
 body.theme-light .ghost-btn,
 body.theme-light .mode-btn,
@@ -455,11 +523,17 @@ body.theme-sepia .chip{
   color:var(--ui-text)!important;
 }
 
+body.theme-ocean .primary-soft,
 body.theme-dark .primary-soft,
+body.theme-ocean .view-btn.active,
 body.theme-dark .view-btn.active,
+body.theme-ocean .version-tab.active,
 body.theme-dark .version-tab.active,
+body.theme-ocean .mode-btn.active,
 body.theme-dark .mode-btn.active,
+body.theme-ocean .chip.active,
 body.theme-dark .chip.active,
+body.theme-ocean .status-pill.synced,
 body.theme-dark .status-pill.synced,
 body.theme-light .primary-soft,
 body.theme-light .view-btn.active,
@@ -491,6 +565,7 @@ body.theme-sepia .status-pill.synced{
   box-shadow:none!important;
 }
 
+body.theme-ocean .primary-btn,
 body.theme-dark .primary-btn,
 body.theme-light .primary-btn,
 body.theme-synthwave .primary-btn,
@@ -502,6 +577,7 @@ body.theme-sepia .primary-btn{
 }
 
 /* Active lyric uses one semantic accent marker; old gradient-text rules are reset. */
+body.theme-ocean .lyric-line.active,
 body.theme-dark .lyric-line.active,
 body.theme-light .lyric-line.active,
 body.theme-synthwave .lyric-line.active,
@@ -514,16 +590,19 @@ body.theme-sepia .lyric-line.active{
   -webkit-text-fill-color:currentColor!important;
   text-shadow:none!important;
 }
+body.theme-ocean .lyric-line,
 body.theme-dark .lyric-line,
 body.theme-light .lyric-line,
 body.theme-synthwave .lyric-line,
 body.theme-midnight .lyric-line,
 body.theme-sepia .lyric-line{color:var(--ui-text-3)!important}
+body.theme-ocean .lyric-line.near,
 body.theme-dark .lyric-line.near,
 body.theme-light .lyric-line.near,
 body.theme-synthwave .lyric-line.near,
 body.theme-midnight .lyric-line.near,
 body.theme-sepia .lyric-line.near{color:var(--ui-text-2)!important}
+body.theme-ocean .lyric-line.active,
 body.theme-dark .lyric-line.active,
 body.theme-light .lyric-line.active,
 body.theme-synthwave .lyric-line.active,
@@ -531,6 +610,7 @@ body.theme-midnight .lyric-line.active,
 body.theme-sepia .lyric-line.active{color:var(--ui-text)!important}
 
 /* Tag controls use the theme surface; the tag color remains semantic metadata. */
+body.theme-ocean .browse-tag-edit,
 body.theme-dark .browse-tag-edit,
 body.theme-light .browse-tag-edit,
 body.theme-synthwave .browse-tag-edit,
