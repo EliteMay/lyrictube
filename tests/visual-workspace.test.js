@@ -14,16 +14,25 @@ assert(workspace.includes("@media(prefers-reduced-motion:reduce)"),"reduced-moti
 assert(sidebar.includes("grid-template-rows:auto minmax(0,1fr) auto"),"persistent sidebar regions missing");
 assert(sidebar.includes(".sidebar-tools"),"persistent sidebar actions missing");
 
-const art=fs.readFileSync("visual-art.css","utf8");
+const art=fs.readFileSync("visual-art-v2.css","utf8");
 const html=fs.readFileSync("index.html","utf8");
-assert(html.includes('href="visual-art.css?v=20261019-4"'),"art stylesheet should load after the canonical theme layers");
-assert(html.indexOf('href="visual-art.css')>html.indexOf('href="sidebar.css'),"art stylesheet must be the last visual layer");
-assert(fs.statSync("assets/lyrictube-wave.webp").size<100000,"artwork should be lightweight");
-assert(art.includes('url("assets/lyrictube-wave.webp")'),"artwork URL missing");
+assert(html.includes('href="visual-art-v2.css?v=20261019-4"'),"art stylesheet should load after the canonical theme layers");
+assert(html.indexOf('href="visual-art-v2.css')>html.indexOf('href="sidebar.css'),"art stylesheet must be the last visual layer");
+assert(fs.statSync("assets/lyrictube-wave-v2.svg").size<60000,"artwork should be lightweight");
+assert(art.includes('url("assets/lyrictube-wave-v2.svg")'),"artwork URL missing");
+const svg=fs.readFileSync("assets/lyrictube-wave-v2.svg","utf8");
+assert(svg.startsWith("<svg ")&&svg.includes("viewBox="),"vector artwork must be a valid SVG document");
+assert(svg.includes("linearGradient")&&svg.includes("<path"),"waveforms and tonal depth are required");
+assert(!/<script\b|<foreignObject\b|onload=/i.test(svg),"decorative asset may not contain executable elements");
+assert(svg.length<60000,"vector artwork should stay lightweight");
 for(const theme of ["dark","midnight","synthwave","light","sepia"]){
   assert(art.includes(`body.theme-${theme} .browse-hero`),`browse artwork must support ${theme}`);
 }
 assert(art.includes("pointer-events:none"),"artwork must not capture user input");
 assert(art.includes("linear-gradient"),"artwork needs a text contrast overlay");
+assert(art.includes("prefers-reduced-motion"),"animations must respect motion preference");
+assert(art.includes("page-switch-btn.active"),"selected navigation needs a visible state");
+assert(art.includes("lyrics-panel::before"),"lyrics art must be purely decorative");
+assert(!/https?:\/\//i.test(art),"new artwork must be served locally");
 
 console.log("visual workspace regression guards passed");
