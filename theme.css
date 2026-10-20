@@ -26,20 +26,21 @@
 }
 
 body.theme-dark{
-  --ui-bg:#090b0e;
-  --ui-nav-bg:#0c0f13;
-  --ui-topbar-bg:#0b0e12;
-  --ui-bottom-bg:#0a0d11;
-  --ui-surface:#0f1216;
-  --ui-surface-2:#14181d;
-  --ui-surface-3:#1a1f25;
-  --ui-line:rgba(255,255,255,.075);
-  --ui-line-strong:rgba(255,255,255,.12);
-  --ui-text:#f4f6f8;
-  --ui-text-2:#a7afb9;
-  --ui-text-3:#727b87;
-  --ui-accent-text:hsl(var(--accent-h) 82% 88%);
-  --ui-accent-on:#101217;
+  /* Ocean Blue: distinct from near-black Midnight. */
+  --ui-bg:#1c315f;
+  --ui-nav-bg:#1b2f62;
+  --ui-topbar-bg:#24447e;
+  --ui-bottom-bg:#1b315e;
+  --ui-surface:#294475;
+  --ui-surface-2:#315187;
+  --ui-surface-3:#395f9b;
+  --ui-line:rgba(197,220,255,.19);
+  --ui-line-strong:rgba(209,227,255,.29);
+  --ui-text:#f5f8ff;
+  --ui-text-2:#d5e5ff;
+  --ui-text-3:#b8cbea;
+  --ui-accent-text:hsl(var(--accent-h) 82% 91%);
+  --ui-accent-on:#111d42;
   color-scheme:dark;
 }
 

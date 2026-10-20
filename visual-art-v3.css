@@ -249,3 +249,152 @@ body.theme-sepia .browse-hero{
 @media(prefers-reduced-motion:reduce){
   .browse-cover{transition:none !important}
 }
+
+/*
+ * Ocean Blue: the user requested more color, not more random glowing decoration.
+ * Dark uses deliberately bright blue surfaces; Midnight remains the subdued option.
+ * Theme token owners are defined in theme.css; this file only paints composition.
+ */
+body.theme-dark{
+  --wave-tint:rgba(127,151,255,.27);
+  --wave-border:rgba(196,214,255,.3);
+  --wave-light:#afd3ff;
+}
+body.theme-dark .main,
+body.theme-dark .workspace,
+body.theme-dark .browse-page,
+body.theme-dark .tags-page{
+  background-color:var(--ui-bg) !important;
+  background-image:
+    radial-gradient(ellipse at 19% 0%,rgba(84,147,255,.35),transparent 54%),
+    radial-gradient(ellipse at 96% 73%,rgba(122,93,244,.17),transparent 56%),
+    linear-gradient(142deg,#2c4b85 0%,#223f76 46%,#1c315f 100%) !important;
+  background-repeat:no-repeat !important;
+}
+body.theme-dark .sidebar{
+  background-color:var(--ui-nav-bg) !important;
+  background-image:
+    linear-gradient(180deg,rgba(29,50,103,.86) 0%,rgba(30,53,110,.91) 49%,rgba(30,41,89,.77) 100%),
+    url("assets/lyrictube-wave-v2.svg") !important;
+  background-position:center,39% 100% !important;
+  background-size:cover,auto 86% !important;
+  border-right-color:rgba(180,209,255,.27) !important;
+}
+body.theme-dark .sidebar-tools{
+  background:color-mix(in srgb,var(--ui-nav-bg) 80%,transparent) !important;
+}
+body.theme-dark .brand-row{border-bottom-color:rgba(193,210,255,.3) !important}
+body.theme-dark .page-switch{
+  background:rgba(11,27,70,.23) !important;
+  border-color:rgba(197,223,255,.25) !important;
+}
+body.theme-dark .page-switch-btn.active{
+  background:linear-gradient(112deg,#5f65e2,#417fdd) !important;
+  box-shadow:inset 0 0 0 1px rgba(227,235,255,.36),0 7px 17px rgba(34,43,117,.28) !important;
+}
+body.theme-dark .view-btn.active{
+  background:linear-gradient(90deg,rgba(122,151,255,.3),rgba(92,123,205,.13)) !important;
+}
+body.theme-dark .sidebar-scroll .search-box{
+  background:rgba(88,115,179,.3) !important;
+  border:1px solid rgba(198,218,255,.24) !important;
+}
+body.theme-dark .sidebar-tools .ghost-btn,
+body.theme-dark .sidebar-tools .file-label{
+  background:rgba(75,105,170,.28) !important;
+  border-color:rgba(203,221,255,.24) !important;
+}
+body.theme-dark .topbar{
+  background-color:var(--ui-topbar-bg) !important;
+  background-image:
+    linear-gradient(90deg,rgba(43,80,150,.95),rgba(42,71,142,.85) 55%,rgba(36,62,133,.58) 100%),
+    url("assets/lyrictube-wave-v2.svg") !important;
+  background-size:cover,900px auto !important;
+  background-position:center,right center !important;
+  box-shadow:0 6px 22px rgba(13,28,71,.2) !important;
+}
+body.theme-dark .browse-hero{
+  min-height:265px;
+  background-color:#172e67 !important;
+  background-image:
+    linear-gradient(90deg,rgba(17,35,82,.75) 0%,rgba(20,44,103,.39) 39%,rgba(20,44,103,.04) 78%),
+    url("assets/lyrictube-wave-v2.svg") !important;
+  border-color:rgba(180,210,255,.37) !important;
+  box-shadow:0 15px 33px rgba(12,27,74,.24) !important;
+}
+body.theme-dark .browse-hero::after{
+  background:linear-gradient(180deg,transparent 60%,rgba(20,43,92,.19)) !important;
+}
+body.theme-dark .browse-hero .muted{
+  color:#eef5ff !important;
+  text-shadow:0 2px 8px rgba(13,27,74,.72);
+}
+body.theme-dark .browse-hero .primary-btn{
+  background:linear-gradient(116deg,#818aff,#61b3f5) !important;
+  color:#101b46 !important;
+  border-color:rgba(226,237,255,.55) !important;
+  font-weight:800;
+}
+body.theme-dark .browse-search,
+body.theme-dark .browse-sort-row select{
+  background:rgba(50,84,157,.57) !important;
+  border-color:rgba(193,220,255,.34) !important;
+}
+body.theme-dark .browse-chip{
+  background:rgba(79,116,199,.25) !important;
+  border:1px solid rgba(195,217,255,.23) !important;
+  color:var(--ui-text) !important;
+}
+body.theme-dark .browse-chip.active{
+  background:linear-gradient(110deg,#677ff0,#3e78cb) !important;
+  color:#fff !important;
+  border-color:rgba(219,233,255,.44) !important;
+  box-shadow:0 7px 14px rgba(29,49,113,.19) !important;
+}
+body.theme-dark .browse-cover{
+  outline-color:rgba(200,223,255,.33) !important;
+  box-shadow:0 9px 25px rgba(15,29,72,.25);
+}
+body.theme-dark .browse-card:is(:hover,.active) .browse-cover{
+  box-shadow:0 10px 30px rgba(110,140,254,.24);
+}
+body.theme-dark .browse-artist{color:var(--ui-text-2) !important}
+body.theme-dark .player-card{
+  border-color:rgba(178,207,255,.34) !important;
+  box-shadow:0 16px 33px rgba(9,19,54,.24) !important;
+}
+body.theme-dark .transport-card{
+  margin:10px auto 0;
+  padding:9px 12px !important;
+  border-radius:14px !important;
+  background:rgba(90,125,205,.2) !important;
+  border:1px solid rgba(186,214,255,.24) !important;
+  width:max-content;
+  max-width:100%;
+}
+body.theme-dark .lyrics-panel{
+  background:linear-gradient(157deg,#355494 0%,#2c497f 45%,#283d77 100%) !important;
+  border-color:rgba(192,218,255,.36) !important;
+  box-shadow:0 13px 35px rgba(12,27,68,.22) !important;
+}
+body.theme-dark .lyrics-head{
+  background:rgba(35,62,122,.47) !important;
+  border-bottom-color:rgba(207,226,255,.27) !important;
+}
+body.theme-dark .lyrics-panel::before{opacity:.19}
+body.theme-dark .lyric-line.near{color:#d0ddfb !important}
+body.theme-dark .lyric-line.active{
+  color:#fff !important;
+  text-shadow:0 2px 14px rgba(99,137,255,.28) !important;
+}
+/* Reserve a calm region for the player even at phone widths. */
+@media(max-width:900px){
+  body.theme-dark .topbar{background-size:cover,480px auto !important}
+  body.theme-dark .browse-hero{min-height:212px}
+  body.theme-dark .transport-card{width:100%}
+}
+@media(max-width:480px){
+  body.theme-dark .browse-hero{min-height:0;padding:20px 16px !important}
+  body.theme-dark .sidebar{background-size:cover,auto 50% !important}
+  body.theme-dark .lyrics-panel::before{opacity:.1}
+}
