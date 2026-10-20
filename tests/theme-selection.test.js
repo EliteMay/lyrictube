@@ -5,7 +5,7 @@ const app=fs.readFileSync("app.js","utf8");
 const style=fs.readFileSync("styles.css","utf8");
 const css=fs.readFileSync("theme.css","utf8");
 const choices=[...html.matchAll(/class="theme-btn[^"]*" data-theme="([^"]+)"/g)].map(match=>match[1]);
-assert.deepEqual(choices,["dark","ocean","light","synthwave","midnight","sepia"],"expected six selectable themes");
+assert.deepEqual(choices,["dark","ocean","midnight","synthwave","light","sepia"],"expected six selectable themes");
 assert.equal(new Set(choices).size,6,"theme choices should not be duplicated");
 for(const name of choices){
   assert(style.includes(`.theme-preview-${name}{`),`preview missing: ${name}`);
