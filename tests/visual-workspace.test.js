@@ -17,7 +17,7 @@ assert(sidebar.includes(".sidebar-tools"),"persistent sidebar actions missing");
 const art=fs.readFileSync("visual-art-v2.css","utf8");
 const html=fs.readFileSync("index.html","utf8");
 assert(html.includes('href="visual-art-v2.css?v=20261019-4"'),"art stylesheet should load after the canonical theme layers");
-assert(html.indexOf('href="visual-art.css')>html.indexOf('href="sidebar.css'),"art stylesheet must be the last visual layer");
+assert(html.indexOf('href="visual-art-v2.css')>html.indexOf('href="sidebar.css'),"art stylesheet must be the last visual layer");
 assert(fs.statSync("assets/lyrictube-wave-v2.svg").size<60000,"artwork should be lightweight");
 assert(art.includes('url("assets/lyrictube-wave-v2.svg")'),"artwork URL missing");
 const svg=fs.readFileSync("assets/lyrictube-wave-v2.svg","utf8");
