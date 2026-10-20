@@ -26,4 +26,11 @@ assert(theme.includes('-webkit-text-fill-color:currentColor!important'),"legacy 
 assert(theme.includes('background:var(--ui-surface-3)!important'),"theme-aware hover surface guard missing");
 assert(theme.includes('content:none!important'),"legacy ambient background layer guard missing");
 
+const darkStart=theme.indexOf("body.theme-dark{");
+const darkBlock=theme.slice(darkStart,theme.indexOf("\n}",darkStart)+2);
+const midnightStart=theme.indexOf("body.theme-midnight{");
+const midnightBlock=theme.slice(midnightStart,theme.indexOf("\n}",midnightStart)+2);
+assert(darkBlock.includes("--ui-bg:#1c315f"),"default Dark needs blue canvas, not near-black");
+assert(midnightBlock.includes("--ui-bg:#050a15"),"Midnight must retain dark alternative");
+assert(!darkBlock.includes("--ui-bg:#090b0e"),"legacy black base must not return to Dark");
 console.log("theme consistency regression guards passed");

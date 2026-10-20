@@ -99,3 +99,12 @@ SidebarだけDark固定、MainだけLight、Hoverだけ旧Theme色のような�
 - NOT INCLUDED: モックアップ中の「おすすめ」「人気の曲」「架空のホーム」「架空の再生バー」は実装しない。
 - Accessibility: Lyricsの背景は最大opacity 0.32の非操作Layer。Mobileは装飾を弱める。Reduced Motionを尊重する。
 - 検証: 静的/回帰テストとCI結果を記録し、実ブラウザ・実機の画面比較は別に確認する。
+
+## 2026-10-20 Ocean Blue: 「黒だけで地味」への改善案
+
+- 原因: Dark tokenが黒に近い数値でMain・Sidebar・Lyrics・Controls全面を支配。波の背景素材だけでは面積のほとんどが暗色で変化しない。
+- **KEEP**: Library → Player → Lyrics / Player映像 / 歌詞同期 / 5テーマ / ナビゲーション / 既存データ / スマホレイアウト。
+- **CHANGE**: Darkだけを濃い青の面ベースにし、Browse・Topbar・Sidebar・Lyricsを別のブルー階調で立体化。Midnightのダーク配色はそのまま残す。
+- 色の正本は `theme.css` のDark tokens。最終の背景アート/装飾/各Panel構成だけ `visual-art-v3.css` が担当。
+- 比較の狙い: ネオン強化ではなく、全画面の色面とパネル階層を本質的に変更する。
+- 検証: 自動テストとユーザー実画面確認を分け、未確認のViewportは完了扱いしない。

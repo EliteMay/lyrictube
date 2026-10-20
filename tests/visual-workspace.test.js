@@ -14,10 +14,10 @@ assert(workspace.includes("@media(prefers-reduced-motion:reduce)"),"reduced-moti
 assert(sidebar.includes("grid-template-rows:auto minmax(0,1fr) auto"),"persistent sidebar regions missing");
 assert(sidebar.includes(".sidebar-tools"),"persistent sidebar actions missing");
 
-const art=fs.readFileSync("visual-art-v2.css","utf8");
+const art=fs.readFileSync("visual-art-v3.css","utf8");
 const html=fs.readFileSync("index.html","utf8");
-assert(html.includes('href="visual-art-v2.css?v=20261019-4"'),"art stylesheet should load after the canonical theme layers");
-assert(html.indexOf('href="visual-art-v2.css')>html.indexOf('href="sidebar.css'),"art stylesheet must be the last visual layer");
+assert(html.includes('href="visual-art-v3.css?v=20261019-4"'),"art stylesheet should load after the canonical theme layers");
+assert(html.indexOf('href="visual-art-v3.css')>html.indexOf('href="sidebar.css'),"art stylesheet must be the last visual layer");
 assert(fs.statSync("assets/lyrictube-wave-v2.svg").size<60000,"artwork should be lightweight");
 assert(art.includes('url("assets/lyrictube-wave-v2.svg")'),"artwork URL missing");
 const svg=fs.readFileSync("assets/lyrictube-wave-v2.svg","utf8");
@@ -34,5 +34,9 @@ assert(art.includes("prefers-reduced-motion"),"animations must respect motion pr
 assert(art.includes("page-switch-btn.active"),"selected navigation needs a visible state");
 assert(art.includes("lyrics-panel::before"),"lyrics art must be purely decorative");
 assert(!/https?:\/\//i.test(art),"new artwork must be served locally");
+assert(art.includes("body.theme-dark .main"),"ocean-colored workspace must be styled");
+assert(art.includes("body.theme-dark .lyrics-panel"),"lyrics surface must not be black");
+assert(art.includes("body.theme-dark .sidebar"),"sidebar should take blue surfaces");
+
 
 console.log("visual workspace regression guards passed");

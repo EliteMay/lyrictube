@@ -36,7 +36,7 @@ LyricTubeは `MEDIA + TOOL` として、**Library → Player → Lyrics** の作
 - Layout: Desktopは左Library rail + Player + Lyricsのmaster-detail構成
 - Density: medium-high。日常操作を優先し、Marketing的な大Heroは置かない
 - Typography: compact product UI。大きさだけでなくWeight / Spacing / Contrastで階層を作る
-- Theme: Dark / Light / Synthwave / Midnight / Sepiaの5種類。ThemeごとのPage / Navigation / Surface / Text / Border / Accentは同じToken体系で切り替える
+- Theme: Dark（Ocean Blue・標準）/ Light / Synthwave / Midnight（黒に近い配色）/ Sepiaの5種類。ThemeごとのPage / Navigation / Surface / Text / Border / Accentは同じToken体系で切り替える
 - Components: 曲一覧はList、曲を探す画面はMedia Grid、編集設定はSection / Divider中心
 - Decorative effects: ShadowはPlayer / OverlayなどElevationが必要な場所だけ。Gradient / Glowの常用は避ける
 - Signature: 再生領域と同期歌詞を並べて使うMedia Workspaceそのもの
@@ -48,7 +48,7 @@ LyricTubeは `MEDIA + TOOL` として、**Library → Player → Lyrics** の作
 - Recovery: Cloud Sync送信中も送信内容をローカルに保管。再ログイン時には未同期の差分をクラウド取得結果に重ねて表示する。複数端末で同じ曲の同時編集はまだ自動競合解決しない
 - Password reset: 本番Supabase migrationを適用済み。パスワード変更後は対象アカウントの全セッションが失効し、変更した本人は再ログインする
 
-Visual compositionは `workspace.css`、Sidebarの構造は `sidebar.css`、Theme Colorの正本は `theme.css` です。生成した音波アートを基にした軽量なSVG素材 `assets/lyrictube-wave-v2.svg` と `visual-art-v2.css` が、曲探索・再生ヘッダー・歌詞・サイドバーの装飾を担当します。既存5テーマの色トークンと再生機能は維持します。Legacy CSSにTheme指定が残っていても、現行UIの配色判断は `theme.css` のTokenを基準にします。
+Visual compositionは `workspace.css`、Sidebarの構造は `sidebar.css`、Theme Colorの正本は `theme.css` です。生成した音波アートを基にした軽量なSVG素材 `assets/lyrictube-wave-v2.svg` と `visual-art-v3.css` が、曲探索・再生ヘッダー・歌詞・サイドバーの装飾を担当します。既存5テーマの色トークンと再生機能は維持します。Legacy CSSにTheme指定が残っていても、現行UIの配色判断は `theme.css` のTokenを基準にします。
 
 現在の見た目はユーザー確認済みのVisual Referenceとして [`docs/VISUAL_BASELINE.md`](docs/VISUAL_BASELINE.md) に固定しています。今後のUI変更では、明確な改善理由がない限りこのHierarchy / Density / Theme consistencyを悪化させません。
 
