@@ -1,0 +1,251 @@
+/*
+ * LyricTube richer music artwork, approved 2026-10-20.
+ * Presentation only. No fake home, recommendation data, playback or lyric changes.
+ * Must load after theme.css through index.html.
+ */
+body.theme-dark,
+body.theme-midnight,
+body.theme-synthwave{
+  --wave-tint:rgba(96,85,245,.26);
+  --wave-border:rgba(135,127,241,.31);
+  --wave-light:#8c98ff;
+}
+body.theme-midnight{--wave-tint:rgba(53,117,228,.25);--wave-border:rgba(105,157,245,.31);--wave-light:#92cbff}
+body.theme-synthwave{--wave-tint:rgba(160,71,212,.26);--wave-border:rgba(194,116,228,.3);--wave-light:#d4a7fc}
+
+/* Browse is the primary art canvas, not an extra marketing page. */
+body.theme-dark .browse-hero,
+body.theme-midnight .browse-hero,
+body.theme-synthwave .browse-hero{
+  position:relative;
+  min-height:252px;
+  padding:30px 34px 28px !important;
+  border:1px solid var(--wave-border) !important;
+  border-radius:15px !important;
+  background-color:#090d20 !important;
+  background-image:
+    linear-gradient(90deg,rgba(5,8,22,.93) 0%,rgba(5,8,22,.73) 31%,rgba(5,8,22,.18) 74%,rgba(5,8,22,.1) 100%),
+    url("assets/lyrictube-wave-v2.svg") !important;
+  background-position:center,center !important;
+  background-repeat:no-repeat !important;
+  background-size:cover,cover !important;
+  overflow:hidden;
+  box-shadow:0 14px 38px rgba(0,0,0,.18) !important;
+}
+body.theme-dark .browse-hero::after,
+body.theme-midnight .browse-hero::after,
+body.theme-synthwave .browse-hero::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:linear-gradient(180deg,transparent 67%,rgba(4,9,26,.25));
+  z-index:0;
+}
+.browse-hero .browse-hero-copy{position:relative;z-index:1;max-width:650px}
+body.theme-dark .browse-hero h2,
+body.theme-midnight .browse-hero h2,
+body.theme-synthwave .browse-hero h2{
+  color:#f8f8ff !important;
+  font-size:clamp(31px,3.4vw,46px);
+  letter-spacing:-.052em;
+  line-height:1.12;
+  text-shadow:0 2px 16px rgba(5,8,26,.55);
+}
+body.theme-dark .browse-hero .eyebrow,
+body.theme-midnight .browse-hero .eyebrow,
+body.theme-synthwave .browse-hero .eyebrow{color:#c4c8fa !important;font-size:10px}
+body.theme-dark .browse-hero .muted,
+body.theme-midnight .browse-hero .muted,
+body.theme-synthwave .browse-hero .muted{
+  max-width:470px;
+  margin-top:10px;
+  color:#d9dded !important;
+  font-size:13px;
+  line-height:1.7;
+  text-shadow:0 1px 8px rgba(4,7,18,.55);
+}
+.browse-hero .browse-hero-actions{margin-top:17px}
+body.theme-dark .browse-hero .primary-btn,
+body.theme-midnight .browse-hero .primary-btn,
+body.theme-synthwave .browse-hero .primary-btn{
+  border:1px solid rgba(203,206,255,.35) !important;
+  box-shadow:0 6px 23px var(--wave-tint) !important;
+}
+
+/* Branded but still navigable: leave bottom tools and scroll rails intact. */
+body.theme-dark .sidebar,
+body.theme-midnight .sidebar,
+body.theme-synthwave .sidebar{
+  background-image:
+    linear-gradient(180deg,var(--ui-nav-bg) 0%,var(--ui-nav-bg) 43%,color-mix(in srgb,var(--ui-nav-bg) 87%,transparent) 80%,color-mix(in srgb,var(--ui-nav-bg) 88%,transparent) 100%),
+    url("assets/lyrictube-wave-v2.svg") !important;
+  background-size:cover,auto 56% !important;
+  background-position:center,40% bottom !important;
+  background-repeat:no-repeat !important;
+}
+body.theme-dark .page-switch,
+body.theme-midnight .page-switch,
+body.theme-synthwave .page-switch{
+  gap:5px !important;
+  padding:4px !important;
+  border:1px solid var(--ui-line) !important;
+  border-radius:10px !important;
+  background:color-mix(in srgb,var(--ui-surface) 86%,transparent) !important;
+}
+body.theme-dark .page-switch-btn,
+body.theme-midnight .page-switch-btn,
+body.theme-synthwave .page-switch-btn{border-radius:7px !important;min-height:37px}
+body.theme-dark .page-switch-btn.active,
+body.theme-midnight .page-switch-btn.active,
+body.theme-synthwave .page-switch-btn.active{
+  background:linear-gradient(105deg,color-mix(in srgb,var(--accent) 50%,#1d2c60),color-mix(in srgb,var(--accent) 26%,#274778)) !important;
+  color:#fff !important;
+  box-shadow:inset 0 0 0 1px rgba(193,209,255,.23),0 0 15px var(--wave-tint) !important;
+}
+body.theme-dark .page-switch-btn.active::after,
+body.theme-midnight .page-switch-btn.active::after,
+body.theme-synthwave .page-switch-btn.active::after{display:none}
+body.theme-dark .view-btn.active,
+body.theme-midnight .view-btn.active,
+body.theme-synthwave .view-btn.active{
+  background:linear-gradient(90deg,var(--wave-tint),color-mix(in srgb,var(--ui-surface-2) 75%,transparent)) !important;
+  box-shadow:inset 2px 0 0 var(--accent) !important;
+}
+body.theme-dark .brand-title-line h1,
+body.theme-midnight .brand-title-line h1,
+body.theme-synthwave .brand-title-line h1{text-shadow:0 0 15px var(--wave-tint)}
+
+/* Subdued header waves behind the actual selected track and actions. */
+body.theme-dark .topbar,
+body.theme-midnight .topbar,
+body.theme-synthwave .topbar{
+  background-color:var(--ui-topbar-bg) !important;
+  background-image:
+    linear-gradient(90deg,var(--ui-topbar-bg) 0%,color-mix(in srgb,var(--ui-topbar-bg) 88%,transparent) 52%,color-mix(in srgb,var(--ui-topbar-bg) 63%,transparent) 100%),
+    url("assets/lyrictube-wave-v2.svg") !important;
+  background-position:center,right center !important;
+  background-size:cover,880px auto !important;
+  background-repeat:no-repeat !important;
+  border-bottom-color:var(--wave-border) !important;
+}
+body.theme-dark .now-cover,
+body.theme-midnight .now-cover,
+body.theme-synthwave .now-cover{outline:1px solid var(--wave-border)}
+
+/* Song art remains the focal point. Active/hover states gain depth, not new controls. */
+body.theme-dark .browse-grid,
+body.theme-midnight .browse-grid,
+body.theme-synthwave .browse-grid{gap:22px 16px}
+body.theme-dark .browse-cover,
+body.theme-midnight .browse-cover,
+body.theme-synthwave .browse-cover{
+  outline:1px solid var(--wave-border);
+  box-shadow:0 6px 22px rgba(0,0,0,.24);
+  transition:box-shadow .2s ease,outline-color .2s ease;
+}
+body.theme-dark .browse-card:is(:hover,.active) .browse-cover,
+body.theme-midnight .browse-card:is(:hover,.active) .browse-cover,
+body.theme-synthwave .browse-card:is(:hover,.active) .browse-cover{
+  box-shadow:0 8px 28px var(--wave-tint);
+  outline-color:var(--wave-light);
+}
+body.theme-dark .browse-chip.active,
+body.theme-midnight .browse-chip.active,
+body.theme-synthwave .browse-chip.active{
+  background:linear-gradient(110deg,var(--wave-tint),var(--ui-surface-2)) !important;
+  border-color:var(--wave-border) !important;
+  box-shadow:inset 0 -2px 0 var(--accent),0 0 14px var(--wave-tint) !important;
+}
+body.theme-dark .browse-search:focus-within,
+body.theme-midnight .browse-search:focus-within,
+body.theme-synthwave .browse-search:focus-within{border-color:var(--wave-light) !important}
+
+/* Reading panel artwork stays behind opaque/legible text and cannot intercept scroll. */
+body.theme-dark .lyrics-panel,
+body.theme-midnight .lyrics-panel,
+body.theme-synthwave .lyrics-panel{
+  position:relative;
+  isolation:isolate;
+  border-color:var(--wave-border) !important;
+  box-shadow:0 12px 32px rgba(0,0,0,.16) !important;
+}
+body.theme-dark .lyrics-panel::before,
+body.theme-midnight .lyrics-panel::before,
+body.theme-synthwave .lyrics-panel::before{
+  content:"";
+  position:absolute;
+  inset:58px 0 0;
+  height:auto;
+  z-index:0;
+  pointer-events:none;
+  opacity:.32;
+  background:url("assets/lyrictube-wave-v2.svg") 68% center / auto 100% no-repeat;
+  -webkit-mask-image:linear-gradient(180deg,transparent 1%,#000 34%,#000 90%);
+  mask-image:linear-gradient(180deg,transparent 1%,#000 34%,#000 90%);
+}
+body.theme-dark .lyrics-panel > .lyrics-view,
+body.theme-midnight .lyrics-panel > .lyrics-view,
+body.theme-synthwave .lyrics-panel > .lyrics-view{position:relative;z-index:1}
+body.theme-dark .lyric-line.active,
+body.theme-midnight .lyric-line.active,
+body.theme-synthwave .lyric-line.active{font-weight:760;text-shadow:0 0 15px rgba(134,152,255,.12) !important}
+body.theme-dark .lyric-line.active::before,
+body.theme-midnight .lyric-line.active::before,
+body.theme-synthwave .lyric-line.active::before{background:var(--wave-light);box-shadow:0 0 8px var(--wave-tint)}
+
+/* Non-dark themes retain their readable page identity and a soft themed header. */
+body.theme-light .browse-hero,
+body.theme-sepia .browse-hero{
+  min-height:212px;
+  padding:27px 30px !important;
+  border:1px solid var(--ui-line-strong) !important;
+  border-radius:14px !important;
+  background-color:var(--ui-surface) !important;
+  background-image:
+    linear-gradient(90deg,var(--ui-surface) 0%,color-mix(in srgb,var(--ui-surface) 97%,transparent) 42%,color-mix(in srgb,var(--ui-surface) 80%,transparent) 100%),
+    url("assets/lyrictube-wave-v2.svg") !important;
+  background-position:center,right center !important;
+  background-size:cover,cover !important;
+  background-repeat:no-repeat !important;
+}
+
+/* Mobile adjustments respect the existing off-canvas rail and single-column player. */
+@media(max-width:900px){
+  body.theme-dark .browse-hero,
+  body.theme-midnight .browse-hero,
+  body.theme-synthwave .browse-hero{
+    min-height:202px;
+    padding:22px 20px !important;
+  }
+  body.theme-light .browse-hero,
+  body.theme-sepia .browse-hero{min-height:170px;padding:20px !important}
+  body.theme-dark .topbar,
+  body.theme-midnight .topbar,
+  body.theme-synthwave .topbar{background-size:cover,500px auto !important}
+  body.theme-dark .lyrics-panel::before,
+  body.theme-midnight .lyrics-panel::before,
+  body.theme-synthwave .lyrics-panel::before{opacity:.19}
+}
+@media(max-width:480px){
+  body.theme-dark .browse-hero,
+  body.theme-midnight .browse-hero,
+  body.theme-synthwave .browse-hero,
+  body.theme-light .browse-hero,
+  body.theme-sepia .browse-hero{min-height:0;padding:19px 16px !important;border-radius:12px !important}
+  body.theme-dark .browse-hero h2,
+  body.theme-midnight .browse-hero h2,
+  body.theme-synthwave .browse-hero h2{font-size:32px !important}
+  body.theme-dark .browse-hero .muted,
+  body.theme-midnight .browse-hero .muted,
+  body.theme-synthwave .browse-hero .muted{font-size:12px;line-height:1.55}
+  body.theme-dark .sidebar,
+  body.theme-midnight .sidebar,
+  body.theme-synthwave .sidebar{background-size:cover,auto 42% !important}
+  body.theme-dark .lyrics-panel::before,
+  body.theme-midnight .lyrics-panel::before,
+  body.theme-synthwave .lyrics-panel::before{opacity:.14}
+}
+@media(prefers-reduced-motion:reduce){
+  .browse-cover{transition:none !important}
+}

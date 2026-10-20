@@ -90,3 +90,12 @@ SidebarだけDark固定、MainだけLight、Hoverだけ旧Theme色のような�
 - 既存の Library → Player → Lyrics、操作群、5テーマのトークン体系と、編集/再生機能は変更しない。
 - 明暗テーマは別の覆い色で文字の可読性を保持し、狭い画面では余白・画像濃度を下げる。
 - これは従来Baselineからの意図的な限定変更。画面の比較・モバイル実機検証は別途必要。
+
+## 2026-10-20 第二案: 目立つ波の装飾（確認候補）
+
+- 理由: 最初の画像導入はユーザー評価で変化が薄く、画像の存在感が足りなかった。採用済みの強調モックアップを参考にする。
+- 変更: Browse Headerは約252pxの限定されたArtwork面にする。Dark / Midnight / SynthwaveのSidebar選択中、Topbar、Lyrics Panel、Media Gridへ一貫した紫青の音波モチーフを追加。
+- KEEP: Library → Player → Lyrics、閲覧/検索/フィルタ/再生/歌詞・編集操作、Sidebarスクロールと下部ツール、5テーマ、保存データはすべて現状維持。
+- NOT INCLUDED: モックアップ中の「おすすめ」「人気の曲」「架空のホーム」「架空の再生バー」は実装しない。
+- Accessibility: Lyricsの背景は最大opacity 0.32の非操作Layer。Mobileは装飾を弱める。Reduced Motionを尊重する。
+- 検証: 静的/回帰テストとCI結果を記録し、実ブラウザ・実機の画面比較は別に確認する。
