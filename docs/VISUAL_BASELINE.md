@@ -108,3 +108,12 @@ SidebarだけDark固定、MainだけLight、Hoverだけ旧Theme色のような�
 - 色の正本は `theme.css` のDark tokens。最終の背景アート/装飾/各Panel構成だけ `visual-art-v3.css` が担当。
 - 比較の狙い: ネオン強化ではなく、全画面の色面とパネル階層を本質的に変更する。
 - 検証: 自動テストとユーザー実画面確認を分け、未確認のViewportは完了扱いしない。
+
+## 2026-10-20 6テーマへ分離（ユーザー承認済み）
+
+- ユーザー指定: 「ダークじゃなくない？」への対処として、Ocean Blueを別テーマOceanとして残し、標準Darkを元の暗い配色に戻す。
+- `theme.css`: Dark元配色、Ocean旧Blue Palette、他4テーマは維持。Oceanも汎用Theme Surface / Dialog / Bottom Player / Lyricsの全体正規化に含める。
+- `visual-art-v3.css`: 前半の音波装飾はDark / Ocean / Midnight / Synthwaveで共用。後半の濃い青い色面の指定はOceanだけに適用。
+- テーマ切り替えは従来の`settings.theme`保存方式を再利用。Data Schema・Supabase・再生・歌詞同期には変更なし。
+- 既存のDark設定はDarkへ残り、青を希望する場合は設定の「オーシャン」を選択する。
+- 最終画面の目視・レスポンシブ確認はCIの静的検証とは区別する。

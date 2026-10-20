@@ -3,6 +3,7 @@
  * Presentation only. No fake home, recommendation data, playback or lyric changes.
  * Must load after theme.css through index.html.
  */
+body.theme-ocean,
 body.theme-dark,
 body.theme-midnight,
 body.theme-synthwave{
@@ -14,6 +15,7 @@ body.theme-midnight{--wave-tint:rgba(53,117,228,.25);--wave-border:rgba(105,157,
 body.theme-synthwave{--wave-tint:rgba(160,71,212,.26);--wave-border:rgba(194,116,228,.3);--wave-light:#d4a7fc}
 
 /* Browse is the primary art canvas, not an extra marketing page. */
+body.theme-ocean .browse-hero,
 body.theme-dark .browse-hero,
 body.theme-midnight .browse-hero,
 body.theme-synthwave .browse-hero{
@@ -32,6 +34,7 @@ body.theme-synthwave .browse-hero{
   overflow:hidden;
   box-shadow:0 14px 38px rgba(0,0,0,.18) !important;
 }
+body.theme-ocean .browse-hero::after,
 body.theme-dark .browse-hero::after,
 body.theme-midnight .browse-hero::after,
 body.theme-synthwave .browse-hero::after{
@@ -43,6 +46,7 @@ body.theme-synthwave .browse-hero::after{
   z-index:0;
 }
 .browse-hero .browse-hero-copy{position:relative;z-index:1;max-width:650px}
+body.theme-ocean .browse-hero h2,
 body.theme-dark .browse-hero h2,
 body.theme-midnight .browse-hero h2,
 body.theme-synthwave .browse-hero h2{
@@ -52,9 +56,11 @@ body.theme-synthwave .browse-hero h2{
   line-height:1.12;
   text-shadow:0 2px 16px rgba(5,8,26,.55);
 }
+body.theme-ocean .browse-hero .eyebrow,
 body.theme-dark .browse-hero .eyebrow,
 body.theme-midnight .browse-hero .eyebrow,
 body.theme-synthwave .browse-hero .eyebrow{color:#c4c8fa !important;font-size:10px}
+body.theme-ocean .browse-hero .muted,
 body.theme-dark .browse-hero .muted,
 body.theme-midnight .browse-hero .muted,
 body.theme-synthwave .browse-hero .muted{
@@ -66,6 +72,7 @@ body.theme-synthwave .browse-hero .muted{
   text-shadow:0 1px 8px rgba(4,7,18,.55);
 }
 .browse-hero .browse-hero-actions{margin-top:17px}
+body.theme-ocean .browse-hero .primary-btn,
 body.theme-dark .browse-hero .primary-btn,
 body.theme-midnight .browse-hero .primary-btn,
 body.theme-synthwave .browse-hero .primary-btn{
@@ -74,6 +81,7 @@ body.theme-synthwave .browse-hero .primary-btn{
 }
 
 /* Branded but still navigable: leave bottom tools and scroll rails intact. */
+body.theme-ocean .sidebar,
 body.theme-dark .sidebar,
 body.theme-midnight .sidebar,
 body.theme-synthwave .sidebar{
@@ -84,6 +92,7 @@ body.theme-synthwave .sidebar{
   background-position:center,40% bottom !important;
   background-repeat:no-repeat !important;
 }
+body.theme-ocean .page-switch,
 body.theme-dark .page-switch,
 body.theme-midnight .page-switch,
 body.theme-synthwave .page-switch{
@@ -93,9 +102,11 @@ body.theme-synthwave .page-switch{
   border-radius:10px !important;
   background:color-mix(in srgb,var(--ui-surface) 86%,transparent) !important;
 }
+body.theme-ocean .page-switch-btn,
 body.theme-dark .page-switch-btn,
 body.theme-midnight .page-switch-btn,
 body.theme-synthwave .page-switch-btn{border-radius:7px !important;min-height:37px}
+body.theme-ocean .page-switch-btn.active,
 body.theme-dark .page-switch-btn.active,
 body.theme-midnight .page-switch-btn.active,
 body.theme-synthwave .page-switch-btn.active{
@@ -103,20 +114,24 @@ body.theme-synthwave .page-switch-btn.active{
   color:#fff !important;
   box-shadow:inset 0 0 0 1px rgba(193,209,255,.23),0 0 15px var(--wave-tint) !important;
 }
+body.theme-ocean .page-switch-btn.active::after,
 body.theme-dark .page-switch-btn.active::after,
 body.theme-midnight .page-switch-btn.active::after,
 body.theme-synthwave .page-switch-btn.active::after{display:none}
+body.theme-ocean .view-btn.active,
 body.theme-dark .view-btn.active,
 body.theme-midnight .view-btn.active,
 body.theme-synthwave .view-btn.active{
   background:linear-gradient(90deg,var(--wave-tint),color-mix(in srgb,var(--ui-surface-2) 75%,transparent)) !important;
   box-shadow:inset 2px 0 0 var(--accent) !important;
 }
+body.theme-ocean .brand-title-line h1,
 body.theme-dark .brand-title-line h1,
 body.theme-midnight .brand-title-line h1,
 body.theme-synthwave .brand-title-line h1{text-shadow:0 0 15px var(--wave-tint)}
 
 /* Subdued header waves behind the actual selected track and actions. */
+body.theme-ocean .topbar,
 body.theme-dark .topbar,
 body.theme-midnight .topbar,
 body.theme-synthwave .topbar{
@@ -129,14 +144,17 @@ body.theme-synthwave .topbar{
   background-repeat:no-repeat !important;
   border-bottom-color:var(--wave-border) !important;
 }
+body.theme-ocean .now-cover,
 body.theme-dark .now-cover,
 body.theme-midnight .now-cover,
 body.theme-synthwave .now-cover{outline:1px solid var(--wave-border)}
 
 /* Song art remains the focal point. Active/hover states gain depth, not new controls. */
+body.theme-ocean .browse-grid,
 body.theme-dark .browse-grid,
 body.theme-midnight .browse-grid,
 body.theme-synthwave .browse-grid{gap:22px 16px}
+body.theme-ocean .browse-cover,
 body.theme-dark .browse-cover,
 body.theme-midnight .browse-cover,
 body.theme-synthwave .browse-cover{
@@ -144,12 +162,14 @@ body.theme-synthwave .browse-cover{
   box-shadow:0 6px 22px rgba(0,0,0,.24);
   transition:box-shadow .2s ease,outline-color .2s ease;
 }
+body.theme-ocean .browse-card:is(:hover,.active) .browse-cover,
 body.theme-dark .browse-card:is(:hover,.active) .browse-cover,
 body.theme-midnight .browse-card:is(:hover,.active) .browse-cover,
 body.theme-synthwave .browse-card:is(:hover,.active) .browse-cover{
   box-shadow:0 8px 28px var(--wave-tint);
   outline-color:var(--wave-light);
 }
+body.theme-ocean .browse-chip.active,
 body.theme-dark .browse-chip.active,
 body.theme-midnight .browse-chip.active,
 body.theme-synthwave .browse-chip.active{
@@ -157,11 +177,13 @@ body.theme-synthwave .browse-chip.active{
   border-color:var(--wave-border) !important;
   box-shadow:inset 0 -2px 0 var(--accent),0 0 14px var(--wave-tint) !important;
 }
+body.theme-ocean .browse-search:focus-within,
 body.theme-dark .browse-search:focus-within,
 body.theme-midnight .browse-search:focus-within,
 body.theme-synthwave .browse-search:focus-within{border-color:var(--wave-light) !important}
 
 /* Reading panel artwork stays behind opaque/legible text and cannot intercept scroll. */
+body.theme-ocean .lyrics-panel,
 body.theme-dark .lyrics-panel,
 body.theme-midnight .lyrics-panel,
 body.theme-synthwave .lyrics-panel{
@@ -170,6 +192,7 @@ body.theme-synthwave .lyrics-panel{
   border-color:var(--wave-border) !important;
   box-shadow:0 12px 32px rgba(0,0,0,.16) !important;
 }
+body.theme-ocean .lyrics-panel::before,
 body.theme-dark .lyrics-panel::before,
 body.theme-midnight .lyrics-panel::before,
 body.theme-synthwave .lyrics-panel::before{
@@ -184,12 +207,15 @@ body.theme-synthwave .lyrics-panel::before{
   -webkit-mask-image:linear-gradient(180deg,transparent 1%,#000 34%,#000 90%);
   mask-image:linear-gradient(180deg,transparent 1%,#000 34%,#000 90%);
 }
+body.theme-ocean .lyrics-panel > .lyrics-view,
 body.theme-dark .lyrics-panel > .lyrics-view,
 body.theme-midnight .lyrics-panel > .lyrics-view,
 body.theme-synthwave .lyrics-panel > .lyrics-view{position:relative;z-index:1}
+body.theme-ocean .lyric-line.active,
 body.theme-dark .lyric-line.active,
 body.theme-midnight .lyric-line.active,
 body.theme-synthwave .lyric-line.active{font-weight:760;text-shadow:0 0 15px rgba(134,152,255,.12) !important}
+body.theme-ocean .lyric-line.active::before,
 body.theme-dark .lyric-line.active::before,
 body.theme-midnight .lyric-line.active::before,
 body.theme-synthwave .lyric-line.active::before{background:var(--wave-light);box-shadow:0 0 8px var(--wave-tint)}
@@ -252,18 +278,18 @@ body.theme-sepia .browse-hero{
 
 /*
  * Ocean Blue: the user requested more color, not more random glowing decoration.
- * Dark uses deliberately bright blue surfaces; Midnight remains the subdued option.
+ * Ocean uses bright blue surfaces; Dark and Midnight remain genuinely dark.
  * Theme token owners are defined in theme.css; this file only paints composition.
  */
-body.theme-dark{
+body.theme-ocean{
   --wave-tint:rgba(127,151,255,.27);
   --wave-border:rgba(196,214,255,.3);
   --wave-light:#afd3ff;
 }
-body.theme-dark .main,
-body.theme-dark .workspace,
-body.theme-dark .browse-page,
-body.theme-dark .tags-page{
+body.theme-ocean .main,
+body.theme-ocean .workspace,
+body.theme-ocean .browse-page,
+body.theme-ocean .tags-page{
   background-color:var(--ui-bg) !important;
   background-image:
     radial-gradient(ellipse at 19% 0%,rgba(84,147,255,.35),transparent 54%),
@@ -271,7 +297,7 @@ body.theme-dark .tags-page{
     linear-gradient(142deg,#2c4b85 0%,#223f76 46%,#1c315f 100%) !important;
   background-repeat:no-repeat !important;
 }
-body.theme-dark .sidebar{
+body.theme-ocean .sidebar{
   background-color:var(--ui-nav-bg) !important;
   background-image:
     linear-gradient(180deg,rgba(29,50,103,.86) 0%,rgba(30,53,110,.91) 49%,rgba(30,41,89,.77) 100%),
@@ -280,31 +306,31 @@ body.theme-dark .sidebar{
   background-size:cover,auto 86% !important;
   border-right-color:rgba(180,209,255,.27) !important;
 }
-body.theme-dark .sidebar-tools{
+body.theme-ocean .sidebar-tools{
   background:color-mix(in srgb,var(--ui-nav-bg) 80%,transparent) !important;
 }
-body.theme-dark .brand-row{border-bottom-color:rgba(193,210,255,.3) !important}
-body.theme-dark .page-switch{
+body.theme-ocean .brand-row{border-bottom-color:rgba(193,210,255,.3) !important}
+body.theme-ocean .page-switch{
   background:rgba(11,27,70,.23) !important;
   border-color:rgba(197,223,255,.25) !important;
 }
-body.theme-dark .page-switch-btn.active{
+body.theme-ocean .page-switch-btn.active{
   background:linear-gradient(112deg,#5f65e2,#417fdd) !important;
   box-shadow:inset 0 0 0 1px rgba(227,235,255,.36),0 7px 17px rgba(34,43,117,.28) !important;
 }
-body.theme-dark .view-btn.active{
+body.theme-ocean .view-btn.active{
   background:linear-gradient(90deg,rgba(122,151,255,.3),rgba(92,123,205,.13)) !important;
 }
-body.theme-dark .sidebar-scroll .search-box{
+body.theme-ocean .sidebar-scroll .search-box{
   background:rgba(88,115,179,.3) !important;
   border:1px solid rgba(198,218,255,.24) !important;
 }
-body.theme-dark .sidebar-tools .ghost-btn,
-body.theme-dark .sidebar-tools .file-label{
+body.theme-ocean .sidebar-tools .ghost-btn,
+body.theme-ocean .sidebar-tools .file-label{
   background:rgba(75,105,170,.28) !important;
   border-color:rgba(203,221,255,.24) !important;
 }
-body.theme-dark .topbar{
+body.theme-ocean .topbar{
   background-color:var(--ui-topbar-bg) !important;
   background-image:
     linear-gradient(90deg,rgba(43,80,150,.95),rgba(42,71,142,.85) 55%,rgba(36,62,133,.58) 100%),
@@ -313,7 +339,7 @@ body.theme-dark .topbar{
   background-position:center,right center !important;
   box-shadow:0 6px 22px rgba(13,28,71,.2) !important;
 }
-body.theme-dark .browse-hero{
+body.theme-ocean .browse-hero{
   min-height:265px;
   background-color:#172e67 !important;
   background-image:
@@ -322,48 +348,48 @@ body.theme-dark .browse-hero{
   border-color:rgba(180,210,255,.37) !important;
   box-shadow:0 15px 33px rgba(12,27,74,.24) !important;
 }
-body.theme-dark .browse-hero::after{
+body.theme-ocean .browse-hero::after{
   background:linear-gradient(180deg,transparent 60%,rgba(20,43,92,.19)) !important;
 }
-body.theme-dark .browse-hero .muted{
+body.theme-ocean .browse-hero .muted{
   color:#eef5ff !important;
   text-shadow:0 2px 8px rgba(13,27,74,.72);
 }
-body.theme-dark .browse-hero .primary-btn{
+body.theme-ocean .browse-hero .primary-btn{
   background:linear-gradient(116deg,#818aff,#61b3f5) !important;
   color:#101b46 !important;
   border-color:rgba(226,237,255,.55) !important;
   font-weight:800;
 }
-body.theme-dark .browse-search,
-body.theme-dark .browse-sort-row select{
+body.theme-ocean .browse-search,
+body.theme-ocean .browse-sort-row select{
   background:rgba(50,84,157,.57) !important;
   border-color:rgba(193,220,255,.34) !important;
 }
-body.theme-dark .browse-chip{
+body.theme-ocean .browse-chip{
   background:rgba(79,116,199,.25) !important;
   border:1px solid rgba(195,217,255,.23) !important;
   color:var(--ui-text) !important;
 }
-body.theme-dark .browse-chip.active{
+body.theme-ocean .browse-chip.active{
   background:linear-gradient(110deg,#677ff0,#3e78cb) !important;
   color:#fff !important;
   border-color:rgba(219,233,255,.44) !important;
   box-shadow:0 7px 14px rgba(29,49,113,.19) !important;
 }
-body.theme-dark .browse-cover{
+body.theme-ocean .browse-cover{
   outline-color:rgba(200,223,255,.33) !important;
   box-shadow:0 9px 25px rgba(15,29,72,.25);
 }
-body.theme-dark .browse-card:is(:hover,.active) .browse-cover{
+body.theme-ocean .browse-card:is(:hover,.active) .browse-cover{
   box-shadow:0 10px 30px rgba(110,140,254,.24);
 }
-body.theme-dark .browse-artist{color:var(--ui-text-2) !important}
-body.theme-dark .player-card{
+body.theme-ocean .browse-artist{color:var(--ui-text-2) !important}
+body.theme-ocean .player-card{
   border-color:rgba(178,207,255,.34) !important;
   box-shadow:0 16px 33px rgba(9,19,54,.24) !important;
 }
-body.theme-dark .transport-card{
+body.theme-ocean .transport-card{
   margin:10px auto 0;
   padding:9px 12px !important;
   border-radius:14px !important;
@@ -372,29 +398,29 @@ body.theme-dark .transport-card{
   width:max-content;
   max-width:100%;
 }
-body.theme-dark .lyrics-panel{
+body.theme-ocean .lyrics-panel{
   background:linear-gradient(157deg,#355494 0%,#2c497f 45%,#283d77 100%) !important;
   border-color:rgba(192,218,255,.36) !important;
   box-shadow:0 13px 35px rgba(12,27,68,.22) !important;
 }
-body.theme-dark .lyrics-head{
+body.theme-ocean .lyrics-head{
   background:rgba(35,62,122,.47) !important;
   border-bottom-color:rgba(207,226,255,.27) !important;
 }
-body.theme-dark .lyrics-panel::before{opacity:.19}
-body.theme-dark .lyric-line.near{color:#d0ddfb !important}
-body.theme-dark .lyric-line.active{
+body.theme-ocean .lyrics-panel::before{opacity:.19}
+body.theme-ocean .lyric-line.near{color:#d0ddfb !important}
+body.theme-ocean .lyric-line.active{
   color:#fff !important;
   text-shadow:0 2px 14px rgba(99,137,255,.28) !important;
 }
 /* Reserve a calm region for the player even at phone widths. */
 @media(max-width:900px){
-  body.theme-dark .topbar{background-size:cover,480px auto !important}
-  body.theme-dark .browse-hero{min-height:212px}
-  body.theme-dark .transport-card{width:100%}
+  body.theme-ocean .topbar{background-size:cover,480px auto !important}
+  body.theme-ocean .browse-hero{min-height:212px}
+  body.theme-ocean .transport-card{width:100%}
 }
 @media(max-width:480px){
-  body.theme-dark .browse-hero{min-height:0;padding:20px 16px !important}
-  body.theme-dark .sidebar{background-size:cover,auto 50% !important}
-  body.theme-dark .lyrics-panel::before{opacity:.1}
+  body.theme-ocean .browse-hero{min-height:0;padding:20px 16px !important}
+  body.theme-ocean .sidebar{background-size:cover,auto 50% !important}
+  body.theme-ocean .lyrics-panel::before{opacity:.1}
 }

@@ -1604,7 +1604,10 @@ body.is-playing .transport-btn.main-control{
   border:1px solid rgba(255,255,255,.1);
 }
 .theme-preview-dark{
-  background:linear-gradient(145deg,#1a1d24,#0d0f13);
+  background:linear-gradient(145deg,#20252d,#090b0e);
+}
+.theme-preview-ocean{
+  background:linear-gradient(135deg,#5d84db 0%,#31558d 47%,#1c315f 100%);
 }
 .theme-preview-light{
   background:linear-gradient(145deg,#fff,#e8eaed);
