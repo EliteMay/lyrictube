@@ -44,6 +44,8 @@ jobs:
         run: node tests/account-registration.test.js
       - name: Test new-password UTF-8 byte limits
         run: node tests/password-policy.test.js
+      - name: Test server security contracts
+        run: node tests/server-security-contract.test.js
       - name: Test A1 completed requirements
         run: node tests/a1-requirements.test.js
       - name: Test app utilities
