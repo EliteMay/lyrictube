@@ -103,3 +103,28 @@ jobs:
           ! grep -q 'local-audio.js' index.html
           ! grep -q 'local-audio.css' index.html
           ! grep -q 'data:image/' index.html
+
+  password-db-integration:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: test-only-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test password migration against isolated PostgreSQL
+        env:
+          PGPASSWORD: test-only-password
+          PGHOST: localhost
+          PGPORT: "5432"
+          PGUSER: postgres
+          PGDATABASE: postgres
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/password-db-migration.sql
