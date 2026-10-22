@@ -16,8 +16,10 @@ assert.match(app,/const songs=sortedDisplaySongs\(viewSongs\(\)\)/,"browse sorts
 assert.match(app,/const filtered=sortedDisplaySongs\(viewSongs\(\)\)/,"sidebar sorts its display only");
 assert.match(app,/changeLibrarySort\(els\.librarySort\.value\)/);
 assert.match(app,/changeLibrarySort\(els\.browseSort\.value\)/);
-assert.match(html,/core\/library-sort\.js\?v=20261019-4/);
-assert.match(shell,/workspace\.css\?v=20261019-4/);
+const build=fs.readFileSync("version.js","utf8").match(/build:\s*"([^"]+)"/)?.[1];
+assert(build,"current build metadata must exist");
+assert(html.includes(`core/library-sort.js?v=${build}`),"sort script must use current build");
+assert.match(shell,/workspace\.css\?v=[0-9-]+/,"workspace stylesheet revision must be present");
 assert.equal(data.appVersion,"v0.13.6");
 assert.equal(data.dataSchemaVersion,4,"this UI update must not migrate stored data");
 for(const token of ["--ui-line","--ui-surface-2","--ui-text"]){

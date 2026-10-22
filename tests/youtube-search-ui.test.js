@@ -26,5 +26,7 @@ assert(css.includes("var(--ui-surface)"),"theme token");
 assert.equal(defaults.appVersion,"v0.13.6");
 assert.equal(defaults.dataSchemaVersion,4,"search must not change existing library schema");
 assert(version.includes('version: "v0.13.6"'));
-assert(index.includes("20261019-4"));
+const build=version.match(/build:\s*"([^"]+)"/)?.[1];
+assert(build,"build metadata missing");
+assert(index.includes(`core/youtube-search.js?v=${build}`) || shell.includes('loadScript(`core/youtube-search.js?v=${VERSION}`'),"search module must use the current build");
 console.log("YouTube search UI contract tests passed");

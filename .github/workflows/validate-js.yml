@@ -42,6 +42,10 @@ jobs:
         run: node tests/account-register-scroll.test.js
       - name: Test account registration
         run: node tests/account-registration.test.js
+      - name: Test new-password UTF-8 byte limits
+        run: node tests/password-policy.test.js
+      - name: Test server security contracts
+        run: node tests/server-security-contract.test.js
       - name: Test A1 completed requirements
         run: node tests/a1-requirements.test.js
       - name: Test app utilities
@@ -99,3 +103,38 @@ jobs:
           ! grep -q 'local-audio.js' index.html
           ! grep -q 'local-audio.css' index.html
           ! grep -q 'data:image/' index.html
+
+  edge-types:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Type-check production Edge Function source
+        run: deno check supabase/functions/lyrictube-api/index.ts
+
+  password-db-integration:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: test-only-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test password migration against isolated PostgreSQL
+        env:
+          PGPASSWORD: test-only-password
+          PGHOST: localhost
+          PGPORT: "5432"
+          PGUSER: postgres
+          PGDATABASE: postgres
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/password-db-migration.sql

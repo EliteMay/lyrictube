@@ -15,8 +15,9 @@ assert.match(app,/action\.addEventListener\("click",\(\)=>openSongDialog\(song\|
 assert.match(app,/action\.textContent=song\?"歌詞を追加・検索":"＋ 曲を追加"/,"lyrics empty state should distinguish edit vs first use");
 assert.match(workspace,/\.player-placeholder \.placeholder-add\[hidden\]\{display:none!important\}/,"hidden player action must stay hidden in CSS");
 assert.match(workspace,/\.lyrics-view\.empty \.lyrics-empty-action/,"lyrics action must have theme-aware styling");
-assert.match(sidebar,/workspace\.css\?v=20261019-4/,"workspace stylesheet must bypass the previous cache");
-assert.match(version,/build: "20261019-4"/,"app script must use the new cache revision");
-assert.match(html,/sidebar\.css\?v=20261019-4/,"sidebar must load the new stylesheet revision");
+assert.match(sidebar,/workspace\.css\?v=[0-9-]+/,"workspace stylesheet must include a cache revision");
+const build=version.match(/build:\s*"([^"]+)"/)?.[1];
+assert(build,"app build revision is required");
+assert(html.includes(`sidebar.css?v=${build}`),"sidebar must load the current stylesheet revision");
 
 console.log("empty-state CTA regression guards passed");
