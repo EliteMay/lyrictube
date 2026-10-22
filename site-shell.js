@@ -141,7 +141,7 @@
           </label>
           <label>
             <span class="access-label">PASSWORD</span>
-            <input id="registerPassword" type="password" autocomplete="new-password" minlength="8" maxlength="128" placeholder="8文字以上">
+            <input id="registerPassword" type="password" autocomplete="new-password" minlength="8" maxlength="128" placeholder="8文字以上・72バイト以内">
           </label>
           <label>
             <span class="access-label">PASSWORD AGAIN</span>
@@ -376,8 +376,9 @@
           registerUsername.focus();
           return;
         }
-        if (password.length < 8) {
-          registerStatus.textContent = "パスワードは8文字以上にしてください。";
+        const passwordError = window.LyricTubePasswordPolicy.newPasswordError(password);
+        if (passwordError) {
+          registerStatus.textContent = passwordError;
           registerPassword.focus();
           return;
         }
@@ -524,7 +525,7 @@
         <div class="account-create-grid">
           <input id="newAccountUsername" type="text" placeholder="アカウント名">
           <input id="newAccountDisplayName" type="text" placeholder="表示名（省略可）">
-          <input id="newAccountPassword" type="password" placeholder="パスワード">
+          <input id="newAccountPassword" type="password" placeholder="8文字以上・72バイト以内">
           <label class="setting-check"><input id="newAccountClone" type="checkbox"><span>今のライブラリを複製</span></label>
         </div>
         <button id="createAccountBtn" class="primary-btn" type="button" style="margin-top:10px">アカウントを作成</button>
@@ -540,6 +541,8 @@
       const cloneCurrent = qs("#newAccountClone", dialog).checked;
       const status = qs("#accountManagerStatus", dialog);
       if (!username || !password) { status.textContent = "アカウント名とパスワードを入力してください。"; return; }
+      const passwordError = window.LyricTubePasswordPolicy.newPasswordError(password);
+      if (passwordError) { status.textContent = passwordError; return; }
       status.textContent = "作成中…";
       try {
         await api("create_account", { token: session.token, username, displayName, password, cloneCurrent });
@@ -567,10 +570,11 @@
         const actions = make("div", "account-row-actions");
         const pass = make("button", "ghost-btn", "パスワード変更"); pass.type = "button";
         pass.addEventListener("click", async () => {
-          const next = prompt(`${account.username} の新しいパスワード（8文字以上）`);
+          const next = prompt(`${account.username} の新しいパスワード（8文字以上・72バイト以内）`);
           if (next === null) return;
-          if (next.length < 8 || next.length > 128) {
-            alert("新しいパスワードは8〜128文字で設定してください。");
+          const passwordError = window.LyricTubePasswordPolicy.newPasswordError(next);
+          if (passwordError) {
+            alert(passwordError);
             return;
           }
           try {
