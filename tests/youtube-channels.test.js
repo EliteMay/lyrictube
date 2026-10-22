@@ -1,1 +1,26 @@
 "use strict";const test=require("node:test"),assert=require("node:assert/strict");const {videoIdsFromLibrary,chunks,apiUrl,normalizeChannels,normalizeUploads,safeIconUrl}=require("../core/youtube-channels.js");const video="abcdefghijk",second="ABCDEFGHIJK",channel="UC"+"a".repeat(22);test("deduplicates video IDs and skips local media",()=>{const a={songs:[{versions:[{videoId:video},{videoId:video},{source:"localmedia",videoId:second}]},{versions:[{videoId:second}]}]};const before=JSON.stringify(a);assert.deepEqual(videoIdsFromLibrary(a),[video,second]);assert.equal(JSON.stringify(a),before)});test("chunks at most 50",()=>{assert.deepEqual(chunks([1,2,3],2),[[1,2],[3]]);assert.throws(()=>chunks([1],0))});test("only official API resource paths",()=>{assert.equal(new URL(apiUrl("videos",{id:video},"k")).pathname,"/youtube/v3/videos");assert.throws(()=>apiUrl("../bad",{},"k"))});test("channel joins official icon and uploads playlist",()=>{const a=normalizeChannels([{snippet:{channelId:channel}}],[{id:channel,snippet:{title:"Artist",thumbnails:{high:{url:"https://yt3.googleusercontent.com/a"}}},contentDetails:{relatedPlaylists:{uploads:"UU"+"a".repeat(22)}}}]);assert.equal(a[0].title,"Artist");assert.equal(a[0].registeredCount,1);assert.ok(a[0].uploadsId.startsWith("UU"))});test("filters deleted and private videos",()=>{const a=normalizeUploads({nextPageToken:"next",items:[{snippet:{resourceId:{videoId:video},title:"Track"}},{snippet:{resourceId:{videoId:second},title:"Private video"}}]},new Set([video]));assert.deepEqual(a,{items:[{videoId:video,title:"Track",registered:true}],nextPageToken:"next"})});test("restricts channel avatar host",()=>{assert.equal(safeIconUrl("https://yt3.googleusercontent.com/a"),"https://yt3.googleusercontent.com/a");assert.equal(safeIconUrl("https://evil.example/a"),"");assert.equal(safeIconUrl("javascript:alert(1)"),"")});
+test("lazy avatar image attaches before load; fallback survives an image error",()=>{
+  const fs=require("node:fs"),vm=require("node:vm");
+  const line=fs.readFileSync("core/youtube-channels.js","utf8").split("\n").find(s=>s.startsWith("function avatar(channel)"));
+  assert.ok(line,"missing avatar function");
+  const node=(tag,cls,text)=>({tag,cls,textContent:text,style:{},children:[],listeners:{},
+    append(...items){this.children.push(...items)},
+    addEventListener(kind,callback){this.listeners[kind]=callback},
+    remove(){this.removed=true}
+  });
+  const avatar=vm.runInNewContext(line+";avatar",{node,safeIconUrl});
+  const wrapper=avatar({title:"Music",icon:"https://yt3.googleusercontent.com/avatar"});
+  const image=wrapper.children[0];
+  assert.equal(wrapper.textContent,"M");
+  assert.equal(image.tag,"img","lazy image must be in the DOM output");
+  assert.equal(image.loading,"lazy");
+  assert.equal(image.style.opacity,"0");
+  image.listeners.load();
+  assert.equal(image.style.opacity,"1","successful avatar replaces the visible fallback");
+  image.listeners.error();
+  assert.equal(image.removed,true,"error leaves the initial letter intact");
+  assert.equal(avatar({title:"Other",icon:"https://untrusted.example/a"}).children.length,0);
+  const stylesheet=fs.readFileSync("youtube-channels.css","utf8");
+  assert.match(stylesheet,/\.channel-avatar\{[^}]*position:relative/);
+  assert.match(stylesheet,/\.channel-avatar img\{[^}]*position:absolute/);
+});
