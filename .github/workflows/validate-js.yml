@@ -104,6 +104,16 @@ jobs:
           ! grep -q 'local-audio.css' index.html
           ! grep -q 'data:image/' index.html
 
+  edge-types:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Type-check production Edge Function source
+        run: deno check supabase/functions/lyrictube-api/index.ts
+
   password-db-integration:
     runs-on: ubuntu-latest
     services:
