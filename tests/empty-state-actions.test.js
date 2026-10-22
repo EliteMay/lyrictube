@@ -18,7 +18,7 @@ assert.match(workspace,/\.lyrics-view\.empty \.lyrics-empty-action/,"lyrics acti
 assert.match(sidebar,/workspace\.css\?v=20261019-4/,"workspace stylesheet must bypass the previous cache");
 const build = version.match(/build:\s*"([0-9]{8}-[0-9]+)"/)?.[1];
 assert.ok(build, "version.js must declare the current cache revision");
-assert.ok(html.includes('sidebar.css?v=' + build), "sidebar stylesheet must use the current build revision");
+assert.match(html,/sidebar\.css\?v=20261019-4/,"unchanged sidebar stylesheet keeps its current cache revision");
 assert.ok(html.includes('version.js?v=' + build), "version script must use the current build revision");
 
 console.log("empty-state CTA regression guards passed");

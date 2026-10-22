@@ -18,7 +18,8 @@ assert.match(app,/changeLibrarySort\(els\.librarySort\.value\)/);
 assert.match(app,/changeLibrarySort\(els\.browseSort\.value\)/);
 assert.match(html,/core\/library-sort\.js\?v=20261019-4/);
 assert.match(shell,/workspace\.css\?v=20261019-4/);
-assert.equal(data.appVersion,"v0.13.6");
+const activeVersion=fs.readFileSync("version.js","utf8").match(/version:\s*"(v[0-9.]+)"/)?.[1];
+assert.equal(data.appVersion,activeVersion,"defaults and version.js must agree");
 assert.equal(data.dataSchemaVersion,4,"this UI update must not migrate stored data");
 for(const token of ["--ui-line","--ui-surface-2","--ui-text"]){
   assert(css.includes(token),"visual controls need theme tokens: "+token);
