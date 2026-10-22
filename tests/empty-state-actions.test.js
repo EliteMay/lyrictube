@@ -16,7 +16,7 @@ assert.match(app,/action\.textContent=song\?"歌詞を追加・検索":"＋ 曲�
 assert.match(workspace,/\.player-placeholder \.placeholder-add\[hidden\]\{display:none!important\}/,"hidden player action must stay hidden in CSS");
 assert.match(workspace,/\.lyrics-view\.empty \.lyrics-empty-action/,"lyrics action must have theme-aware styling");
 assert.match(sidebar,/workspace\.css\?v=20261019-4/,"workspace stylesheet must bypass the previous cache");
-const build = version.match(/build:\\s*"([0-9]{8}-[0-9]+)"/)?.[1];
+const build = version.match(/build:\s*"([0-9]{8}-[0-9]+)"/)?.[1];
 assert.ok(build, "version.js must declare the current cache revision");
 assert.ok(html.includes('sidebar.css?v=' + build), "sidebar stylesheet must use the current build revision");
 assert.ok(html.includes('version.js?v=' + build), "version script must use the current build revision");
