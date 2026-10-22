@@ -23,8 +23,9 @@ assert(source.includes("textContent = item.title"),"search titles must be plain 
 assert(source.includes('const VIDEO_ID = /^[a-zA-Z0-9_-]{11}$/'),"trusted video ID shape");
 assert(css.includes(".youtube-search-dialog"),"dialog should be styled");
 assert(css.includes("var(--ui-surface)"),"theme token");
-assert.equal(defaults.appVersion,"v0.13.6");
+const activeVersion=version.match(/version:\s*"(v[0-9.]+)"/)?.[1];
+assert.equal(defaults.appVersion,activeVersion,"defaults and version.js must match");
 assert.equal(defaults.dataSchemaVersion,4,"search must not change existing library schema");
-assert(version.includes('version: "v0.13.6"'));
-assert(index.includes("20261019-4"));
+assert(version.includes('build: "'+defaults.buildRevision+'"'),"current build metadata must agree");
+assert(index.includes(defaults.buildRevision));
 console.log("YouTube search UI contract tests passed");

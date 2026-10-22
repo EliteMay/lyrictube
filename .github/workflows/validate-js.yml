@@ -77,6 +77,8 @@ jobs:
       - name: Test listening layout
         run: node tests/listening-layout.test.js
 
+      - name: Test YouTube channel discovery
+        run: node --test tests/youtube-channels.test.js
       - name: Test YouTube search API integration
         run: node tests/youtube-search.test.js
       - name: Test YouTube search UI contract
