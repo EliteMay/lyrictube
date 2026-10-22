@@ -27,5 +27,5 @@ const activeVersion=version.match(/version:\s*"(v[0-9.]+)"/)?.[1];
 assert.equal(defaults.appVersion,activeVersion,"defaults and version.js must match");
 assert.equal(defaults.dataSchemaVersion,4,"search must not change existing library schema");
 assert(version.includes('build: "'+defaults.buildRevision+'"'),"current build metadata must agree");
-assert(index.includes("20261019-4"));
+assert(index.includes(defaults.buildRevision));
 console.log("YouTube search UI contract tests passed");
