@@ -24,7 +24,9 @@ assert.match(shell,/overlayPendingLibrary\(remote,queue\)/);
 assert.match(shell,/lyrictube.youtubeSearch.key.session/);
 assert.match(cloud,/inFlight=snapshot;/);
 assert.match(cloud,/restoreFailedBatch\(snapshot\)/);
-assert.match(index,/src="core\/cloud-sync-recovery.js\?v=20261019-4"/);
+const build=fs.readFileSync("version.js","utf8").match(/build:\s*"([^"]+)"/)?.[1];
+assert(build,"build metadata missing");
+assert(index.includes(`src="core/cloud-sync-recovery.js?v=${build}"`));
 assert(!/lyrictube\.cloudSyncQueue\.v1.*removeItem/.test(shell));
 assert.match(local,/function cleanupOrphans\(\)/);
 
