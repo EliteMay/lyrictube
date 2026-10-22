@@ -449,6 +449,7 @@
     await loadScript(`core/fair-shuffle.js?v=${VERSION}`, "fair shuffle");
     await loadScript(`app.js?v=${VERSION}`, "app.js");
     await loadScript(`core/youtube-search.js?v=${VERSION}`, "YouTube search");
+    await loadScript(`core/youtube-channels.js?v=${VERSION}`, "YouTube channels");
   }
 
   function initCloudSync(role, session) {

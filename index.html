@@ -10,13 +10,14 @@
   <title>LyricTube</title>
   <link rel="icon" type="image/webp" href="assets/lyrictube-icon.webp">
   <link rel="apple-touch-icon" href="assets/lyrictube-icon.webp">
-  <link rel="stylesheet" href="styles.css?v=20261019-4&palette=ocean2">
-  <link rel="stylesheet" href="mobile.css?v=20261019-4">
-  <link rel="stylesheet" href="guest.css?v=20261019-4">
-  <link rel="stylesheet" href="auth-ui.css?v=20261019-4">
-  <link rel="stylesheet" href="tags.css?v=20261019-4">
-  <link rel="stylesheet" href="sidebar.css?v=20261019-4&palette=ocean2">
-  <link rel="stylesheet" href="visual-art-v3.css?v=20261019-4&palette=ocean2">
+  <link rel="stylesheet" href="styles.css?v=20261022-1&palette=ocean2">
+  <link rel="stylesheet" href="mobile.css?v=20261022-1">
+  <link rel="stylesheet" href="guest.css?v=20261022-1">
+  <link rel="stylesheet" href="auth-ui.css?v=20261022-1">
+  <link rel="stylesheet" href="tags.css?v=20261022-1">
+  <link rel="stylesheet" href="sidebar.css?v=20261022-1&palette=ocean2">
+  <link rel="stylesheet" href="visual-art-v3.css?v=20261022-1&palette=ocean2">
+  <link rel="stylesheet" href="youtube-channels.css?v=20261022-1">
 </head>
 <body>
   <div class="app-shell">
@@ -25,7 +26,7 @@
         <div class="brand-lockup">
           <img src="assets/lyrictube-icon.webp" class="brand-logo" alt="LyricTube">
           <div>
-            <p class="eyebrow">MY MUSIC · <span data-app-version>v0.13.6</span></p>
+            <p class="eyebrow">MY MUSIC · <span data-app-version>v0.13.7</span></p>
             <div class="brand-title-line"><h1>LyricTube</h1></div>
             <p class="brand-subtitle">YouTube & Local Media · Synced Lyrics</p>
           </div>
@@ -100,6 +101,7 @@
             <p class="muted">サムネイルを見ながら大きく選べます。再生してもこのページに残るので、そのまま次の曲を探せます。</p>
             <div class="browse-hero-actions">
               <button id="browseAddSongBtn" class="primary-btn" type="button">＋ 曲を追加</button>
+              <button id="browseChannelsBtn" class="ghost-btn" type="button">投稿チャンネルから探す</button>
             </div>
           </div>
           <div class="browse-brand-art" aria-hidden="true">
@@ -327,6 +329,15 @@
     <div id="youtubeSearchResults" class="youtube-search-results" aria-label="YouTube検索結果"></div>
   </dialog>
 
+  <dialog id="youtubeChannelsDialog" class="dialog youtube-channels-dialog" aria-labelledby="channelHeading">
+    <div class="dialog-head"><div><p class="eyebrow">CHANNELS</p><h3 id="channelHeading">投稿チャンネルから探す</h3></div><button id="closeYoutubeChannelsDialog" class="icon-btn subtle" type="button" aria-label="閉じる">×</button></div>
+    <div class="channel-body">
+      <p class="muted small">登録済みのYouTube動画から投稿チャンネルとアイコンを取得します。曲の登録前に内容を確認できます。</p>
+      <div id="channelKeyHelp" class="channel-key-help" hidden><label for="channelApiKey">YouTube Data APIキー（YouTube検索と共通）</label><div class="channel-key-row"><input id="channelApiKey" type="password" autocomplete="off" placeholder="ブラウザ制限付きAPIキー"><button id="channelKeySave" class="primary-soft" type="button">このタブで使う</button></div><small>キーを曲情報やクラウドに保存することはありません。</small></div>
+      <section id="channelPanel"><div class="channel-toolbar"><input id="channelFilter" type="search" aria-label="チャンネルを絞り込む" placeholder="チャンネル名で検索"><button id="channelRefreshBtn" class="ghost-btn" type="button">再取得</button></div><p id="channelStatus" role="status" aria-live="polite"></p><div id="channelList" class="channel-list"></div></section>
+      <section id="channelVideosPanel" hidden><button id="channelBackBtn" class="ghost-btn" type="button">← チャンネル一覧へ</button><div class="channel-current"><span id="channelCurrentIcon"></span><strong id="channelCurrentName"></strong></div><p id="channelVideoStatus" role="status" aria-live="polite"></p><div id="channelVideos" class="channel-videos"></div><div class="channel-footer"><button id="channelLoadMore" class="ghost-btn" type="button" hidden>次の50件を取得</button></div></section>
+    </div>
+  </dialog>
   <dialog id="settingsDialog" class="dialog settings-dialog">
     <div class="dialog-head">
       <div><p class="eyebrow">SETTINGS</p><h3>設定</h3></div>
@@ -605,19 +616,19 @@
   </footer>
 
   <div id="toast" class="toast" aria-live="polite"></div>
-  <script src="version.js?v=20261019-4"></script>
-  <script src="core/app-utils.js?v=20261019-4"></script>
-  <script src="core/runtime-hooks.js?v=20261019-4"></script>
-  <script src="core/player-controller.js?v=20261019-4"></script>
-  <script src="core/library-sort.js?v=20261019-4"></script>
-  <script src="library-schema.js?v=20261019-4"></script>
-  <script src="sync-interpolation.js?v=20261019-4"></script>
-  <script src="core/cloud-sync-recovery.js?v=20261019-4"></script>
-  <script src="profile-data.js?v=20261019-4"></script>
-  <script src="cloud-sync.js?v=20261019-4"></script>
-  <script src="site-shell.js?v=20261019-4"></script>
-  <script src="lyrics-providers.js?v=20261019-4"></script>
-  <script src="local-media.js?v=20261019-4"></script>
-  <script src="tags.js?v=20261019-4"></script>
+  <script src="version.js?v=20261022-1"></script>
+  <script src="core/app-utils.js?v=20261022-1"></script>
+  <script src="core/runtime-hooks.js?v=20261022-1"></script>
+  <script src="core/player-controller.js?v=20261022-1"></script>
+  <script src="core/library-sort.js?v=20261022-1"></script>
+  <script src="library-schema.js?v=20261022-1"></script>
+  <script src="sync-interpolation.js?v=20261022-1"></script>
+  <script src="core/cloud-sync-recovery.js?v=20261022-1"></script>
+  <script src="profile-data.js?v=20261022-1"></script>
+  <script src="cloud-sync.js?v=20261022-1"></script>
+  <script src="site-shell.js?v=20261022-1"></script>
+  <script src="lyrics-providers.js?v=20261022-1"></script>
+  <script src="local-media.js?v=20261022-1"></script>
+  <script src="tags.js?v=20261022-1"></script>
 </body>
 </html>
