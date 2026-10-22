@@ -557,6 +557,93 @@
     return dialog;
   }
 
+
+  function promptForSensitivePassword({ title, includeNewPassword = false }) {
+    return new Promise(resolve => {
+      const dialog = document.createElement("dialog");
+      dialog.className = "dialog account-manager-dialog";
+      const form = document.createElement("form");
+      form.className = "dialog-body";
+      form.noValidate = true;
+
+      const heading = document.createElement("h2");
+      heading.textContent = title;
+      form.appendChild(heading);
+
+      const currentLabel = document.createElement("label");
+      currentLabel.textContent = "現在ログインしているアカウントのパスワード";
+      const currentInput = document.createElement("input");
+      currentInput.type = "password";
+      currentInput.autocomplete = "current-password";
+      currentInput.required = true;
+      currentLabel.appendChild(currentInput);
+      form.appendChild(currentLabel);
+
+      let nextInput = null;
+      if (includeNewPassword) {
+        const nextLabel = document.createElement("label");
+        nextLabel.textContent = "新しいパスワード（8〜128文字・UTF-8で72バイト以内）";
+        nextInput = document.createElement("input");
+        nextInput.type = "password";
+        nextInput.autocomplete = "new-password";
+        nextInput.required = true;
+        nextLabel.appendChild(nextInput);
+        form.appendChild(nextLabel);
+      }
+
+      const buttons = document.createElement("div");
+      buttons.className = "access-register-actions";
+      const cancel = document.createElement("button");
+      cancel.type = "button";
+      cancel.textContent = "キャンセル";
+      const submit = document.createElement("button");
+      submit.type = "submit";
+      submit.textContent = "確認して続行";
+      buttons.append(cancel, submit);
+      form.appendChild(buttons);
+      dialog.appendChild(form);
+      document.body.appendChild(dialog);
+
+      let finished = false;
+      const finish = value => {
+        if (finished) return;
+        finished = true;
+        currentInput.value = "";
+        if (nextInput) nextInput.value = "";
+        if (dialog.open) dialog.close();
+        dialog.remove();
+        resolve(value);
+      };
+      dialog.addEventListener("cancel", event => {
+        event.preventDefault();
+        finish(null);
+      });
+      cancel.addEventListener("click", () => finish(null));
+      form.addEventListener("submit", event => {
+        event.preventDefault();
+        if (!currentInput.value) return;
+        const currentPassword = currentInput.value;
+        if (!includeNewPassword) {
+          finish({ currentPassword });
+          return;
+        }
+        const password = nextInput?.value || "";
+        const error = window.LyricTubePasswordPolicy.newPasswordError(password);
+        if (error) {
+          alert(error);
+          return;
+        }
+        finish({ currentPassword, password });
+      });
+      try {
+        dialog.showModal();
+        currentInput.focus();
+      } catch {
+        finish(null);
+      }
+    });
+  }
+
   async function refreshAccountList(dialog, session) {
     const list = qs("#accountManagerList", dialog);
     list.textContent = "読み込み中…";
@@ -570,15 +657,16 @@
         const actions = make("div", "account-row-actions");
         const pass = make("button", "ghost-btn", "パスワード変更"); pass.type = "button";
         pass.addEventListener("click", async () => {
-          const next = prompt(`${account.username} の新しいパスワード（8文字以上・72バイト以内）`);
-          if (next === null) return;
-          const passwordError = window.LyricTubePasswordPolicy.newPasswordError(next);
-          if (passwordError) {
-            alert(passwordError);
-            return;
-          }
+          const input = await promptForSensitivePassword({
+            title: `${account.username} のパスワードを変更`,
+            includeNewPassword: true
+          });
+          if (!input) return;
           try {
-            await api("change_password", { token: session.token, accountId: account.id, password: next });
+            await api("change_password", {
+              token: session.token, accountId: account.id,
+              password: input.password, currentPassword: input.currentPassword
+            });
             if (account.id === session.account.id) {
               alert("パスワードを変更しました。安全のため再ログインしてください。");
               await logout(null);
@@ -592,7 +680,14 @@
           const del = make("button", "danger-btn", "削除"); del.type = "button";
           del.addEventListener("click", async () => {
             if (!confirm(`${account.username} を削除しますか？曲データも削除されます。`)) return;
-            try { await api("delete_account", { token: session.token, accountId: account.id }); await refreshAccountList(dialog, session); } catch (error) { alert(error.message); }
+            const input = await promptForSensitivePassword({ title: `${account.username} を削除する本人確認` });
+            if (!input) return;
+            try {
+              await api("delete_account", {
+                token: session.token, accountId: account.id, currentPassword: input.currentPassword
+              });
+              await refreshAccountList(dialog, session);
+            } catch (error) { alert(error.message); }
           });
           actions.appendChild(del);
         }
