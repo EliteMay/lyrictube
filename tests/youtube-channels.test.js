@@ -1,4 +1,4 @@
-"use strict";const test=require("node:test"),assert=require("node:assert/strict");const {videoIdsFromLibrary,chunks,apiUrl,normalizeChannels,normalizeUploads,safeIconUrl}=require("../core/youtube-channels.js");const video="abcdefghijk",second="ABCDEFGHIJK",channel="UC"+"a".repeat(22);test("deduplicates video IDs and skips local media",()=>{const a={songs:[{versions:[{videoId:video},{videoId:video},{source:"localmedia",videoId:second}]},{versions:[{videoId:second}]}]};const before=JSON.stringify(a);assert.deepEqual(videoIdsFromLibrary(a),[video,second]);assert.equal(JSON.stringify(a),before)});test("chunks at most 50",()=>{assert.deepEqual(chunks([1,2,3],2),[[1,2],[3]]);assert.throws(()=>chunks([1],0))});test("only official API resource paths",()=>{assert.equal(new URL(apiUrl("videos",{id:video},"k")).pathname,"/youtube/v3/videos");assert.throws(()=>apiUrl("../bad",{},"k"))});test("channel joins official icon and uploads playlist",()=>{const a=normalizeChannels([{snippet:{channelId:channel}}],[{id:channel,snippet:{title:"Artist",thumbnails:{high:{url:"https://yt3.googleusercontent.com/a"}}},contentDetails:{relatedPlaylists:{uploads:"UU"+"a".repeat(22)}}}]);assert.equal(a[0].title,"Artist");assert.equal(a[0].registeredCount,1);assert.ok(a[0].uploadsId.startsWith("UU"))});test("filters deleted and private videos",()=>{const a=normalizeUploads({nextPageToken:"next",items:[{snippet:{resourceId:{videoId:video},title:"Track"}},{snippet:{resourceId:{videoId:second},title:"Private video"}}]},new Set([video]));assert.deepEqual(a,{items:[{videoId:video,title:"Track",registered:true}],nextPageToken:"next"})});test("restricts channel avatar host",()=>{assert.equal(safeIconUrl("https://yt3.googleusercontent.com/a"),"https://yt3.googleusercontent.com/a");assert.equal(safeIconUrl("https://evil.example/a"),"");assert.equal(safeIconUrl("javascript:alert(1)"),"")});
+"use strict";const test=require("node:test"),assert=require("node:assert/strict");const {videoIdsFromLibrary,chunks,apiUrl,normalizeChannels,normalizeUploads,onlyRegularVideos,safeIconUrl}=require("../core/youtube-channels.js");const video="abcdefghijk",second="ABCDEFGHIJK",channel="UC"+"a".repeat(22);test("deduplicates video IDs and skips local media",()=>{const a={songs:[{versions:[{videoId:video},{videoId:video},{source:"localmedia",videoId:second}]},{versions:[{videoId:second}]}]};const before=JSON.stringify(a);assert.deepEqual(videoIdsFromLibrary(a),[video,second]);assert.equal(JSON.stringify(a),before)});test("chunks at most 50",()=>{assert.deepEqual(chunks([1,2,3],2),[[1,2],[3]]);assert.throws(()=>chunks([1],0))});test("only official API resource paths",()=>{assert.equal(new URL(apiUrl("videos",{id:video},"k")).pathname,"/youtube/v3/videos");assert.throws(()=>apiUrl("../bad",{},"k"))});test("channel joins official icon and uploads playlist",()=>{const a=normalizeChannels([{snippet:{channelId:channel}}],[{id:channel,snippet:{title:"Artist",thumbnails:{high:{url:"https://yt3.googleusercontent.com/a"}}},contentDetails:{relatedPlaylists:{uploads:"UU"+"a".repeat(22)}}}]);assert.equal(a[0].title,"Artist");assert.equal(a[0].registeredCount,1);assert.ok(a[0].uploadsId.startsWith("UU"))});test("filters deleted and private videos",()=>{const a=normalizeUploads({nextPageToken:"next",items:[{snippet:{resourceId:{videoId:video},title:"Track"}},{snippet:{resourceId:{videoId:second},title:"Private video"}}]},new Set([video]));assert.deepEqual(a,{items:[{videoId:video,title:"Track",registered:true}],nextPageToken:"next"})});test("restricts channel avatar host",()=>{assert.equal(safeIconUrl("https://yt3.googleusercontent.com/a"),"https://yt3.googleusercontent.com/a");assert.equal(safeIconUrl("https://evil.example/a"),"");assert.equal(safeIconUrl("javascript:alert(1)"),"")});
 test("lazy avatar image attaches before load; fallback survives an image error",()=>{
   const fs=require("node:fs"),vm=require("node:vm");
   const line=fs.readFileSync("core/youtube-channels.js","utf8").split("\n").find(s=>s.startsWith("function avatar(channel)"));
@@ -23,4 +23,34 @@ test("lazy avatar image attaches before load; fallback survives an image error",
   const stylesheet=fs.readFileSync("youtube-channels.css","utf8");
   assert.match(stylesheet,/\.channel-avatar\{[^}]*position:relative/);
   assert.match(stylesheet,/\.channel-avatar img\{[^}]*position:absolute/);
+});
+
+test("shows only regular videos, excluding live, upcoming, archived streams and missing metadata",()=>{
+  const uploads=[
+    {videoId:"aaaaaaaaaaa",title:"Music",registered:false},
+    {videoId:"bbbbbbbbbbb",title:"On air",registered:false},
+    {videoId:"ccccccccccc",title:"Scheduled",registered:false},
+    {videoId:"ddddddddddd",title:"Archive",registered:true},
+    {videoId:"eeeeeeeeeee",title:"Unlisted",registered:false},
+    {videoId:"fffffffffff",title:"No metadata",registered:false}
+  ];
+  const details=[
+    {id:"aaaaaaaaaaa",snippet:{liveBroadcastContent:"none"}},
+    {id:"bbbbbbbbbbb",snippet:{liveBroadcastContent:"live"},liveStreamingDetails:{actualStartTime:"2026-10-22T12:00:00Z"}},
+    {id:"ccccccccccc",snippet:{liveBroadcastContent:"upcoming"},liveStreamingDetails:{scheduledStartTime:"2026-10-23T12:00:00Z"}},
+    {id:"ddddddddddd",snippet:{liveBroadcastContent:"none"},liveStreamingDetails:{actualEndTime:"2026-10-22T12:00:00Z"}},
+    {id:"eeeeeeeeeee",snippet:{liveBroadcastContent:"none"}}
+  ];
+  const before=JSON.stringify(uploads);
+  const regular=onlyRegularVideos(uploads,details);
+  assert.deepEqual(regular.map(x=>x.videoId),["aaaaaaaaaaa","eeeeeeeeeee"]);
+  assert.equal(JSON.stringify(uploads),before,"filter does not mutate upload data");
+});
+test("checks upload metadata using videos.list, including archived live metadata",()=>{
+  const fs=require("node:fs");
+  const source=fs.readFileSync("core/youtube-channels.js","utf8");
+  assert.match(source,/request\("playlistItems"/);
+  assert.match(source,/request\("videos",\{part:"snippet,liveStreamingDetails"/);
+  assert.match(source,/onlyRegularVideos\(result\.items,details\.items\)/);
+  assert.match(source,/次の50件を確認できます/,"pagination remains possible even if an entire page is streams");
 });
