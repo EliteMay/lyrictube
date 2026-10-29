@@ -531,6 +531,7 @@ function renderSelectedSong(){
     renderVersionControls();
     renderBottomPlayer();
     updateVisualTheme();
+    window.LyricTubeHooks?.emit?.("render:selected-song:done",{song:null,version:null});
     return
   }
   els.nowTitle.textContent=song.title;
@@ -543,6 +544,7 @@ function renderSelectedSong(){
   renderLyrics(song,v);
   renderBottomPlayer();
   updateVisualTheme();
+  window.LyricTubeHooks?.emit?.("render:selected-song:done",{song,version:v});
 }
 function renderVersionTabs(song){els.versionTabs.innerHTML="";song.versions.forEach(v=>{const b=document.createElement("button");b.type="button";b.className=`version-tab${v.id===selectedVersionId?" active":""}`;b.textContent=versionDisplayName(v);b.addEventListener("click",()=>selectVersion(v.id,false));els.versionTabs.appendChild(b)})}
 function renderVersionControls(v=getVersion()){pendingSkipStart=null;els.pendingSkipLabel.textContent="";els.markSkipEndBtn.disabled=true;if(!v){els.startTimeLabel.textContent="00:00.00";els.endTimeLabel.textContent="未設定";els.offsetInput.value="0.0";els.skipList.innerHTML="";return}els.startTimeLabel.textContent=formatTime(v.startTime);els.endTimeLabel.textContent=formatTime(v.endTime,{allowEmpty:true});els.offsetInput.value=Number(v.lyricsOffset||0).toFixed(1);els.autoSkipToggle.checked=v.autoSkip!==false;els.versionSyncStatus.textContent=v.customSyncedLyrics?"この動画専用同期を使用":"原曲の時間データを使用";renderSkipList(v);updateModeButtons()}
@@ -2100,6 +2102,20 @@ function findRegisteredVideo(videoId,{excludeSongId="",excludeVersionId=""}={}){
   }
   return null;
 }
+function playRegisteredVideo(videoId){
+  const found=findRegisteredVideo(videoId);
+  if(!found)return false;
+  selectedSongId=found.song.id;
+  selectedVersionId=found.version.id;
+  beginLyricVideoSwitch();
+  // Keep playback start in the click task rather than deferring it behind a full render.
+  loadSelectedVideo(true);
+  const songId=String(selectedSongId),versionId=String(selectedVersionId);
+  requestAnimationFrame(()=>{
+    if(String(selectedSongId)===songId&&String(selectedVersionId)===versionId)renderAll();
+  });
+  return true;
+}
 function duplicateVideoNotice(duplicate){
   if(!duplicate)return "この動画はすでに登録されています。";
   const songTitle=duplicate.song?.title||"無題";
@@ -3455,6 +3471,7 @@ window.LyricTubeCore = Object.freeze({
   duration: () => getPlayerDuration(),
   state: () => playerStateSafe(),
   play: () => playMainPlayback(),
+  playRegisteredVideo: videoId => playRegisteredVideo(videoId),
   pause: () => pauseMainPlayback(),
   seek: (target, autoplay = false) => seekMainPlayback(target, { autoplay }),
   hooks: window.LyricTubeHooks,
