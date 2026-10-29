@@ -79,6 +79,8 @@ jobs:
 
       - name: Test YouTube channel discovery
         run: node --test tests/youtube-channels.test.js
+      - name: Test now-playing channel navigation
+        run: node --test tests/now-playing-channel.test.js
       - name: Test YouTube search API integration
         run: node tests/youtube-search.test.js
       - name: Test YouTube search UI contract
