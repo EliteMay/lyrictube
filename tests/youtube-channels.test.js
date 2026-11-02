@@ -53,7 +53,7 @@ test("checks upload metadata using videos.list, including archived live metadata
   const source=fs.readFileSync("core/youtube-channels.js","utf8");
   assert.match(source,/request\("playlistItems",\s*params/);
   assert.match(source,/request\("videos",\s*\{\s*part:\s*"snippet,contentDetails,liveStreamingDetails"/);
-  assert.match(source,/onlyRegularVideos\(result\.items,details\.items\)/);
+  assert.match(source,/onlyRegularVideos\(result\.items,\s*details\.items\)/);
   assert.match(source,/次の50件を確認できます/,"pagination remains possible even if an entire page is streams");
 });
 
