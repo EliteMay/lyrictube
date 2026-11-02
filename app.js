@@ -105,11 +105,20 @@ function nowIso(){return new Date().toISOString()}
 const appUtils=window.LyricTubeAppUtils;
 if(!appUtils)throw new Error("core/app-utils.js is required before app.js");
 const {
-  normalizeText,clamp,escText,typeName,versionDisplayName,formatTime,parseTimecode,
-  extractVideoId,thumbnailUrl,parseLrc,plainFromLrc,lyricTextLines,lyricLineKey,
-  lcsLineMapping,interpolateTimeForInsertedLine,isSyncMarkerText,
-  mergePreservedSyncMarkers,rebaseLrcTextKeepingTimes
-}=appUtils;
+  normalizeText,
+  clamp,
+  typeName,
+  versionDisplayName,
+  formatTime,
+  parseTimecode,
+  extractVideoId,
+  thumbnailUrl,
+  parseLrc,
+  plainFromLrc,
+  lyricTextLines,
+  isSyncMarkerText,
+  rebaseLrcTextKeepingTimes
+} = appUtils;
 
 function applyEditedLyricsToExistingSync(song,oldPlain,newPlain){
   if(!song||!newPlain)return{shared:false,versions:0};
@@ -2795,14 +2804,6 @@ function updateSyncAssistStatus(){
   }
   if(els.syncAssistApplyBtn)els.syncAssistApplyBtn.disabled=anchors.length<2;
   if(els.syncAssistClearBtn)els.syncAssistClearBtn.disabled=!anchors.length;
-}
-function markSyncAnchor(index){
-  if(!syncDraft[index])return;
-  syncAnchorIndices.add(index);
-  updateSyncAssistStatus();
-  els.syncEditorList
-    ?.querySelector(`.sync-editor-row[data-index="${index}"]`)
-    ?.classList.add("sync-anchor");
 }
 function reindexSyncAnchorsForInsert(index){
   syncAnchorIndices=new Set([...syncAnchorIndices].map(value=>value>=index?value+1:value));
