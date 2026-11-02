@@ -3,6 +3,10 @@
 Thumbs.db
 *.log
 
+# Generated Python bytecode
+__pycache__/
+*.py[cod]
+
 # Local secrets/backups
 .env
 .env.*
